@@ -126,7 +126,7 @@
                         <goals>
                             <goal>native-image</goal>
                         </goals>
-                        <phase>package</phase>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
                 <configuration>
