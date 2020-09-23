@@ -33,21 +33,6 @@
             <version>1.7.30</version>
         </dependency>
         <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
-            <version>19.6.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ucp</artifactId>
-            <version>19.6.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.database.soda</groupId>
-            <artifactId>orajsoda</artifactId>
-            <version>1.1.4</version>
-        </dependency>
-        <dependency>
             <groupId>javax.activation</groupId>
             <artifactId>javax.activation-api</artifactId>
             <version>1.2.0</version>
@@ -148,7 +133,18 @@
                         -H:+ReportExceptionStackTraces
                         --allow-incomplete-classpath
                         --report-unsupported-elements-at-runtime
+                        --enable-all-security-services
+                        -H:EnableURLProtocols=https
+                        -H:ConfigurationFileDirectories=../src/main/resources/META-INF/native-image
                     </buildArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
 

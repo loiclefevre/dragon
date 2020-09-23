@@ -25,25 +25,13 @@ import com.oracle.bmc.objectstorage.responses.ListBucketsResponse;
 import com.oracle.bmc.workrequests.WorkRequestClient;
 import com.oracle.bmc.workrequests.requests.GetWorkRequestRequest;
 import com.oracle.bmc.workrequests.responses.GetWorkRequestResponse;
+import com.oracle.dragon.util.ADBRESTService;
 import com.oracle.dragon.util.ZipUtil;
-import oracle.jdbc.OracleConnection;
-import oracle.soda.OracleCollection;
-import oracle.soda.OracleDatabase;
-import oracle.soda.OracleException;
-import oracle.soda.rdbms.OracleRDBMSClient;
-import oracle.ucp.jdbc.PoolDataSource;
-import oracle.ucp.jdbc.PoolDataSourceFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.Duration;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -76,9 +64,9 @@ public class DragonStack {
         println();
 
         try {
-            print80("Stack parameters", "analyzing");
+            print80("Command line parameters", "analyzing");
             analyzeCommandLineParameters(args);
-            print80ln("Stack parameters", "ok");
+            print80ln("Command line parameters", "ok");
 
             print80("Oracle Cloud Infrastructure configuration", "parsing");
             ConfigFileReader.ConfigFile configFile = null;
@@ -111,21 +99,21 @@ public class DragonStack {
         } catch (BmcException e) {
             if (e.isClientSide()) {
                 System.err.println("A problem occurred on your side that prevented the operation to succeed!");
+                e.printStackTrace();
                 System.exit(-97);
             } else {
-                System.out.println("Status: " + e.getStatusCode());
-                System.out.println("Service: " + e.getServiceCode());
-                System.out.println("RequestId: " + e.getOpcRequestId());
-                System.out.println("Timeout: " + e.isTimeout());
-                System.out.println("Client Side: " + e.isClientSide());
-                System.out.println("Message: " + e.getMessage());
+                println("Status: " + e.getStatusCode());
+                println("Service: " + e.getServiceCode());
+                println("RequestId: " + e.getOpcRequestId());
+                println("Timeout: " + e.isTimeout());
+                println("Client Side: " + e.isClientSide());
                 System.err.printf("ERROR: %s\n", e.getLocalizedMessage());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        System.out.println("duration: " + getDurationSince(totalDuration));
+        println("duration: " + getDurationSince(totalDuration));
     }
 
     private static void destroyADB(ConfigFileReader.ConfigFile configFile, AuthenticationDetailsProvider provider, DatabaseClient dbClient) throws Exception {
@@ -258,7 +246,7 @@ public class DragonStack {
             }
         }
 
-        if(freeAtpShared == null) {
+        if (freeAtpShared == null) {
             print80ln("Database creation", "ko");
             System.err.println("The OCI API response provided doesn't allow to proceed further.");
             System.exit(-2);
@@ -320,15 +308,13 @@ public class DragonStack {
 
         print80ln("Database wallet download", String.format("ok [%s]", walletFileName));
 
-        print80("Database configuration", "starting");
-        final PoolDataSource pdsADMIN = createConnectionPool(walletFile, "ADMIN", databasePassword);
-
         print80("Database configuration", "creating dragon user");
-        createSchema(pdsADMIN, databasePassword);
+        createSchema(freeAtpShared, databasePassword);
 
-        final PoolDataSource pdsDragon = createConnectionPool(walletFile, "DRAGON", databasePassword);
-        createCollections(pdsDragon, freeAtpShared, configFile.get("collections").split(", "));
+        final ADBRESTService rSQLS = new ADBRESTService(freeAtpShared.getConnectionUrls().getSqlDevWebUrl(), "DRAGON", databasePassword);
 
+        createCollections(rSQLS, freeAtpShared, configFile.get("collections").split(", "));
+        println();
 
         print80ln("Database configuration", "ok");
 
@@ -400,17 +386,43 @@ public class DragonStack {
             print80ln("Database backup configuration", "ok");
 */
         print80("Object storage configuration", "database setup");
-        try (Connection c = pdsDragon.getConnection()) {
-            try (CallableStatement cs = c.prepareCall("{call DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '" + userResponse.getUser().getEmail() + "', password => '" + configFile.get("auth_token") + "')}")) {
-                cs.execute();
-                c.commit();
-            }
+
+        try {
+            rSQLS.execute("BEGIN\n" +
+                    "    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '" + userResponse.getUser().getEmail() + "', password => '" + configFile.get("auth_token") + "');\n" +
+                    "    COMMIT;\n" +
+                    "END;\n" +
+                    "/");
+        } catch (RuntimeException re) {
+            print80ln("Object storage configuration", "ko");
+            System.err.println("The object storage credential for the database couldn't be configured.");
+            System.exit(-8);
         }
+
         print80ln("Object storage configuration", "ok");
 
         identityClient.close();
         workRequestClient.close();
         objectStorageClient.close();
+    }
+
+    private static void createSchema(AutonomousDatabase adb, String databasePassword) {
+        final ADBRESTService rSQLS = new ADBRESTService(adb.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", databasePassword);
+
+        try {
+            rSQLS.execute("create user dragon identified by " + databasePassword + " DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
+                    "alter user dragon quota unlimited on data;\n" +
+                    "grant dwrole, create session, soda_app to dragon;\n" +
+                    "grant select on v$mystat to dragon;" +
+                    "BEGIN\n" +
+                    "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => 'DRAGON', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => 'dragon', p_auto_rest_auth => TRUE);\n" +
+                    "END;\n" +
+                    "/");
+        } catch (RuntimeException re) {
+            print80ln("Database configuration", "ko");
+            System.err.println("The DRAGON user couldn't be created!");
+            System.exit(-7);
+        }
     }
 
     private static String getRegionForURL(String region) {
@@ -431,83 +443,31 @@ public class DragonStack {
         }
     }
 
-    private static void createCollections(PoolDataSource pds, AutonomousDatabase adb, String[] collections) throws SQLException, OracleException {
-        final Properties props = new Properties();
-        props.put("oracle.soda.sharedMetadataCache", "true");
-        props.put("oracle.soda.localMetadataCache", "true");
-        OracleRDBMSClient cl = new OracleRDBMSClient(props);
+    private static void createCollections(ADBRESTService rSQLS, AutonomousDatabase adb, String[] collections) {
+        print80("Database configuration", "creating dragon collections");
+        rSQLS.createSODACollection("dragon");
+        print80("Database configuration", "storing dragon information");
+        rSQLS.insertDocument("dragon", String.format("{\"databaseServiceURL\": \"%s\", " +
+                        "\"sqlDevWebAdmin\": \"%s\", " +
+                        "\"sqlDevWeb\": \"%s\", " +
+                        "\"apexURL\": \"%s\", " +
+                        "\"omlURL\": \"%s\", " +
+                        "\"version\": \"%s\" " +
+                        "}",
+                adb.getServiceConsoleUrl(),
+                adb.getConnectionUrls().getSqlDevWebUrl(),
+                adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", "dragon"),
+                adb.getConnectionUrls().getApexUrl(),
+                adb.getConnectionUrls().getMachineLearningUserManagementUrl(),
+                adb.getDbVersion()
+        ));
 
-        try (Connection c = pds.getConnection()) {
-            OracleDatabase db = cl.getDatabase(c);
-            print80("Database configuration", "creating dragon collections");
-            OracleCollection dragon = db.admin().createCollection("dragon");
-            print80("Database configuration", "storing dragon information");
-            dragon.insert(db.createDocumentFromString(String.format("{\"databaseServiceURL\": \"%s\", " +
-                            "\"sqlDevWebAdmin\": \"%s\", " +
-                            "\"sqlDevWeb\": \"%s\", " +
-                            "\"apexURL\": \"%s\", " +
-                            "\"omlURL\": \"%s\", " +
-                            "\"version\": \"%s\" " +
-                            "}",
-                    adb.getServiceConsoleUrl(),
-                    adb.getConnectionUrls().getSqlDevWebUrl(),
-                    adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", "dragon"),
-                    adb.getConnectionUrls().getApexUrl(),
-                    adb.getConnectionUrls().getMachineLearningUserManagementUrl(),
-                    adb.getDbVersion()
-            )));
-
-            c.commit();
-
-            for (String collectionName : collections) {
-                if (!"dragon".equals(collectionName)) {
-                    print80("Database configuration", "creating collection " + collectionName);
-                    db.admin().createCollection(collectionName);
-                }
+        for (String collectionName : collections) {
+            if (!"dragon".equals(collectionName)) {
+                print80("Database configuration", "creating collection " + collectionName);
+                rSQLS.createSODACollection(collectionName);
             }
         }
-    }
-
-    private static void createSchema(PoolDataSource pds, String databasePassword) throws SQLException {
-        try (Connection c = pds.getConnection()) {
-            try (Statement s = c.createStatement()) {
-                s.execute("create user dragon identified by " + databasePassword + " DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP");
-                s.execute("alter user dragon quota unlimited on data");
-                s.execute("grant dwrole, create session, soda_app to dragon");
-                s.execute("grant select on v$mystat to dragon");
-            }
-
-            try (CallableStatement cs = c.prepareCall("{call ords_admin.enable_schema(p_enabled => TRUE, p_schema => 'DRAGON', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => 'dragon', p_auto_rest_auth => TRUE)}")) {
-                cs.execute();
-                c.commit();
-            }
-        }
-    }
-
-    private static PoolDataSource createConnectionPool(File walletFile, String userName, String databasePassword) throws
-            SQLException, IOException {
-        PoolDataSource pds = PoolDataSourceFactory.getPoolDataSource();
-        pds.setConnectionFactoryClassName("oracle.jdbc.pool.OracleDataSource");
-
-        final File walletDir = new File(".", dbName.toLowerCase());
-        ZipUtil.unzipFile(walletFile, walletDir);
-
-        pds.setURL("jdbc:oracle:thin:@" + dbName.toLowerCase() + "_tp?TNS_ADMIN=" + walletDir.getCanonicalPath().replaceAll("\\\\", "/"));
-
-        pds.setUser(userName);
-        pds.setPassword(databasePassword);
-        pds.setConnectionPoolName("JDBC_UCP_POOL:" + dbName.toLowerCase() + "-tp-" + userName);
-        pds.setInitialPoolSize(1);
-        pds.setMinPoolSize(1);
-        pds.setMaxPoolSize(2);
-        pds.setTimeoutCheckInterval(30);
-        pds.setInactiveConnectionTimeout(10);
-
-        pds.setConnectionProperty(OracleConnection.CONNECTION_PROPERTY_AUTOCOMMIT, "false");
-        pds.setConnectionProperty(OracleConnection.CONNECTION_PROPERTY_FAN_ENABLED, "false");
-        pds.setConnectionProperty(OracleConnection.CONNECTION_PROPERTY_THIN_TCP_NO_DELAY, "true");
-
-        return pds;
     }
 
     private static String getDurationSince(long startTime) {
@@ -527,7 +487,7 @@ public class DragonStack {
                     if (i + 1 < args.length) {
                         dbName = args[++i].toUpperCase();
                     } else {
-                        print80("Stack parameters", "ko");
+                        print80("Command line parameters", "ko");
                         println();
                         System.err.println("Please provide a valid name for your DRAGON database: -db <database name>");
                         System.exit(-100);
@@ -544,6 +504,7 @@ public class DragonStack {
                 case "/h":
                 case "-help":
                 case "--help":
+                    print80ln("Command line parameters", "ok");
                     println("Usage:");
                     println("\t-db <database name>\t\tdenotes the database name to create");
                     println("\t-destroy           \t\task to destroy the database");
