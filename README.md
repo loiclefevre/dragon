@@ -1,2 +1,2 @@
-# dragon
-Oracle Dragon Stack
+# DRAGON Stack
+This is the repository for the Oracle DRAGON Stack.
