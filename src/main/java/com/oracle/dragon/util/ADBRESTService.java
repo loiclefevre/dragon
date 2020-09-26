@@ -56,7 +56,6 @@ public class ADBRESTService {
     }
 
     public String createSODACollection(String collectionName) {
-//        System.out.println("\n"+urlSODAService+collectionName);
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(urlSODAService+collectionName))
@@ -81,10 +80,6 @@ public class ADBRESTService {
         }
     }
 
-/*    public static void main(String[] args) {
-        System.out.println(new ADBRESTService("https://A2OWQXAVCJDY6A5-DRAGON.adb.eu-frankfurt-1.oraclecloudapps.com/ords/dragon/", "DRAGON", "My_Strong_Pa55word").insertDocument("dragon","{\"databaseServiceURL\": \"https://adb.eu-frankfurt-1.oraclecloud.com/console/index.html?tenant_name=OCID1.TENANCY.OC1..AAAAAAAARVZI7RYVDS24A2RH46ZLNAXCTTDDFGKCD57SJWIBRIWYLZH523EA&database_name=DRAGON&service_type=ATP\", \"sqlDevWebAdmin\": \"https://A2OWQXAVCJDY6A5-DRAGON.adb.eu-frankfurt-1.oraclecloudapps.com/ords/admin/_sdw/?nav=worksheet\", \"sqlDevWeb\": \"https://A2OWQXAVCJDY6A5-DRAGON.adb.eu-frankfurt-1.oraclecloudapps.com/ords/dragon/_sdw/?nav=worksheet\", \"apexURL\": \"https://A2OWQXAVCJDY6A5-DRAGON.adb.eu-frankfurt-1.oraclecloudapps.com/ords/apex\", \"omlURL\": \"https://adb.eu-frankfurt-1.oraclecloud.com/omlusers/tenants/OCID1.TENANCY.OC1..AAAAAAAARVZI7RYVDS24A2RH46ZLNAXCTTDDFGKCD57SJWIBRIWYLZH523EA/databases/DRAGON/index.html\", \"version\": \"19c\" }"));
-    }
-*/
     public String insertDocument(String collectionName, String document) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
