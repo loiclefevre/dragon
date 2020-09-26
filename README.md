@@ -16,7 +16,13 @@ Run
 ```
 java -jar dragon-1.0.0-jar-with-dependencies.jar
 ```
+or
+```
+dragon-x64-1.0.0.exe
+```
 with the config.txt file in the current directory.
+
+![Run](/www/dragon.gif)
 
 ## Configuration file
 The file config.txt must contain the following information:
