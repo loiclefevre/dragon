@@ -314,7 +314,6 @@ public class DragonStack {
         final ADBRESTService rSQLS = new ADBRESTService(freeAtpShared.getConnectionUrls().getSqlDevWebUrl(), "DRAGON", databasePassword);
 
         createCollections(rSQLS, freeAtpShared, configFile.get("collections").split(", "));
-        println();
 
         print80ln("Database configuration", "ok");
 
