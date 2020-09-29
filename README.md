@@ -18,7 +18,11 @@ java -jar dragon-1.0.0-jar-with-dependencies.jar
 ```
 or
 ```
-dragon-x64-1.0.0.exe
+dragon-windows-x64-1.0.0.exe
+```
+or
+```
+dragon-linux-amd64-1.0.0
 ```
 with the config.txt file in the current directory.
 
