@@ -58,6 +58,7 @@ public class DSSession {
     public enum Platform {
         Windows,
         Linux,
+        MacOS,
         Unsupported
     }
 
@@ -140,6 +141,9 @@ public class DSSession {
             Console.ENABLE_COLORS = false;
         } else if (osName.startsWith("linux")) {
             platform = Platform.Linux;
+            System.setProperty("java.awt.headless", "true");
+        } else if (osName.startsWith("mac os")) {
+            platform = Platform.MacOS;
             System.setProperty("java.awt.headless", "true");
         } else {
             platform = Platform.Unsupported;

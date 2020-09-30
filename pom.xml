@@ -8,7 +8,7 @@
 
     <groupId>com.oracle</groupId>
     <artifactId>dragon</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>Dragon Stack</name>
 
@@ -71,7 +71,23 @@
     </dependencies>
 
     <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.6.1</version>
+            </extension>
+        </extensions>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.3.0</version>
@@ -118,7 +134,7 @@
                 </executions>
                 <configuration>
                     <skip>false</skip>
-                    <imageName>dragon</imageName>
+                    <imageName>dragon-${os.detected.name}-${os.detected.arch}-${version}</imageName>
                     <mainClass>com.oracle.dragon.DragonStack</mainClass>
                     <buildArgs>
                         --no-fallback
@@ -131,16 +147,6 @@
                     </buildArgs>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 </project>
