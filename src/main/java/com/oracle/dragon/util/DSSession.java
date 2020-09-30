@@ -154,7 +154,7 @@ public class DSSession {
     public DSSession() throws UnsupportedPlatformException {
         banner();
 
-         if(platform == Platform.Unsupported) {
+        if(platform == Platform.Unsupported) {
             throw new UnsupportedPlatformException(System.getProperty("os.name"));
         }
     }
@@ -193,40 +193,41 @@ public class DSSession {
                 case "--config-template":
                     section.printlnOK();
                     println("Configuration template (save the content in a file named \"config.txt\"):");
-                    println("--- 8< ----------------------------------------------------------------");
+                    println();
+                    println();
                     println(" # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT");
                     println(" # You can choose a profile using the -profile command line argument");
                     println("[DEFAULT]");
-
+                    println();
                     println(" # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:" );
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
                     println("user=ocid1.user.oc1..<unique_ID>" );
-
+                    println();
                     println(" # Full path and filename of the SSH private key (use *solely* forward slashes).");
                     println(" # /!\\ Warning: The key pair must be in PEM format. For instructions on generating a key pair in PEM format, see:" );
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#Required_Keys_and_OCIDs");
                     println("key_file=<full path to SSH private key file>");
-
+                    println();
                     println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:" );
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four");
                     println("fingerprint=<full path to private SSH key file>");
-
+                    println();
                     println(" # OCID of your tenancy. To get the value, see:" );
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
                     println("tenancy=ocid1.tenancy.oc1..<unique_ID>");
-
+                    println();
                     println(" # An Oracle Cloud Infrastructure region identifier. For a list of possible region identifiers, check here:" );
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm#top" );
                     println("region=eu-frankfurt-1" );
-
+                    println();
                     println(" # OCID of the compartment to use for resources creation. to get more information about compartments, see:" );
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcompartments.htm?Highlight=compartment%20ocid#Managing_Compartments");
                     println("compartment_id=ocid1.compartment.oc1..<unique_ID>");
-
+                    println();
                     println(" # Authentication token that will be used for OCI Object Storage configuration, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Registry/Tasks/registrygettingauthtoken.htm?Highlight=user%20auth%20tokens");
                     println("auth_token=<authentication token>");
-
+                    println();
                     println(" # The database password used for database creation and dragon user");
                     println(" # - 12 chars minimum and 30 chars maximum");
                     println(" # - can't contain the \"dragon\" word");
@@ -234,10 +235,9 @@ public class DSSession {
                     println(" # - contains 1 lower case char");
                     println(" # - contains 1 upper case char");
                     println("database_password=<database password>");
-
+                    println();
                     println(" # A list of coma separated JSON collection name(s) that you wish to get right after database creation");
                     println("# collections=");
-                    println("--- 8< ----------------------------------------------------------------");
                     System.exit(0);
 
                     break;
@@ -250,9 +250,10 @@ public class DSSession {
                 case "--help":
                     section.printlnOK();
                     println("Usage:");
-                    println("\t-db <database name>\t\tdenotes the database name to create");
-                    println("\t-destroy           \t\task to destroy the database");
-                    println("\t-config-template   \t\tdisplay a configuration file template");
+                    println("  -config-template       \tdisplay a configuration file template");
+                    println("  -db <database name>    \tdenotes the database name to create");
+                    println("  -profile <profile name>\tchoose the given profile name from config.txt (instead of DEFAULT)");
+                    println("  -destroy               \task to destroy the database");
                     System.exit(0);
                     break;
             }

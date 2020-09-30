@@ -5,7 +5,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -58,8 +57,8 @@ public class ADBRESTService {
     public String createSODACollection(String collectionName) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(urlSODAService+collectionName))
-                    .headers( "Authorization", basicAuth(user, password))
+                    .uri(new URI(urlSODAService + collectionName))
+                    .headers("Authorization", basicAuth(user, password))
                     .PUT(HttpRequest.BodyPublishers.ofString("{}"))
                     .build();
 
@@ -71,7 +70,7 @@ public class ADBRESTService {
                     .send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 201) {
-                throw new RuntimeException("Request was not successful (" + response.statusCode() + "):\n"+response.body());
+                throw new RuntimeException("Request was not successful (" + response.statusCode() + "):\n" + response.body());
             }
 
             return response.body();
@@ -83,7 +82,7 @@ public class ADBRESTService {
     public String insertDocument(String collectionName, String document) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(urlSODAService+collectionName))
+                    .uri(new URI(urlSODAService + collectionName))
                     .headers("Content-Type", "application/json", "Authorization", basicAuth(user, password))
                     .POST(HttpRequest.BodyPublishers.ofString(document, StandardCharsets.UTF_8))
                     .build();
@@ -96,12 +95,12 @@ public class ADBRESTService {
                     .send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 201) {
-                throw new RuntimeException("Request was not successful (" + response.statusCode() + "):\n"+response.body());
+                throw new RuntimeException("Request was not successful (" + response.statusCode() + "):\n" + response.body());
             }
 
             return response.body();
         } catch (Exception e) {
-            throw new RuntimeException("REST SODA Service could not insert document "+document+" into collection " + collectionName, e);
+            throw new RuntimeException("REST SODA Service could not insert document " + document + " into collection " + collectionName, e);
         }
     }
 }
