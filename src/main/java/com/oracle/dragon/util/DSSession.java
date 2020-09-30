@@ -26,6 +26,7 @@ import com.oracle.bmc.workrequests.requests.GetWorkRequestRequest;
 import com.oracle.bmc.workrequests.responses.GetWorkRequestResponse;
 import com.oracle.dragon.util.exception.*;
 
+import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -154,7 +155,7 @@ public class DSSession {
     public DSSession() throws UnsupportedPlatformException {
         banner();
 
-        if(platform == Platform.Unsupported) {
+         if(platform == Platform.Unsupported) {
             throw new UnsupportedPlatformException(System.getProperty("os.name"));
         }
     }
@@ -261,7 +262,7 @@ public class DSSession {
         section.printlnOK();
     }
 
-    public void loadConfiguration() throws ConfigurationFileNotFoundException, ConfigurationLoadException, ConfigurationMissesParameterException {
+    public void loadConfiguration() throws DSException {
         section = Section.OCIConfiguration;
         section.print("parsing");
 
@@ -306,6 +307,15 @@ public class DSSession {
             section.printlnKO();
             throw new ConfigurationLoadException(ioe);
         }
+        catch(IllegalArgumentException iae) {
+            if (iae.getMessage().startsWith("No profile named")) {
+                section.printlnKO("profile "+profileName+" not found");
+                throw new ConfigurationProfileNotFoundException(profileName);
+            }
+
+            throw new ConfigurationParsingException(iae);
+        }
+
         section.printlnOK();
     }
 

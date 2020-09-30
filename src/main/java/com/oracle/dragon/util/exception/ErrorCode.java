@@ -19,7 +19,9 @@ public enum ErrorCode {
     DatabaseUserCreationFailed(-16),
     ObjectStorageConfigurationFailed(-17),
     ObjectStorageBucketCreationFailed(-18),
-    MissingProfileNameParameter(-19);
+    MissingProfileNameParameter(-19),
+    ConfigurationProfileNotFound(-20),
+    ConfigurationParsing(-21);
 
     public final int internalErrorCode;
 
