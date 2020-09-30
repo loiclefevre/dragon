@@ -79,7 +79,7 @@ public class DragonStack {
             }
         }
         catch( DSException e ) {
-            e.displayMessageAndExit(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration));
+            e.displayMessageAndExit(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration)+Style.ANSI_RESET);
         }
         catch (Exception e) {
             println(Style.ANSI_RED+"================================================================================");

@@ -155,7 +155,7 @@ public class DSSession {
     public DSSession() throws UnsupportedPlatformException {
         banner();
 
-         if(platform == Platform.Unsupported) {
+        if(platform == Platform.Unsupported) {
             throw new UnsupportedPlatformException(System.getProperty("os.name"));
         }
     }
@@ -440,7 +440,7 @@ public class DSSession {
                     break;
                 case InProgress:
                     section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 90f), getDurationSince(startTime)));
-                    pendingProgressMove += Math.random() * 2f;
+                    pendingProgressMove += Math.random() * 1.5f;
                     break;
             }
 
