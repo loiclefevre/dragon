@@ -9,20 +9,20 @@ Run
 ```
 mvn package
 ```
-command to create the dragon-1.0.0-jar-with-dependencies.jar
+command to create the dragon-1.0.1-jar-with-dependencies.jar
 
 ## Execution
 Run 
 ```
-java -jar dragon-1.0.0-jar-with-dependencies.jar
+java -jar dragon-1.0.1-jar-with-dependencies.jar
 ```
 or
 ```
-dragon-windows-x64-1.0.0.exe
+dragon-windows-amd64-1.0.1.exe
 ```
 or
 ```
-dragon-linux-amd64-1.0.0
+dragon-linux-amd64-1.0.1
 ```
 with the config.txt file in the current directory.
 
@@ -38,7 +38,7 @@ fingerprint=e1:...
 key_file=<file path to your private key>
 tenancy=ocid1.tenancy.oc1..aa...
 compartment_id=ocid1.compartment.oc1..aa...
-region=EU_FRANKFURT_1
+region=eu-frankfurt-1
 auth_token=<authentication token>
 database_password=5uPeR_5tRoNg_PaSsWoRd
 collections=<list of comma separated collection name(s)>
