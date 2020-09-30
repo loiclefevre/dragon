@@ -5,11 +5,30 @@ This is the repository for the Oracle DRAGON Stack.
 This project aims to simplify the deployment of applications using an Oracle Autonomous Database Always Free.
 
 ## Installation
+
+### Build from sources
 Run 
 ```
 mvn package
 ```
 command to create the dragon-1.0.1-jar-with-dependencies.jar
+
+Run
+```
+mvn verify
+```
+command to generate the native images
+
+### Download
+Windows:
+```
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-windows-x86_64-1.0.1.exe
+```
+Linux
+```
+wget https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-linux-x86_64-1.0.1
+```
+
 
 ## Execution
 Run 
