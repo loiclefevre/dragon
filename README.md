@@ -28,7 +28,10 @@ Linux
 ```
 wget https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-linux-x86_64-1.0.1
 ```
-
+macOS
+```
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-osx-x86_64-1.0.1
+```
 
 ## Execution
 Run 
@@ -42,6 +45,10 @@ dragon-windows-x86_64-1.0.1.exe
 or
 ```
 dragon-linux-x86_64-1.0.1
+```
+or
+```
+dragon-osx-x86_64-1.0.1
 ```
 with the config.txt file in the current directory.
 
