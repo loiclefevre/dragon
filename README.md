@@ -34,21 +34,19 @@ curl -L -O https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon
 ```
 
 ## Execution
-Run 
+On Windows:
 ```
-java -jar dragon-1.0.1-jar-with-dependencies.jar
+> dragon-windows-x86_64-1.0.1.exe
 ```
-or
+
+On Linux:
 ```
-dragon-windows-x86_64-1.0.1.exe
+$ dragon-linux-x86_64-1.0.1
 ```
-or
+
+On MAC OS:
 ```
-dragon-linux-x86_64-1.0.1
-```
-or
-```
-dragon-osx-x86_64-1.0.1
+$ dragon-osx-x86_64-1.0.1
 ```
 with the config.txt file in the current directory.
 
