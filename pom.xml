@@ -8,17 +8,18 @@
 
     <groupId>com.oracle</groupId>
     <artifactId>dragon</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>Dragon Stack</name>
 
     <properties>
-        <targetJavaVersion>1.8</targetJavaVersion>
+        <targetJavaVersion>11</targetJavaVersion>
         <maven.compiler.source>${targetJavaVersion}</maven.compiler.source>
         <maven.compiler.target>${targetJavaVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <graalvm.version>20.2.0</graalvm.version>
+        <oci.sdk.version>1.24.0</oci.sdk.version>
     </properties>
 
     <dependencies>
@@ -40,27 +41,27 @@
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-core</artifactId>
-            <version>1.23.2</version>
+            <version>${oci.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-objectstorage</artifactId>
-            <version>1.23.2</version>
+            <version>${oci.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-database</artifactId>
-            <version>1.23.2</version>
+            <version>${oci.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-workrequests</artifactId>
-            <version>1.23.2</version>
+            <version>${oci.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.oci.sdk</groupId>
             <artifactId>oci-java-sdk-identity</artifactId>
-            <version>1.23.2</version>
+            <version>${oci.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.graalvm.sdk</groupId>
@@ -134,7 +135,7 @@
                 </executions>
                 <configuration>
                     <skip>false</skip>
-                    <imageName>dragon-${os.detected.name}-${os.detected.arch}-${version}</imageName>
+                    <imageName>dragon-${os.detected.classifier}-${version}</imageName>
                     <mainClass>com.oracle.dragon.DragonStack</mainClass>
                     <buildArgs>
                         --no-fallback

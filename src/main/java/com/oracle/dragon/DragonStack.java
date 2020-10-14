@@ -59,6 +59,8 @@ public class DragonStack {
 
             session.loadConfiguration();
 
+            session.displayInformation();
+
             session.initializeClients();
 
             session.work();

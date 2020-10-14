@@ -2,9 +2,17 @@ package com.oracle.dragon.util;
 
 import java.time.Duration;
 
+/**
+ * Console related helper methods.
+ */
 public class Console {
 
+    /**
+     * Enable or disable console output ANSI color coding usage.
+     */
     public static boolean ENABLE_COLORS = true;
+
+    public final static int MAX_COLUMNS = 80;
 
     public enum Style {
         ANSI_RESET("\u001B[0m"),
@@ -25,7 +33,7 @@ public class Console {
         ANSI_CYAN_BACKGROUND("\u001B[46m"),
         ANSI_WHITE_BACKGROUND("\u001B[47m");
 
-        private String pattern;
+        private final String pattern;
 
         Style(final String pattern) {
             this.pattern = pattern;
@@ -37,9 +45,9 @@ public class Console {
         }
     }
 
-    public static void print80(final String section, final String msg) {
+    public static void printBounded(final String section, final String msg) {
         final int total = section.length() + msg.length() + 2 + 1;
-        int spaces = 80 - total + 1;
+        int spaces = MAX_COLUMNS - total + 1;
         final StringBuilder sb = new StringBuilder("> ").append(section);
 
         for (int i = 0; i < spaces; i++) {
@@ -55,8 +63,8 @@ public class Console {
         print(sb.toString());
     }
 
-    public static void print80ln(final String section, final String msg) {
-        print80(section, msg);
+    public static void printBoundedln(final String section, final String msg) {
+        printBounded(section, msg);
         println();
     }
 

@@ -18,19 +18,24 @@ import com.oracle.bmc.objectstorage.model.CreateBucketDetails;
 import com.oracle.bmc.objectstorage.requests.CreateBucketRequest;
 import com.oracle.bmc.objectstorage.requests.GetNamespaceRequest;
 import com.oracle.bmc.objectstorage.requests.ListBucketsRequest;
+import com.oracle.bmc.objectstorage.requests.PutObjectRequest;
 import com.oracle.bmc.objectstorage.responses.CreateBucketResponse;
 import com.oracle.bmc.objectstorage.responses.GetNamespaceResponse;
 import com.oracle.bmc.objectstorage.responses.ListBucketsResponse;
+import com.oracle.bmc.objectstorage.transfer.UploadConfiguration;
+import com.oracle.bmc.objectstorage.transfer.UploadManager;
 import com.oracle.bmc.workrequests.WorkRequestClient;
+import com.oracle.bmc.workrequests.model.WorkRequestError;
 import com.oracle.bmc.workrequests.requests.GetWorkRequestRequest;
+import com.oracle.bmc.workrequests.requests.ListWorkRequestErrorsRequest;
 import com.oracle.bmc.workrequests.responses.GetWorkRequestResponse;
+import com.oracle.bmc.workrequests.responses.ListWorkRequestErrorsResponse;
 import com.oracle.dragon.util.exception.*;
 
-import javax.naming.ConfigurationException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -40,20 +45,26 @@ import static com.oracle.dragon.util.Console.*;
  * DRAGON Stack session.
  */
 public class DSSession {
+
     /**
      * Current version.
      */
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.0.2";
 
     private static final int OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT = 2;
     private static final String CONFIG_REGION = "region";
     private static final String CONFIG_FINGERPRINT = "fingerprint";
+    private static final String CONFIG_DATABASE_TYPE = "database_type";
+    private static final String CONFIG_DATABASE_USER_NAME = "database_user_name";
     private static final String CONFIG_DATABASE_PASSWORD = "database_password";
-    private static final String CONFIG_COLLECTIONS = "collections";
+    private static final String CONFIG_DATABASE_LICENSE_TYPE = "database_license_type";
+    private static final String CONFIG_COLLECTIONS = "database_collections";
     private static final String CONFIG_COMPARTMENT_ID = "compartment_id";
+    private static final String CONFIG_TENANCY_ID = "tenancy";
     private static final String CONFIG_KEY_FILE = "key_file";
     private static final String CONFIG_USER = "user";
     private static final String CONFIG_AUTH_TOKEN = "auth_token";
+    private static final String CONFIG_DATA_PATH = "data_path";
 
     public enum Platform {
         Windows,
@@ -75,7 +86,9 @@ public class DSSession {
         DatabaseCreation("Database creation"),
         DatabaseWalletDownload("Database wallet download"),
         DatabaseConfiguration("Database configuration"),
-        ObjectStorageConfiguration("Object storage configuration");
+        ObjectStorageConfiguration("Object storage configuration"),
+        LoadDataIntoCollections("Data loading"),
+        LocalConfiguration("Local configuration");
 
         private final String name;
 
@@ -86,27 +99,27 @@ public class DSSession {
 
         public void printlnKO() {
             System.out.print(Style.ANSI_RED);
-            print80ln(name, "ko");
+            printBoundedln(name, "ko");
         }
 
         public void printlnOK() {
             System.out.print(Style.ANSI_GREEN);
-            print80ln(name, "ok");
+            printBoundedln(name, "ok");
         }
 
         public void print(String msg) {
             //System.out.print(Style.ANSI_BLUE_BACKGROUND);
-            print80(name, msg);
+            printBounded(name, msg);
         }
 
         public void printlnKO(String msg) {
             System.out.print(Style.ANSI_RED);
-            print80ln(name, String.format("ko [%s]", msg));
+            printBoundedln(name, String.format("ko [%s]", msg));
         }
 
         public void printlnOK(String msg) {
             System.out.print(Style.ANSI_GREEN);
-            print80ln(name, String.format("ok [%s]", msg));
+            printBoundedln(name, String.format("ok [%s]", msg));
         }
     }
 
@@ -119,6 +132,8 @@ public class DSSession {
     private WorkRequestClient workRequestClient;
     private ObjectStorageClient objectStorageClient;
     private IdentityClient identityClient;
+
+    private String databaseUserName = "dragon";
 
     /**
      * The database name to create.
@@ -133,6 +148,34 @@ public class DSSession {
     private String region = "";
 
     private Operation operation = Operation.CreateDatabase;
+
+    enum DatabaseType {
+        AlwaysFreeATP,
+        AJD,
+        ATP,
+        ADW
+    }
+
+    private DatabaseType databaseType = DatabaseType.AlwaysFreeATP;
+
+    enum LicenseType {
+        LicenseIncluded,
+        BYOL
+    }
+
+    private LicenseType licenseType = LicenseType.LicenseIncluded;
+
+    /**
+     * Load data into collections.
+     */
+    private boolean load = false;
+
+    /**
+     * Display information about region, compartment, user...
+     */
+    private boolean info = false;
+
+    private File dataPath = new File(".");
 
     static {
         final String osName = System.getProperty("os.name").toLowerCase();
@@ -151,7 +194,7 @@ public class DSSession {
     }
 
     private static void banner() {
-        print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_YELLOW,VERSION));
+        print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_YELLOW, VERSION));
         println();
         println();
     }
@@ -159,7 +202,7 @@ public class DSSession {
     public DSSession() throws UnsupportedPlatformException {
         banner();
 
-        if(platform == Platform.Unsupported) {
+        if (platform == Platform.Unsupported) {
             throw new UnsupportedPlatformException(System.getProperty("os.name"));
         }
     }
@@ -168,7 +211,7 @@ public class DSSession {
         section = Section.CommandLineParameters;
         section.print("analyzing");
         for (int i = 0; i < args.length; i++) {
-            switch (args[i]) {
+            switch (args[i].toLowerCase()) {
                 case "-db":
                     if (i + 1 < args.length) {
                         dbName = args[++i].toUpperCase();
@@ -194,6 +237,16 @@ public class DSSession {
                     operation = Operation.DestroyDatabase;
                     break;
 
+                case "-load":
+                case "--load":
+                    load = true;
+                    break;
+
+                case "-info":
+                case "--info":
+                    info = true;
+                    break;
+
                 case "-config-template":
                 case "--config-template":
                     section.printlnOK();
@@ -204,34 +257,41 @@ public class DSSession {
                     println(" # You can choose a profile using the -profile command line argument");
                     println("[DEFAULT]");
                     println();
-                    println(" # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:" );
+                    println(" # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
-                    println("user=ocid1.user.oc1..<unique_ID>" );
+                    println("user=ocid1.user.oc1..<unique_ID>");
                     println();
                     println(" # Full path and filename of the SSH private key (use *solely* forward slashes).");
-                    println(" # /!\\ Warning: The key pair must be in PEM format. For instructions on generating a key pair in PEM format, see:" );
+                    println(" # /!\\ Warning: The key pair must be in PEM format. For instructions on generating a key pair in PEM format, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#Required_Keys_and_OCIDs");
                     println("key_file=<full path to SSH private key file>");
                     println();
-                    println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:" );
+                    println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four");
                     println("fingerprint=<full path to private SSH key file>");
                     println();
-                    println(" # OCID of your tenancy. To get the value, see:" );
+                    println(" # OCID of your tenancy. To get the value, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
                     println("tenancy=ocid1.tenancy.oc1..<unique_ID>");
                     println();
-                    println(" # An Oracle Cloud Infrastructure region identifier. For a list of possible region identifiers, check here:" );
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm#top" );
-                    println("region=eu-frankfurt-1" );
+                    println(" # An Oracle Cloud Infrastructure region identifier. For a list of possible region identifiers, check here:");
+                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm#top");
+                    println("region=eu-frankfurt-1");
                     println();
-                    println(" # OCID of the compartment to use for resources creation. to get more information about compartments, see:" );
+                    println(" # OCID of the compartment to use for resources creation. to get more information about compartments, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcompartments.htm?Highlight=compartment%20ocid#Managing_Compartments");
                     println("compartment_id=ocid1.compartment.oc1..<unique_ID>");
                     println();
                     println(" # Authentication token that will be used for OCI Object Storage configuration, see:");
                     println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Registry/Tasks/registrygettingauthtoken.htm?Highlight=user%20auth%20tokens");
                     println("auth_token=<authentication token>");
+                    println();
+                    println(" # Autonomous Database Type: ajd (for Autonomous JSON Database), atp (for Autonomous Transaction Processing), adw (for Autonomous Data Warehouse)");
+                    println(" # Empty value means Always Free Autonomous Transaction Processing.");
+                    println("# database_type=");
+                    println();
+                    println(" # Uncomment to specify another database user name than dragon (default)");
+                    println("# database_user_name=dragon");
                     println();
                     println(" # The database password used for database creation and dragon user");
                     println(" # - 12 chars minimum and 30 chars maximum");
@@ -241,8 +301,15 @@ public class DSSession {
                     println(" # - contains 1 upper case char");
                     println("database_password=<database password>");
                     println();
+                    println(" # Uncomment to ask for Bring Your Own Licenses model (doesn't work for Always Free and AJD)");
+                    println("# database_license_type=byol");
+                    println();
                     println(" # A list of coma separated JSON collection name(s) that you wish to get right after database creation");
-                    println("# collections=");
+                    println("# database_collections=");
+                    println();
+                    println(" # Path to a folder where data to load into collections can be found (default to current directory)");
+                    println("data_path=.");
+                    println();
                     System.exit(0);
 
                     break;
@@ -256,8 +323,9 @@ public class DSSession {
                     section.printlnOK();
                     println("Usage:");
                     println("  -config-template       \tdisplay a configuration file template");
-                    println("  -db <database name>    \tdenotes the database name to create");
                     println("  -profile <profile name>\tchoose the given profile name from config.txt (instead of DEFAULT)");
+                    println("  -db <database name>    \tdenotes the database name to create");
+                    println("  -load                  \tload corresponding data into collections");
                     println("  -destroy               \task to destroy the database");
                     System.exit(0);
                     break;
@@ -284,6 +352,10 @@ public class DSSession {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_KEY_FILE);
             }
+            if (configFile.get(CONFIG_TENANCY_ID) == null) {
+                section.printlnKO();
+                throw new ConfigurationMissesParameterException(CONFIG_TENANCY_ID);
+            }
             if (configFile.get(CONFIG_COMPARTMENT_ID) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_COMPARTMENT_ID);
@@ -304,16 +376,59 @@ public class DSSession {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_FINGERPRINT);
             }
+
+            // Optional config file parameters
+            if (configFile.get(CONFIG_DATABASE_USER_NAME) != null) {
+                databaseUserName = configFile.get(CONFIG_DATABASE_USER_NAME);
+            }
+
+            if (configFile.get(CONFIG_DATABASE_LICENSE_TYPE) != null) {
+                if (LicenseType.BYOL.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_LICENSE_TYPE))) {
+                    licenseType = LicenseType.BYOL;
+                } else {
+                    throw new ConfigurationWrongDatabaseLicenseTypeException(configFile.get(CONFIG_DATABASE_LICENSE_TYPE));
+                }
+            } else {
+                licenseType = LicenseType.LicenseIncluded;
+            }
+
+            if (configFile.get(CONFIG_DATABASE_TYPE) != null) {
+                if (DatabaseType.AJD.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_TYPE))) {
+                    databaseType = DatabaseType.AJD;
+                } else if (DatabaseType.ATP.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_TYPE))) {
+                    databaseType = DatabaseType.ATP;
+                } else if (DatabaseType.ADW.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_TYPE))) {
+                    databaseType = DatabaseType.ADW;
+                } else {
+                    throw new ConfigurationWrongDatabaseTypeException(configFile.get(CONFIG_DATABASE_TYPE));
+                }
+            }
+
+            if (load) {
+                if (configFile.get(CONFIG_DATA_PATH) != null) {
+                    final File tempPath = new File(configFile.get(CONFIG_DATA_PATH));
+
+                    if (!tempPath.exists()) {
+                        throw new ConfigurationDataPathNotFoundException(configFile.get(CONFIG_DATA_PATH));
+                    }
+
+                    if (!tempPath.isDirectory()) {
+                        throw new ConfigurationDataPathDirectoryException(configFile.get(CONFIG_DATA_PATH));
+                    }
+
+                    dataPath = tempPath;
+                }
+            }
+
         } catch (java.io.FileNotFoundException fnfe) {
             section.printlnKO();
             throw new ConfigurationFileNotFoundException();
         } catch (IOException ioe) {
             section.printlnKO();
             throw new ConfigurationLoadException(ioe);
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             if (iae.getMessage().startsWith("No profile named")) {
-                section.printlnKO("profile "+profileName+" not found");
+                section.printlnKO("profile " + profileName + " not found");
                 throw new ConfigurationProfileNotFoundException(profileName);
             }
 
@@ -374,7 +489,7 @@ public class DSSession {
             }
         }
 
-        if (existingFreeADB.size() == OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT) {
+        if (databaseType == DatabaseType.AlwaysFreeATP && existingFreeADB.size() == OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT) {
             section.printlnKO("limit reached");
             throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
         }
@@ -391,26 +506,33 @@ public class DSSession {
                 .displayName(dbName + " Database")
                 .adminPassword(configFile.get(CONFIG_DATABASE_PASSWORD))
                 .dbName(dbName)
-                .compartmentId(configFile.get("compartment_id"))
-                .dbWorkload(CreateAutonomousDatabaseBase.DbWorkload.Oltp)
+                .compartmentId(configFile.get(CONFIG_COMPARTMENT_ID))
+                .dbWorkload(databaseType == DatabaseType.AlwaysFreeATP || databaseType == DatabaseType.ATP ? CreateAutonomousDatabaseBase.DbWorkload.Oltp :
+                        (databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.DbWorkload.Ajd : CreateAutonomousDatabaseBase.DbWorkload.Dw))
                 .isAutoScalingEnabled(Boolean.FALSE)
-                .licenseModel(CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded)
+                .licenseModel(databaseType == DatabaseType.AlwaysFreeATP || databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded : (licenseType == LicenseType.LicenseIncluded ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded :
+                        CreateAutonomousDatabaseBase.LicenseModel.BringYourOwnLicense))
                 .isPreviewVersionWithServiceTermsAccepted(Boolean.FALSE)
-                .isFreeTier(Boolean.TRUE)
+                .isFreeTier(databaseType == DatabaseType.AlwaysFreeATP ? Boolean.TRUE : Boolean.FALSE)
                 .build();
 
-        AutonomousDatabase freeAtpShared = null;
+        AutonomousDatabase autonomousDatabase = null;
         String workRequestId = null;
         workRequestClient = new WorkRequestClient(provider);
 
         try {
             CreateAutonomousDatabaseResponse responseCreate = dbClient.createAutonomousDatabase(CreateAutonomousDatabaseRequest.builder().createAutonomousDatabaseDetails(createFreeRequest).build());
-            freeAtpShared = responseCreate.getAutonomousDatabase();
+            autonomousDatabase = responseCreate.getAutonomousDatabase();
             workRequestId = responseCreate.getOpcWorkRequestId();
         } catch (BmcException e) {
+            //e.printStackTrace();
             if (e.getStatusCode() == 400 && e.getServiceCode().equals("LimitExceeded")) {
                 section.printlnKO("limit reached");
-                throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
+                if (e.getMessage().startsWith("Tenancy has reached maximum limit for Free Tier Autonomous Database")) {
+                    throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
+                } else {
+                    throw new AutonomousDatabaseLimitReachedException(e.getMessage());
+                }
             } else if (e.getStatusCode() == 400 && e.getServiceCode().equals("InvalidParameter") &&
                     e.getMessage().contains(dbName) && e.getMessage().contains("already exists")) {
                 section.printlnKO("duplicate name");
@@ -418,7 +540,7 @@ public class DSSession {
             }
         }
 
-        if (freeAtpShared == null) {
+        if (autonomousDatabase == null) {
             section.printlnKO();
             throw new OCIDatabaseCreationCantProceedFurtherException();
         }
@@ -433,12 +555,22 @@ public class DSSession {
             if (probe) getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
             switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
                 case Succeeded:
-                    section.printlnOK( getDurationSince(startTime));
+                    section.printlnOK(getDurationSince(startTime));
                     exit = true;
                     break;
                 case Failed:
                     section.printlnKO();
-                    throw new OCIDatabaseCreationFaileDException(dbName, getWorkRequestResponse.getOpcRequestId());
+
+                    final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
+                    final StringBuilder errors = new StringBuilder();
+                    int i = 0;
+                    for (WorkRequestError e : response.getItems()) {
+                        if (i > 0) errors.append("\n");
+                        errors.append(e.getMessage());
+                        i++;
+                    }
+
+                    throw new OCIDatabaseCreationFaileDException(dbName, errors.toString());
                 case Accepted:
                     section.print(String.format("accepted [%s]", getDurationSince(startTime)));
                     break;
@@ -454,9 +586,9 @@ public class DSSession {
 
         DatabaseWaiters waiter = dbClient.getWaiters();
         try {
-            GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(freeAtpShared.getId()).build(),
+            GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(autonomousDatabase.getId()).build(),
                     new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Available}).execute();
-            freeAtpShared = responseGet.getAutonomousDatabase();
+            autonomousDatabase = responseGet.getAutonomousDatabase();
         } catch (Exception e) {
             section.printlnKO();
             throw new OCIDatabaseWaitForTerminationFailedException(e);
@@ -471,7 +603,7 @@ public class DSSession {
                 dbClient.generateAutonomousDatabaseWallet(
                         GenerateAutonomousDatabaseWalletRequest.builder()
                                 .generateAutonomousDatabaseWalletDetails(atpWalletDetails)
-                                .autonomousDatabaseId(freeAtpShared.getId())
+                                .autonomousDatabaseId(autonomousDatabase.getId())
                                 .build());
         section.print("saving");
 
@@ -492,12 +624,12 @@ public class DSSession {
 
         section = Section.DatabaseConfiguration;
 
-        section.print("creating dragon user");
-        createSchema(freeAtpShared);
+        section.print(String.format("creating %s user", databaseUserName));
+        createSchema(autonomousDatabase);
 
-        final ADBRESTService rSQLS = new ADBRESTService(freeAtpShared.getConnectionUrls().getSqlDevWebUrl(), "DRAGON", configFile.get(CONFIG_DATABASE_PASSWORD));
+        final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
 
-        createCollections(rSQLS, freeAtpShared);
+        createCollections(rSQLS, autonomousDatabase);
 
         section.printlnOK();
 
@@ -519,85 +651,109 @@ public class DSSession {
         final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName).compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
 
         String nextToken = null;
-        //boolean backupBucketExist = false;
+        boolean backupBucketExist = false;
         boolean dragonBucketExist = false;
-        //final String backupBucketName = "backup_"+dbName.toLowerCase();
+        final String backupBucketName = "backup_" + dbName.toLowerCase();
         final String dragonBucketName = "dragon";
         do {
             listBucketsBuilder.page(nextToken);
             ListBucketsResponse listBucketsResponse = objectStorageClient.listBuckets(listBucketsBuilder.build());
             for (BucketSummary bucket : listBucketsResponse.getItems()) {
-                //if(!backupBucketExist && backupBucketName.equals(bucket.getName())) backupBucketExist = true;
+                if (!backupBucketExist && backupBucketName.equals(bucket.getName())) backupBucketExist = true;
                 if (!dragonBucketExist && dragonBucketName.equals(bucket.getName())) dragonBucketExist = true;
             }
             nextToken = listBucketsResponse.getOpcNextPage();
         } while (nextToken != null);
-
-            /*if(!backupBucketExist) {
-                print80("OCI object storage configuration", "creating manual backup bucket");
-                createManualBucket(objectStorageClient,namespaceName,backupBucketName,configFile.get("compartment_id"),false);
-            }*/
 
         if (!dragonBucketExist) {
             section.print("creating dragon bucket");
             createManualBucket(namespaceName, dragonBucketName, true);
         }
 
-        //print80("OCI DRAGON database backup configuration", "pending");
         identityClient = new IdentityClient(provider);
         GetUserResponse userResponse = identityClient.getUser(GetUserRequest.builder().userId(configFile.get(CONFIG_USER)).build());
 
-/*            print80("Database backup configuration", "default bucket");
-            try(Connection c=pdsADMIN.getConnection()) {
-                try(Statement s=c.createStatement()) {
-                    s.execute("ALTER DATABASE PROPERTY SET default_bucket='https://swiftobjectstorage." + getRegionForURL(region) + ".oraclecloud.com/v1/" + namespaceName + "'");
-                }
-
-                print80("Database backup configuration", "database credential to bucket");
-                try(CallableStatement cs=c.prepareCall("{call DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'BACKUP_CRED_NAME', username => '"+userResponse.getUser().getEmail()+"', password => '"+authTokenResponse.getAuthToken().getToken()+"')}")) {
-                    cs.execute();
-                    c.commit();
-                }
-
-                print80("Database backup configuration", "database default credential");
-                try(Statement s=c.createStatement()) {
-                    s.execute("ALTER DATABASE PROPERTY SET default_credential='ADMIN.BACKUP_CRED_NAME'");
-                }
-            }
-
-            print80ln("Database backup configuration", "ok");
-*/
         section.print("database setup");
 
         try {
-            rSQLS.execute(String.format("BEGIN\n" +
-                    "    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
-                    "    COMMIT;\n" +
-                    "END;\n" +
-                    "/", userResponse.getUser().getEmail(), configFile.get(CONFIG_AUTH_TOKEN)));
+            rSQLS.execute(String.format(
+                    "BEGIN\n" +
+                            "    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
+                            "    COMMIT;\n" +
+                            "END;\n" +
+                            "/", userResponse.getUser().getEmail(), configFile.get(CONFIG_AUTH_TOKEN)));
         } catch (RuntimeException re) {
             section.printlnKO();
             throw new ObjectStorageConfigurationFailedException();
         }
 
+        if (databaseType != DatabaseType.AlwaysFreeATP) {
+            if (!backupBucketExist) {
+                section.print("creating manual backup bucket");
+                createManualBucket(namespaceName, backupBucketName, false);
+            }
+
+            section.print("database backup setup");
+
+            final ADBRESTService adminRSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), "DRAGON", configFile.get(CONFIG_DATABASE_PASSWORD));
+
+            try {
+                adminRSQLS.execute(String.format(
+                        "ALTER DATABASE PROPERTY SET default_bucket='https://swiftobjectstorage." + getRegionForURL() + ".oraclecloud.com/v1/" + namespaceName + "';\n" +
+                                "BEGIN\n" +
+                                "    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'BACKUP_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
+                                "    COMMIT;\n" +
+                                "END;\n" +
+                                "/\n" +
+                                "ALTER DATABASE PROPERTY SET default_credential='ADMIN.BACKUP_CREDENTIAL_NAME'", userResponse.getUser().getEmail(), configFile.get(CONFIG_AUTH_TOKEN)));
+            } catch (RuntimeException re) {
+                section.printlnKO();
+                throw new ObjectStorageConfigurationFailedException();
+            }
+        }
+
         section.printlnOK();
+
+        if (load) {
+            section = Section.LoadDataIntoCollections;
+            loadCollections(namespaceName, rSQLS);
+            section.printlnOK();
+        }
+
+
+        section = Section.LocalConfiguration;
+        try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream("local_configuration.json")))) {
+            out.println(getConfigurationAsJSON(autonomousDatabase, true));
+        } catch (IOException e) {
+            throw new LocalConfigurationNotSavedExcaption(e);
+        }
+
+        section.printlnOK();
+
+        Console.println("You can connect to your database using SQL Developer Web:");
+        String url = autonomousDatabase.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName.toLowerCase());
+        if (!url.contains("username")) {
+            url += "&username=" + databaseUserName.toLowerCase();
+        }
+        Console.println("- URL  : " + url);
+        Console.println("- login: " + databaseUserName.toLowerCase());
     }
 
     private void createSchema(AutonomousDatabase adb) throws DatabaseUserCreationFailedException {
         final ADBRESTService rSQLS = new ADBRESTService(adb.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", configFile.get(CONFIG_DATABASE_PASSWORD));
 
         try {
-            rSQLS.execute(String.format("create user dragon identified by %s DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
-                    "alter user dragon quota unlimited on data;\n" +
-                    "grant dwrole, create session, soda_app to dragon;\n" +
-                    "grant select on v$mystat to dragon;" +
+            rSQLS.execute(String.format("create user %s identified by %s DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
+                    "alter user %s quota unlimited on data;\n" +
+                    "grant dwrole, create session, soda_app, alter session to %s;\n" +
+                    "grant select on v$mystat to %s;" +
                     "BEGIN\n" +
-                    "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => 'DRAGON', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => 'dragon', p_auto_rest_auth => TRUE);\n" +
+                    "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => '%s', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => '%s', p_auto_rest_auth => TRUE);\n" +
                     "END;\n" +
-                    "/", configFile.get(CONFIG_DATABASE_PASSWORD)));
+                    "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD), databaseUserName, databaseUserName, databaseUserName, databaseUserName.toUpperCase(), databaseUserName.toLowerCase()));
         } catch (RuntimeException re) {
             section.printlnKO();
-            throw new DatabaseUserCreationFailedException();
+            throw new DatabaseUserCreationFailedException(re);
         }
     }
 
@@ -622,25 +778,128 @@ public class DSSession {
         section.print("creating dragon collections");
         rSQLS.createSODACollection("dragon");
         section.print("storing dragon information");
-        rSQLS.insertDocument("dragon", String.format("{\"databaseServiceURL\": \"%s\", " +
+        rSQLS.insertDocument("dragon", getConfigurationAsJSON(adb));
+
+        for (String collectionName : configFile.get(CONFIG_COLLECTIONS).split(",")) {
+            if (!"dragon".equals(collectionName)) {
+                section.print("creating collection " + collectionName);
+                rSQLS.createSODACollection(collectionName);
+            }
+        }
+    }
+
+    private String getConfigurationAsJSON(AutonomousDatabase adb) {
+        return getConfigurationAsJSON(adb, false);
+    }
+
+    private String getConfigurationAsJSON(AutonomousDatabase adb, boolean local) {
+        return String.format("{\"databaseServiceURL\": \"%s\", " +
                         "\"sqlDevWebAdmin\": \"%s\", " +
                         "\"sqlDevWeb\": \"%s\", " +
                         "\"apexURL\": \"%s\", " +
                         "\"omlURL\": \"%s\", " +
-                        "\"version\": \"%s\" " +
+                        "\"version\": \"%s\"" +
+                        (local ? ", \"dbName\": \"%s\", \"dbUserName\": \"%s\", \"dbUserPassword\": \"%s\""
+                                : "") +
                         "}",
                 adb.getServiceConsoleUrl(),
                 adb.getConnectionUrls().getSqlDevWebUrl(),
-                adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", "dragon"),
+                adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName),
                 adb.getConnectionUrls().getApexUrl(),
                 adb.getConnectionUrls().getMachineLearningUserManagementUrl(),
-                adb.getDbVersion()
-        ));
+                adb.getDbVersion(),
+                dbName, databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD)
+        );
+    }
 
-        for (String collectionName : configFile.get(CONFIG_COLLECTIONS).split(", ")) {
+    private void loadCollections(String namespaceName, ADBRESTService rSQLS) throws DSException {
+        UploadConfiguration uploadConfiguration =
+                UploadConfiguration.builder()
+                        .allowMultipartUploads(true)
+                        .allowParallelUploads(true)
+                        .build();
+
+        UploadManager uploadManager = new UploadManager(objectStorageClient, uploadConfiguration);
+
+
+        for (String collectionName : configFile.get(CONFIG_COLLECTIONS).split(",")) {
             if (!"dragon".equals(collectionName)) {
-                section.print("creating collection " + collectionName);
-                rSQLS.createSODACollection(collectionName);
+                section.print("collection " + collectionName);
+
+                // find all names starting by <collection name>_XXX.json and stored in some data folder (specified in config.txt)
+                final File[] dataFiles = dataPath.listFiles(new JSONCollectionFilenameFilter(collectionName));
+
+                Map<String, String> metadata = null;
+
+                // upload them in parallel to OCI Object Storage
+                int nb = 1;
+                for (File file : dataFiles) {
+                    section.print(String.format("collection %s: uploading file %d/%d", collectionName, nb, dataFiles.length));
+
+                    PutObjectRequest request =
+                            PutObjectRequest.builder()
+                                    .bucketName("dragon")
+                                    .namespaceName(namespaceName)
+                                    .objectName(dbName + "/" + collectionName + "/" + file.getName())
+                                    .contentType("application/json")
+                                    //.contentLanguage(contentLanguage)
+                                    //.contentEncoding("UTF-8")
+                                    //.opcMeta(metadata)
+                                    .build();
+
+                    UploadManager.UploadRequest uploadDetails = UploadManager.UploadRequest.builder(file).allowOverwrite(true).build(request);
+                    UploadManager.UploadResponse response = uploadManager.upload(uploadDetails);
+
+
+                    //System.out.println("https://objectstorage."+getRegionForURL()+".oraclecloud.com/n/"+namespaceName+"/b/"+"dragon"+"/o/"+(dbName+"/"+collectionName+"/"+file.getName()).replaceAll("/", "%2F"));
+
+
+                    //System.out.println(response);
+                    nb++;
+                }
+
+                section.print(String.format("collection %s: loading...", collectionName));
+
+               // if (databaseType == DatabaseType.AlwaysFreeATP) {
+                    try {
+                        rSQLS.execute(String.format(
+                                "BEGIN\n" +
+                                        "    DBMS_CLOUD.COPY_COLLECTION(\n" +
+                                        "        collection_name => '%s',\n" +
+                                        "        credential_name => 'DRAGON_CREDENTIAL_NAME',\n" +
+                                        "        file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*',\n" +
+                                        "        format => JSON_OBJECT('recorddelimiter' value '''\\n''', 'ignoreblanklines' value 'true') );\n" +
+                                        "END;\n" +
+                                        "/", collectionName, getRegionForURL(), namespaceName, dbName, collectionName));
+                    } catch (RuntimeException re) {
+                        section.printlnKO();
+                        throw new CollectionNotLoadedException(collectionName, re);
+                    }
+                /*} else {
+                    // use DBMS_SCHEDULER with class HIGH...
+                    try {
+                        // TODO: Check for progress of load... using view USER_LOAD_OPERATIONS
+                        rSQLS.execute(String.format(
+                                "BEGIN\n" +
+                                        "    DBMS_SCHEDULER.CREATE_JOB (\n" +
+                                        "     job_name => 'LOAD_%s',\n" +
+                                        "     job_type => 'PLSQL_BLOCK',\n" +
+                                        "     job_action => 'BEGIN DBMS_CLOUD.COPY_COLLECTION(collection_name => ''%s'', credential_name => ''DRAGON_CREDENTIAL_NAME'', file_uri_list => ''https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*'', format => JSON_OBJECT(''recorddelimiter'' value ''''''\\n'''''', ''ignoreblanklines'' value ''true'')); END;',\n" +
+                                        "     start_date => SYSTIMESTAMP,\n" +
+                                        "     enabled => TRUE,\n" +
+                                        "     auto_drop => FALSE,\n" +
+                                        "     job_class => 'HIGH',\n" +
+                                        "     comments => 'load %s collection');\n" +
+                                        "    COMMIT;\n" +
+                                        "END;\n" +
+                                        "/\n", collectionName, collectionName, getRegionForURL(), namespaceName, dbName, collectionName, collectionName));
+
+                        // TODO: Check for progress of load... using view USER_LOAD_OPERATIONS
+                    } catch (RuntimeException re) {
+                        section.printlnKO();
+                        throw new CollectionNotLoadedException(collectionName, re);
+                    }
+                }*/
             }
         }
     }
@@ -655,8 +914,11 @@ public class DSSession {
         boolean dbNameExists = false;
         String adbId = null;
         for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
+            //System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
+
             if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
-                if (adb.getDbName().equals(dbName) && adb.getIsFreeTier()) {
+                if (adb.getDbName().equals(dbName)) {
+                    if (databaseType == DatabaseType.AlwaysFreeATP && !adb.getIsFreeTier()) continue;
                     dbNameExists = true;
                     adbId = adb.getId();
                     break;
@@ -681,12 +943,20 @@ public class DSSession {
                 GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
                 switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
                     case Succeeded:
-                        section.printlnOK( getDurationSince(startTime));
+                        section.printlnOK(getDurationSince(startTime));
                         exit = true;
                         break;
                     case Failed:
                         section.printlnKO();
-                        throw new OCIDatabaseTerminationFailedException(dbName, getWorkRequestResponse.getOpcRequestId());
+                        final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
+                        final StringBuilder errors = new StringBuilder();
+                        int i = 0;
+                        for (WorkRequestError e : response.getItems()) {
+                            if (i > 0) errors.append("\n");
+                            errors.append(e.getMessage());
+                            i++;
+                        }
+                        throw new OCIDatabaseTerminationFailedException(dbName, errors.toString());
                     case Accepted:
                         section.print(String.format("accepted [%s]", getDurationSince(startTime)));
                         break;
@@ -723,5 +993,15 @@ public class DSSession {
         if (workRequestClient != null) workRequestClient.close();
         if (objectStorageClient != null) objectStorageClient.close();
         if (identityClient != null) identityClient.close();
+    }
+
+    public void displayInformation() {
+        if (!info) return;
+
+        Console.println("  . OCI profile    : " + profileName);
+        Console.println("  . OCI region     : " + getRegionForURL());
+        Console.println("  . OCI tenant     : " + configFile.get(CONFIG_TENANCY_ID));
+        Console.println("  . OCI compartment: " + configFile.get(CONFIG_COMPARTMENT_ID));
+        Console.println("  . OCI user       : " + configFile.get(CONFIG_USER));
     }
 }
