@@ -1,8 +1,8 @@
 # DRAGON Stack
-This is the repository for the Oracle DRAGON Stack.
+This is the repository for the DRAGON Stack.
 
 ## Goal
-This project aims to simplify the deployment of applications using an Oracle Autonomous Database Always Free.
+This project aims to simplify the deployment of applications using an Oracle Autonomous Database (Always Free Autonomous Transaction Processing (aka Converged Database), Autonomous JSON Database, Autonomous Transaction Processing, and Autonomous Data Warehouse).
 
 ## Installation
 
@@ -11,7 +11,7 @@ Run
 ```
 mvn package
 ```
-command to create the dragon-1.0.1-jar-with-dependencies.jar
+command to create the dragon-1.0.2-jar-with-dependencies.jar
 
 Run
 ```
@@ -22,31 +22,33 @@ command to generate the native images
 ### Download
 Windows:
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-windows-x86_64-1.0.1.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-windows-x86_64-1.0.2.exe -OutFile dragon-windows-x86_64-1.0.2.exe
 ```
 Linux
 ```
-wget https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-linux-x86_64-1.0.1
+wget https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-linux-x86_64-1.0.2
+chmod +x dragon-linux-*
 ```
 macOS
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v1.0.1/dragon-osx-x86_64-1.0.1
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-osx-x86_64-1.0.2
+chmod +x dragon-osx-*
 ```
 
 ## Execution
 On Windows:
 ```
-> dragon-windows-x86_64-1.0.1.exe
+> dragon-windows-x86_64-1.0.2.exe
 ```
 
 On Linux:
 ```
-$ dragon-linux-x86_64-1.0.1
+$ ./dragon-linux-x86_64-1.0.2
 ```
 
 On MAC OS:
 ```
-$ dragon-osx-x86_64-1.0.1
+$ ./dragon-osx-x86_64-1.0.2
 ```
 with the config.txt file in the current directory.
 
