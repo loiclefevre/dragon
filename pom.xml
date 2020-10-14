@@ -135,7 +135,7 @@
                 </executions>
                 <configuration>
                     <skip>false</skip>
-                    <imageName>dragon-${os.detected.classifier}-${project-version}</imageName>
+                    <imageName>dragon-${os.detected.classifier}-${project.version}</imageName>
                     <mainClass>com.oracle.dragon.DragonStack</mainClass>
                     <buildArgs>
                         --no-fallback
