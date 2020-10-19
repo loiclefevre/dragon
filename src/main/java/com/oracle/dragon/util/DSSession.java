@@ -629,7 +629,9 @@ public class DSSession {
 
         final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
 
-        createCollections(rSQLS, autonomousDatabase);
+        if(configFile.get(CONFIG_COLLECTIONS) != null) {
+            createCollections(rSQLS, autonomousDatabase);
+        }
 
         section.printlnOK();
 
