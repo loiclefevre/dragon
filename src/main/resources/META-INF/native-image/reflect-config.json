@@ -44,12 +44,22 @@
   "allDeclaredMethods":true
 },
 {
+  "name":"com.oracle.bmc.database.model.AutonomousDatabase$PermissionLevel",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
   "name":"com.oracle.bmc.database.model.AutonomousDatabase$RefreshableMode",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
 },
 {
   "name":"com.oracle.bmc.database.model.AutonomousDatabase$RefreshableStatus",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.database.model.AutonomousDatabase$Role",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
 },
@@ -113,12 +123,22 @@
   "allDeclaredMethods":true
 },
 {
+  "name":"com.oracle.bmc.database.model.AutonomousDatabaseSummary$PermissionLevel",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
   "name":"com.oracle.bmc.database.model.AutonomousDatabaseSummary$RefreshableMode",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
 },
 {
   "name":"com.oracle.bmc.database.model.AutonomousDatabaseSummary$RefreshableStatus",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.database.model.AutonomousDatabaseSummary$Role",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
 },
@@ -155,6 +175,12 @@
   "allDeclaredMethods":true
 },
 {
+  "name":"com.oracle.bmc.http.internal.ResponseHelper$ErrorCodeAndMessage$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
   "name":"com.oracle.bmc.identity.model.User$Builder",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
@@ -176,6 +202,27 @@
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.CreateBucketDetails",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.CreateBucketDetails$PublicAccessType",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.CreateBucketDetails$StorageTier",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.CreateBucketDetails$Versioning",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
 },
 {
   "name":"com.oracle.bmc.workrequests.model.WorkRequest$Builder",
