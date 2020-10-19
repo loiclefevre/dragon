@@ -733,7 +733,7 @@ public class DSSession {
         section.printlnOK();
 
         Console.println("You can connect to your database using SQL Developer Web:");
-        final String url = rSQLS.getUrlPrefix()+"/sign-in/?username="+databaseUserName.toUpperCase()+"&r=_sdw%2F";
+        final String url = rSQLS.getUrlPrefix()+"sign-in/?username="+databaseUserName.toUpperCase()+"&r=_sdw%2F";
         Console.println("- URL  : " + url);
         Console.println("- login: " + databaseUserName.toLowerCase());
     }
