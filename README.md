@@ -9,7 +9,7 @@ This project aims to simplify the deployment of applications using an Oracle Aut
 ### Download
 Linux and OCI Cloud shell:
 ```
-wget https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-linux-x86_64-1.0.2
+wget -N https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-linux-x86_64-1.0.2
 chmod +x dragon-linux-*
 ```
 Windows:
