@@ -41,7 +41,8 @@ $ ./dragon-osx-x86_64-1.0.2
 ```
 
 Run example:
-![Run](/www/dragon.gif)
+
+![Run](/www/dragon_cloud_shell.gif)
 
 ## Configuration file
 The file config.txt must contain the following information:
