@@ -44,6 +44,10 @@ public class ADBRESTService {
         this.password = password;
     }
 
+    public String getUrlPrefix() {
+        return urlPrefix;
+    }
+
     public String execute(final String command) {
         try {
             final HttpRequest request = HttpRequest.newBuilder()

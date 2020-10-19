@@ -697,7 +697,7 @@ public class DSSession {
 
             section.print("database backup setup");
 
-            final ADBRESTService adminRSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), "DRAGON", configFile.get(CONFIG_DATABASE_PASSWORD));
+            final ADBRESTService adminRSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", configFile.get(CONFIG_DATABASE_PASSWORD));
 
             try {
                 adminRSQLS.execute(String.format(
@@ -733,10 +733,7 @@ public class DSSession {
         section.printlnOK();
 
         Console.println("You can connect to your database using SQL Developer Web:");
-        String url = autonomousDatabase.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName.toLowerCase());
-        if (!url.contains("username")) {
-            url += "&username=" + databaseUserName.toLowerCase();
-        }
+        final String url = rSQLS.getUrlPrefix()+"/sign-in/?username="+databaseUserName.toUpperCase()+"&r=_sdw%2F";
         Console.println("- URL  : " + url);
         Console.println("- login: " + databaseUserName.toLowerCase());
     }
@@ -806,7 +803,7 @@ public class DSSession {
                         "}",
                 adb.getServiceConsoleUrl(),
                 adb.getConnectionUrls().getSqlDevWebUrl(),
-                adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName),
+                adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName.toLowerCase()),
                 adb.getConnectionUrls().getApexUrl(),
                 adb.getConnectionUrls().getMachineLearningUserManagementUrl(),
                 adb.getDbVersion(),
