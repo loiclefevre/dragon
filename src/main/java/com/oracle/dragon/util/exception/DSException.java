@@ -1,5 +1,7 @@
 package com.oracle.dragon.util.exception;
 
+import com.oracle.dragon.util.DSSession;
+
 public class DSException extends Exception {
     protected final ErrorCode errorCode;
     protected Throwable throwable;
@@ -15,13 +17,22 @@ public class DSException extends Exception {
         this.throwable = throwable;
     }
 
-    public void displayMessageAndExit(String lastMessage) {
+    public void displayMessageAndExit(String lastMessage, boolean displayUsage) {
         System.err.println(getMessage());
         if(throwable != null) {
             throwable.printStackTrace(System.err);
         }
         System.err.flush();
+
+        if(displayUsage) {
+            DSSession.printlnConfigurationTemplate();
+        }
+
         System.out.println(lastMessage);
         System.exit(errorCode.internalErrorCode);
+    }
+
+    public void displayMessageAndExit(String lastMessage) {
+        displayMessageAndExit(lastMessage,false);
     }
 }

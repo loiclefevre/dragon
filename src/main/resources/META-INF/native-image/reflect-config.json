@@ -198,6 +198,27 @@
   "allDeclaredConstructors":true
 },
 {
+  "name":"com.oracle.bmc.objectstorage.model.Bucket$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.Bucket$PublicAccessType",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.Bucket$StorageTier",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.Bucket$Versioning",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
   "name":"com.oracle.bmc.objectstorage.model.BucketSummary$Builder",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
@@ -225,6 +246,14 @@
   "allDeclaredMethods":true
 },
 {
+  "name":"com.oracle.bmc.objectstorage.requests.PutObjectRequest",
+  "methods":[
+    {"name":"getContentEncoding","parameterTypes":[] }, 
+    {"name":"getContentLanguage","parameterTypes":[] }, 
+    {"name":"getContentType","parameterTypes":[] }
+  ]
+},
+{
   "name":"com.oracle.bmc.workrequests.model.WorkRequest$Builder",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
@@ -242,6 +271,12 @@
 },
 {
   "name":"com.oracle.bmc.workrequests.model.WorkRequestResource$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.dragon.model.LocalDragonConfiguration",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true
@@ -594,6 +629,10 @@
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true
+},
+{
+  "name":"org.stringtemplate.v4.misc.ObjectModelAdaptor",
+  "fields":[{"name":"INVALID_MEMBER"}]
 },
 {
   "name":"sun.misc.Unsafe",

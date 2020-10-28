@@ -31,7 +31,8 @@ public enum ErrorCode {
     DataFileNotLoaded(-28),
     CollectionNotLoaded(-29),
     LocalConfigurationNotSaved(-30),
-    AutonomousDatabaseLimitReached(-31);
+    AutonomousDatabaseLimitReached(-31),
+    LoadLocalConfiguration(-32);
 
     public final int internalErrorCode;
 

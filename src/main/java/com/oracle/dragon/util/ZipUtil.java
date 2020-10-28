@@ -52,7 +52,7 @@ public class ZipUtil {
                 ze = zis.getNextEntry();
             }
             return true;
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             return false;
         }
     }

@@ -1,7 +1,10 @@
 package com.oracle.dragon;
 
 import com.oracle.bmc.model.BmcException;
+import com.oracle.dragon.util.Console;
 import com.oracle.dragon.util.DSSession;
+import com.oracle.dragon.util.exception.ConfigurationFileNotFoundException;
+import com.oracle.dragon.util.exception.ConfigurationLoadException;
 import com.oracle.dragon.util.exception.DSException;
 
 import static com.oracle.dragon.util.Console.*;
@@ -9,6 +12,7 @@ import static com.oracle.dragon.util.Console.*;
 /**
  * DRAGON Stack Manager - Main entry point.
  *
+ * @see https://github.com/loiclefevre/dragon
  * @since 1.0.0
  */
 public class DragonStack {
@@ -23,9 +27,9 @@ public class DragonStack {
 
             session.loadConfiguration();
 
-            session.displayInformation();
+            session.loadLocalConfiguration();
 
-            session.initializeClients();
+            session.displayInformation();
 
             session.work();
 
@@ -36,17 +40,20 @@ public class DragonStack {
                 e.printStackTrace();
                 System.exit(-1000);
             } else {
-                println("Status: " + e.getStatusCode());
-                println("Service: " + e.getServiceCode());
-                println("RequestId: " + e.getOpcRequestId());
-                println("Timeout: " + e.isTimeout());
+                println("Status     : " + e.getStatusCode());
+                println("Service    : " + e.getServiceCode());
+                println("RequestId  : " + e.getOpcRequestId());
+                println("Timeout    : " + e.isTimeout());
                 println("Client Side: " + e.isClientSide());
                 System.err.printf("ERROR: %s\n", e.getLocalizedMessage());
                 println(Style.ANSI_RED + "\n================================================================================");
                 println(Style.ANSI_RED + "Unhandled exception:");
                 e.printStackTrace(System.err);
             }
-        } catch (DSException e) {
+        } catch( ConfigurationFileNotFoundException | ConfigurationLoadException ce ) {
+            ce.displayMessageAndExit(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET, true);
+        }
+        catch (DSException e) {
             e.displayMessageAndExit(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET);
         } catch (Exception e) {
             println(Style.ANSI_RED + "\n================================================================================");

@@ -48,6 +48,14 @@ public class ADBRESTService {
         return urlPrefix;
     }
 
+    public String getUrlSQLService() {
+        return urlSQLService;
+    }
+
+    public String getUrlSODAService() {
+        return urlSODAService;
+    }
+
     public String execute(final String command) {
         try {
             final HttpRequest request = HttpRequest.newBuilder()

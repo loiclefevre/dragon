@@ -1,0 +1,135 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.ADB-logo {
+  height: 36vmin;
+}
+
+.Dragon-logo {
+  position: absolute;
+  height: 20vh;
+  left: 0;
+  bottom: 0;
+}
+
+.App-header {
+  background-color: rgba(0,0,0,0);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  position: absolute;
+  z-index: 3;
+  width: 100%;
+}
+
+.App-background {
+  background-color:  black;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  position: absolute;
+  z-index: 1;
+  user-select: none;
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.App-framerate {
+  position: absolute;
+  font-size: calc(1px + 1.4vmin);
+  color: black;
+  right: 1vh;
+  bottom: 1vh;
+}
+
+.Tiers-bar {
+  min-height: 90vh;
+  min-width: 20vw;
+  width:40%;
+  align-items: center;
+  justify-content: center;
+  padding-top: 10vh;
+}
+
+.Tools-bar {
+  min-width: 10vw;
+  min-height: 20vh;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.App-footer {
+  background-color: rgba(0,0,0,0);
+  min-height: 0vh;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(5px + 2vmin);
+  color: white;
+  position: absolute;
+  bottom: 5vh;
+  z-index: 3;
+  width: 100%;
+}
+
+p, figure {
+  margin: 1vmin 1vmin 1vmin 1vmin;
+}
+
+.Img-flash-effect figure img {
+  height: 10vmin;
+  opacity: .3;
+  filter: drop-shadow(0 0 0.75rem black);
+}
+
+.Img-flash-effect figure:hover img {
+	opacity: 1;
+	-webkit-animation: flash .5s;
+	animation: flash .5s;
+}
+@keyframes flash {
+	0% {
+		opacity: .6;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.small-text {
+  font-size: calc(2px + 2vmin);
+  color: lightgray;
+}

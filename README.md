@@ -9,36 +9,36 @@ This project aims to simplify the deployment of applications using an Oracle Aut
 ### Download
 Linux and OCI Cloud shell:
 ```
-rm -f ./dragon-linux-x86_64-1.0.2
-wget https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-linux-x86_64-1.0.2
+rm -f ./dragon-linux-x86_64-2.0.0
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.0/dragon-linux-x86_64-2.0.0
 chmod +x dragon-linux-*
 ```
 Windows:
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-windows-x86_64-1.0.2.exe -OutFile dragon-windows-x86_64-1.0.2.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.0/dragon-windows-x86_64-2.0.0.exe -OutFile dragon-windows-x86_64-2.0.0.exe
 ```
 MAC OS:
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v1.0.2/dragon-osx-x86_64-1.0.2
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.0/dragon-osx-x86_64-2.0.0
 chmod +x dragon-osx-*
 ```
 
 ## Run
-*(with the config.txt file in the current directory)*
+*(with the dragon.config file in the current directory)*
 
 Linux and OCI Cloud shell:
 ```
-$ ./dragon-linux-x86_64-1.0.2
+$ ./dragon-linux-x86_64-2.0.0
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-1.0.2.exe
+> dragon-windows-x86_64-2.0.0.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-1.0.2
+$ ./dragon-osx-x86_64-2.0.0
 ```
 
 Run example:
@@ -46,7 +46,7 @@ Run example:
 ![Run](/www/dragon_cloud_shell.gif)
 
 ## Configuration file
-The file config.txt must contain the following information:
+The file *dragon.config* must contain the following information:
 
 ```
 [DEFAULT]
@@ -66,7 +66,7 @@ Run
 ```
 mvn package
 ```
-command to create the dragon-1.0.2-jar-with-dependencies.jar
+command to create the dragon-2.0.0-jar-with-dependencies.jar
 
 Run
 ```

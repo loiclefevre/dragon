@@ -1,5 +1,7 @@
 package com.oracle.dragon.util;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.bmc.ConfigFileReader;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
@@ -30,6 +32,9 @@ import com.oracle.bmc.workrequests.requests.GetWorkRequestRequest;
 import com.oracle.bmc.workrequests.requests.ListWorkRequestErrorsRequest;
 import com.oracle.bmc.workrequests.responses.GetWorkRequestResponse;
 import com.oracle.bmc.workrequests.responses.ListWorkRequestErrorsResponse;
+import com.oracle.dragon.model.LocalDragonConfiguration;
+import com.oracle.dragon.stacks.CodeGenerator;
+import com.oracle.dragon.stacks.StackType;
 import com.oracle.dragon.util.exception.*;
 
 import java.io.*;
@@ -49,7 +54,10 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "1.0.2";
+    public static final String VERSION = "2.0.0";
+
+    public static final String CONFIGURATION_FILENAME = "dragon.config";
+    public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
 
     private static final int OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT = 2;
     private static final String CONFIG_REGION = "region";
@@ -61,10 +69,17 @@ public class DSSession {
     private static final String CONFIG_COLLECTIONS = "database_collections";
     private static final String CONFIG_COMPARTMENT_ID = "compartment_id";
     private static final String CONFIG_TENANCY_ID = "tenancy";
-    private static final String CONFIG_KEY_FILE = "key_file";
+    public static final String CONFIG_KEY_FILE = "key_file";
     private static final String CONFIG_USER = "user";
     private static final String CONFIG_AUTH_TOKEN = "auth_token";
     private static final String CONFIG_DATA_PATH = "data_path";
+
+    // Code generation
+    private boolean createStack;
+    private StackType stackType;
+    private String stackName = "frontend";
+
+    private LocalDragonConfiguration localConfiguration;
 
     public enum Platform {
         Windows,
@@ -88,7 +103,8 @@ public class DSSession {
         DatabaseConfiguration("Database configuration"),
         ObjectStorageConfiguration("Object storage configuration"),
         LoadDataIntoCollections("Data loading"),
-        LocalConfiguration("Local configuration");
+        LocalConfiguration("Local configuration"),
+        CreateStack("Stack creation");
 
         private final String name;
 
@@ -250,68 +266,18 @@ public class DSSession {
                 case "-config-template":
                 case "--config-template":
                     section.printlnOK();
-                    println("Configuration template (save the content in a file named \"config.txt\"):");
-                    println();
-                    println();
-                    println(" # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT");
-                    println(" # You can choose a profile using the -profile command line argument");
-                    println("[DEFAULT]");
-                    println();
-                    println(" # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
-                    println("user=ocid1.user.oc1..<unique_ID>");
-                    println();
-                    println(" # Full path and filename of the SSH private key (use *solely* forward slashes).");
-                    println(" # /!\\ Warning: The key pair must be in PEM format. For instructions on generating a key pair in PEM format, see:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#Required_Keys_and_OCIDs");
-                    println("key_file=<full path to SSH private key file>");
-                    println();
-                    println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four");
-                    println("fingerprint=<full path to private SSH key file>");
-                    println();
-                    println(" # OCID of your tenancy. To get the value, see:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
-                    println("tenancy=ocid1.tenancy.oc1..<unique_ID>");
-                    println();
-                    println(" # An Oracle Cloud Infrastructure region identifier. For a list of possible region identifiers, check here:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm#top");
-                    println("region=eu-frankfurt-1");
-                    println();
-                    println(" # OCID of the compartment to use for resources creation. to get more information about compartments, see:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcompartments.htm?Highlight=compartment%20ocid#Managing_Compartments");
-                    println("compartment_id=ocid1.compartment.oc1..<unique_ID>");
-                    println();
-                    println(" # Authentication token that will be used for OCI Object Storage configuration, see:");
-                    println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Registry/Tasks/registrygettingauthtoken.htm?Highlight=user%20auth%20tokens");
-                    println("auth_token=<authentication token>");
-                    println();
-                    println(" # Autonomous Database Type: ajd (for Autonomous JSON Database), atp (for Autonomous Transaction Processing), adw (for Autonomous Data Warehouse)");
-                    println(" # Empty value means Always Free Autonomous Transaction Processing.");
-                    println("# database_type=");
-                    println();
-                    println(" # Uncomment to specify another database user name than dragon (default)");
-                    println("# database_user_name=dragon");
-                    println();
-                    println(" # The database password used for database creation and dragon user");
-                    println(" # - 12 chars minimum and 30 chars maximum");
-                    println(" # - can't contain the \"dragon\" word");
-                    println(" # - contains 1 digit minimum");
-                    println(" # - contains 1 lower case char");
-                    println(" # - contains 1 upper case char");
-                    println("database_password=<database password>");
-                    println();
-                    println(" # Uncomment to ask for Bring Your Own Licenses model (doesn't work for Always Free and AJD)");
-                    println("# database_license_type=byol");
-                    println();
-                    println(" # A list of coma separated JSON collection name(s) that you wish to get right after database creation");
-                    println("# database_collections=");
-                    println();
-                    println(" # Path to a folder where data to load into collections can be found (default to current directory)");
-                    println("data_path=.");
-                    println();
+                    printlnConfigurationTemplate();
                     System.exit(0);
+                    break;
 
+                case "-create-react-app":
+                case "--create-react-app":
+                    createStack = true;
+                    stackType = StackType.REACT;
+                    if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+                        i++;
+                        stackName = args[i];
+                    }
                     break;
 
                 case "-h":
@@ -323,7 +289,7 @@ public class DSSession {
                     section.printlnOK();
                     println("Usage:");
                     println("  -config-template       \tdisplay a configuration file template");
-                    println("  -profile <profile name>\tchoose the given profile name from config.txt (instead of DEFAULT)");
+                    println("  -profile <profile name>\tchoose the given profile name from " + CONFIGURATION_FILENAME + " (instead of DEFAULT)");
                     println("  -db <database name>    \tdenotes the database name to create");
                     println("  -load                  \tload corresponding data into collections");
                     println("  -destroy               \task to destroy the database");
@@ -334,12 +300,93 @@ public class DSSession {
         section.printlnOK();
     }
 
+    public static void printlnConfigurationTemplate() {
+        println("Configuration template (save the content in a file named \"" + CONFIGURATION_FILENAME + "\"):");
+        println();
+        println();
+        println(" # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT");
+        println(" # You can choose a profile using the -profile command line argument");
+        println("[DEFAULT]");
+        println();
+        println(" # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
+        println("user=ocid1.user.oc1..<unique_ID>");
+        println();
+        println(" # Full path and filename of the SSH private key (use *solely* forward slashes).");
+        println(" # /!\\ Warning: The key pair must be in PEM format. For instructions on generating a key pair in PEM format, see:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#Required_Keys_and_OCIDs");
+        println("key_file=<full path to SSH private key file>");
+        println();
+        println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four");
+        println("fingerprint=<full path to private SSH key file>");
+        println();
+        println(" # OCID of your tenancy. To get the value, see:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
+        println("tenancy=ocid1.tenancy.oc1..<unique_ID>");
+        println();
+        println(" # An Oracle Cloud Infrastructure region identifier. For a list of possible region identifiers, check here:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm#top");
+        println("region=eu-frankfurt-1");
+        println();
+        println(" # OCID of the compartment to use for resources creation. to get more information about compartments, see:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcompartments.htm?Highlight=compartment%20ocid#Managing_Compartments");
+        println("compartment_id=ocid1.compartment.oc1..<unique_ID>");
+        println();
+        println(" # Authentication token that will be used for OCI Object Storage configuration, see:");
+        println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Registry/Tasks/registrygettingauthtoken.htm?Highlight=user%20auth%20tokens");
+        println("auth_token=<authentication token>");
+        println();
+        println(" # Autonomous Database Type: ajd (for Autonomous JSON Database), atp (for Autonomous Transaction Processing), adw (for Autonomous Data Warehouse)");
+        println(" # Empty value means Always Free Autonomous Transaction Processing.");
+        println("# database_type=");
+        println();
+        println(" # Uncomment to specify another database user name than dragon (default)");
+        println("# database_user_name=dragon");
+        println();
+        println(" # The database password used for database creation and dragon user");
+        println(" # - 12 chars minimum and 30 chars maximum");
+        println(" # - can't contain the \"dragon\" word");
+        println(" # - contains 1 digit minimum");
+        println(" # - contains 1 lower case char");
+        println(" # - contains 1 upper case char");
+        println("database_password=<database password>");
+        println();
+        println(" # Uncomment to ask for Bring Your Own Licenses model (doesn't work for Always Free and AJD)");
+        println("# database_license_type=byol");
+        println();
+        println(" # A list of coma separated JSON collection name(s) that you wish to get right after database creation");
+        println("# database_collections=");
+        println();
+        println(" # Path to a folder where data to load into collections can be found (default to current directory)");
+        println("data_path=.");
+        println();
+    }
+
+    public void loadLocalConfiguration() throws DSException {
+        final File localConfigurationFile = new File(LOCAL_CONFIGURATION_FILENAME);
+
+        if (localConfigurationFile.exists() && localConfigurationFile.isFile()) {
+            section = Section.LocalConfiguration;
+            section.print("parsing");
+
+            final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            try {
+                localConfiguration = mapper.readValue(localConfigurationFile, LocalDragonConfiguration.class);
+            } catch (IOException e) {
+                throw new LoadLocalConfigurationException(LOCAL_CONFIGURATION_FILENAME, e);
+            }
+
+            section.printlnOK();
+        }
+    }
+
     public void loadConfiguration() throws DSException {
         section = Section.OCIConfiguration;
         section.print("parsing");
 
         try {
-            configFile = ConfigFileReader.parse("config.txt", profileName);
+            configFile = ConfigFileReader.parse(CONFIGURATION_FILENAME, profileName);
 
             if ((region = configFile.get(CONFIG_REGION)) == null) {
                 section.printlnKO();
@@ -438,7 +485,7 @@ public class DSSession {
         section.printlnOK();
     }
 
-    public void initializeClients() throws OCIAPIAuthenticationPrivateKeyNotFoundException, OCIAPIDatabaseException {
+    private void initializeClients() throws OCIAPIAuthenticationPrivateKeyNotFoundException, OCIAPIDatabaseException {
         section = Section.OCIConnection;
         section.print("authentication pending");
         provider = new ConfigFileAuthenticationDetailsProvider(configFile);
@@ -460,12 +507,23 @@ public class DSSession {
     public void work() throws DSException {
         switch (operation) {
             case CreateDatabase:
-                createADB();
+                if (localConfiguration == null || localConfiguration.getDbName().equals(dbName)) {
+                    initializeClients();
+                    createADB();
+                }
                 break;
 
             case DestroyDatabase:
-                destroyDatabase();
+                if( localConfiguration == null || localConfiguration.getDbName().equals(dbName) ) {
+                    initializeClients();
+                    destroyDatabase();
+                }
                 break;
+        }
+
+        if (operation == Operation.CreateDatabase && createStack) {
+            final CodeGenerator c = new CodeGenerator(stackType, stackName, platform, localConfiguration);
+            c.work();
         }
     }
 
@@ -629,7 +687,7 @@ public class DSSession {
 
         final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
 
-        if(configFile.get(CONFIG_COLLECTIONS) != null) {
+        if (configFile.get(CONFIG_COLLECTIONS) != null) {
             createCollections(rSQLS, autonomousDatabase);
         }
 
@@ -724,16 +782,19 @@ public class DSSession {
 
 
         section = Section.LocalConfiguration;
-        try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream("local_configuration.json")))) {
-            out.println(getConfigurationAsJSON(autonomousDatabase, true));
+        try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
+            out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true));
         } catch (IOException e) {
-            throw new LocalConfigurationNotSavedExcaption(e);
+            throw new LocalConfigurationNotSavedException(e);
         }
 
         section.printlnOK();
 
+        // reload just saved JSON local configuration as POJO for further processing (create stack...)
+        loadLocalConfiguration();
+
         Console.println("You can connect to your database using SQL Developer Web:");
-        final String url = rSQLS.getUrlPrefix()+"sign-in/?username="+databaseUserName.toUpperCase()+"&r=_sdw%2F";
+        final String url = rSQLS.getUrlPrefix() + "sign-in/?username=" + databaseUserName.toUpperCase() + "&r=_sdw%2F";
         Console.println("- URL  : " + url);
         Console.println("- login: " + databaseUserName.toLowerCase());
     }
@@ -745,11 +806,12 @@ public class DSSession {
             rSQLS.execute(String.format("create user %s identified by %s DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
                     "alter user %s quota unlimited on data;\n" +
                     "grant dwrole, create session, soda_app, alter session to %s;\n" +
+                    "grant execute on CTX_DDL to %s;\n" +
                     "grant select on v$mystat to %s;" +
                     "BEGIN\n" +
                     "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => '%s', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => '%s', p_auto_rest_auth => TRUE);\n" +
                     "END;\n" +
-                    "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD), databaseUserName, databaseUserName, databaseUserName, databaseUserName.toUpperCase(), databaseUserName.toLowerCase()));
+                    "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD), databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName.toUpperCase(), databaseUserName.toLowerCase()));
         } catch (RuntimeException re) {
             section.printlnKO();
             throw new DatabaseUserCreationFailedException(re);
@@ -777,7 +839,7 @@ public class DSSession {
         section.print("creating dragon collections");
         rSQLS.createSODACollection("dragon");
         section.print("storing dragon information");
-        rSQLS.insertDocument("dragon", getConfigurationAsJSON(adb));
+        rSQLS.insertDocument("dragon", getConfigurationAsJSON(adb, rSQLS));
 
         for (String collectionName : configFile.get(CONFIG_COLLECTIONS).split(",")) {
             if (!"dragon".equals(collectionName)) {
@@ -787,16 +849,18 @@ public class DSSession {
         }
     }
 
-    private String getConfigurationAsJSON(AutonomousDatabase adb) {
-        return getConfigurationAsJSON(adb, false);
+    private String getConfigurationAsJSON(AutonomousDatabase adb, ADBRESTService rSQLS) {
+        return getConfigurationAsJSON(adb, rSQLS, false);
     }
 
-    private String getConfigurationAsJSON(AutonomousDatabase adb, boolean local) {
+    private String getConfigurationAsJSON(AutonomousDatabase adb, ADBRESTService rSQLS, boolean local) {
         return String.format("{\"databaseServiceURL\": \"%s\", " +
                         "\"sqlDevWebAdmin\": \"%s\", " +
                         "\"sqlDevWeb\": \"%s\", " +
                         "\"apexURL\": \"%s\", " +
                         "\"omlURL\": \"%s\", " +
+                        "\"sqlAPI\": \"%s\", " +
+                        "\"sodaAPI\": \"%s\", " +
                         "\"version\": \"%s\"" +
                         (local ? ", \"dbName\": \"%s\", \"dbUserName\": \"%s\", \"dbUserPassword\": \"%s\""
                                 : "") +
@@ -806,6 +870,8 @@ public class DSSession {
                 adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName.toLowerCase()),
                 adb.getConnectionUrls().getApexUrl(),
                 adb.getConnectionUrls().getMachineLearningUserManagementUrl(),
+                rSQLS.getUrlSQLService(),
+                rSQLS.getUrlSODAService(),
                 adb.getDbVersion(),
                 dbName, databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD)
         );
@@ -825,7 +891,7 @@ public class DSSession {
             if (!"dragon".equals(collectionName)) {
                 section.print("collection " + collectionName);
 
-                // find all names starting by <collection name>_XXX.json and stored in some data folder (specified in config.txt)
+                // find all names starting by <collection name>_XXX.json and stored in some data folder (specified in CONFIGURATION_FILENAME)
                 final File[] dataFiles = dataPath.listFiles(new JSONCollectionFilenameFilter(collectionName));
 
                 Map<String, String> metadata = null;
@@ -859,21 +925,21 @@ public class DSSession {
 
                 section.print(String.format("collection %s: loading...", collectionName));
 
-               // if (databaseType == DatabaseType.AlwaysFreeATP) {
-                    try {
-                        rSQLS.execute(String.format(
-                                "BEGIN\n" +
-                                        "    DBMS_CLOUD.COPY_COLLECTION(\n" +
-                                        "        collection_name => '%s',\n" +
-                                        "        credential_name => 'DRAGON_CREDENTIAL_NAME',\n" +
-                                        "        file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*',\n" +
-                                        "        format => JSON_OBJECT('recorddelimiter' value '''\\n''', 'ignoreblanklines' value 'true') );\n" +
-                                        "END;\n" +
-                                        "/", collectionName, getRegionForURL(), namespaceName, dbName, collectionName));
-                    } catch (RuntimeException re) {
-                        section.printlnKO();
-                        throw new CollectionNotLoadedException(collectionName, re);
-                    }
+                // if (databaseType == DatabaseType.AlwaysFreeATP) {
+                try {
+                    rSQLS.execute(String.format(
+                            "BEGIN\n" +
+                                    "    DBMS_CLOUD.COPY_COLLECTION(\n" +
+                                    "        collection_name => '%s',\n" +
+                                    "        credential_name => 'DRAGON_CREDENTIAL_NAME',\n" +
+                                    "        file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*',\n" +
+                                    "        format => JSON_OBJECT('recorddelimiter' value '''\\n''', 'ignoreblanklines' value 'true') );\n" +
+                                    "END;\n" +
+                                    "/", collectionName, getRegionForURL(), namespaceName, dbName, collectionName));
+                } catch (RuntimeException re) {
+                    section.printlnKO();
+                    throw new CollectionNotLoadedException(collectionName, re);
+                }
                 /*} else {
                     // use DBMS_SCHEDULER with class HIGH...
                     try {

@@ -1,0 +1,4 @@
+REACT_APP_DATABASE_USER_NAME=<config.dbUserName>
+REACT_APP_DATABASE_USER_PASSWORD=<config.dbUserPassword>
+REACT_APP_SODA_API=<config.sodaAPI>
+REACT_APP_SQL_API=<config.sqlAPI>
