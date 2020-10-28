@@ -507,14 +507,14 @@ public class DSSession {
     public void work() throws DSException {
         switch (operation) {
             case CreateDatabase:
-                if (localConfiguration == null || localConfiguration.getDbName().equals(dbName)) {
+                if (localConfiguration == null) {
                     initializeClients();
                     createADB();
                 }
                 break;
 
             case DestroyDatabase:
-                if( localConfiguration == null || localConfiguration.getDbName().equals(dbName) ) {
+                if (localConfiguration != null || localConfiguration.getDbName().equals(dbName)) {
                     initializeClients();
                     destroyDatabase();
                 }
@@ -574,8 +574,8 @@ public class DSSession {
                 .isFreeTier(databaseType == DatabaseType.AlwaysFreeATP ? Boolean.TRUE : Boolean.FALSE)
                 .build();
 
-        AutonomousDatabase autonomousDatabase = null;
         String workRequestId = null;
+        AutonomousDatabase autonomousDatabase = null;
         workRequestClient = new WorkRequestClient(provider);
 
         try {
@@ -787,7 +787,6 @@ public class DSSession {
         } catch (IOException e) {
             throw new LocalConfigurationNotSavedException(e);
         }
-
         section.printlnOK();
 
         // reload just saved JSON local configuration as POJO for further processing (create stack...)
