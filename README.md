@@ -80,4 +80,4 @@ I would like to thank the people that contributed to this project:
 - @paolobellardone: for building the MAC OS native image
 - @mmanu-gh, and @davideburdese: for reporting bugs
 - Jon R.: for creating the DRAGON logo :)
-- @tmcginn, and @kaymalcolm: for the motivation :) 
+- @tmcginn, @kamryn-v and @kaymalcolm: for the motivation :) 
