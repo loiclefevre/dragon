@@ -1,4 +1,5 @@
-# DRAGON Stack
+![](./www/dragon_stack.png)
+
 This is the repository for the DRAGON Stack.
 
 ## Goal
@@ -43,7 +44,7 @@ $ ./dragon-osx-x86_64-2.0.0
 
 Run example:
 
-![Run](/www/dragon_cloud_shell.gif)
+![Run](./www/dragon_cloud_shell.gif)
 
 ## Configuration file
 The file *dragon.config* must contain the following information:
@@ -73,3 +74,10 @@ Run
 mvn verify
 ```
 command to generate the native images
+
+### Thanks
+I would like to thank the people that contributed to this project:
+- @paolobellardone: for building the MAC OS native image
+- @mmanu-gh, and @davideburdese: for reporting bugs
+- Jon R.: for creating the DRAGON logo :)
+- @tmcginn, and @kaymalcolm: for the motivation :) 

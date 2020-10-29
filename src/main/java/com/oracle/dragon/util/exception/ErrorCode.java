@@ -32,7 +32,9 @@ public enum ErrorCode {
     CollectionNotLoaded(-29),
     LocalConfigurationNotSaved(-30),
     AutonomousDatabaseLimitReached(-31),
-    LoadLocalConfiguration(-32);
+    LoadLocalConfiguration(-32),
+    LoadStackMetadata(-33),
+    StackFileNotFound(-34);
 
     public final int internalErrorCode;
 
