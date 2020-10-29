@@ -292,6 +292,7 @@ public class DSSession {
                     println("  -profile <profile name>\tchoose the given profile name from " + CONFIGURATION_FILENAME + " (instead of DEFAULT)");
                     println("  -db <database name>    \tdenotes the database name to create");
                     println("  -load                  \tload corresponding data into collections");
+                    println("  -create-react-app [name]\tcreate a React frontend (default project name is \"frontend\")");
                     println("  -destroy               \task to destroy the database");
                     System.exit(0);
                     break;
