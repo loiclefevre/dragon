@@ -77,7 +77,7 @@ command to generate the native images
 
 ### Thanks
 I would like to thank the people that contributed to this project:
-- @paolobellardone: for building the MAC OS native image
-- @mmanu-gh, and @davideburdese: for reporting bugs
+- [Paolo Bellardone](https://github.com/paolobellardone): for building the MAC OS native image (and of course testing and reporting bugs)
+- [Manu M.](https://github.com/mmanu-gh), and [Davide Burdese](https://github.com/davideburdese): for testing and reporting bugs
 - Jon R.: for creating the DRAGON logo :)
-- @tmcginn, @kamryn-v and @kaymalcolm: for the motivation :) 
+- [Kay Malcolm](https://github.com/kaymalcolm), [T. McGinn](https://github.com/tmcginn), and [Kamryn V.](https://github.com/kamryn-v): for the energy, the motivation and the Live Labs!!! :) 
