@@ -4,7 +4,12 @@
     {"pattern":"\\QMETA-INF/services/org.glassfish.jersey.internal.inject.InjectionManagerFactory\\E"}, 
     {"pattern":"\\QMETA-INF/services/org.glassfish.jersey.internal.spi.AutoDiscoverable\\E"}, 
     {"pattern":"\\Qcom/oracle/bmc/sdk.properties\\E"}, 
-    {"pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"}, 
+    {"pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"},
+    {"pattern":"\\Qstacks/create-react-app/\\E"}, 
+    {"pattern":"\\Qstacks/create-react-app/data/*\\E"}, 
+    {"pattern":"\\Qstacks/create-react-app/data/public/*\\E"}, 
+    {"pattern":"\\Qstacks/create-react-app/data/src/*\\E"}, 
+    {"pattern":"\\Qstacks/create-react-app/data/src/components/*\\E"}, 
     {"pattern":"\\Qstacks/create-react-app/message.st\\E"}, 
     {"pattern":"\\Qstacks/create-react-app\\E"}
   ],

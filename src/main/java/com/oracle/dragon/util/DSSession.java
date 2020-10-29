@@ -514,7 +514,7 @@ public class DSSession {
                 break;
 
             case DestroyDatabase:
-                if (localConfiguration != null || localConfiguration.getDbName().equals(dbName)) {
+                if (localConfiguration != null && localConfiguration.getDbName().equals(dbName)) {
                     initializeClients();
                     destroyDatabase();
                 }
@@ -1042,6 +1042,12 @@ public class DSSession {
                 section.printlnKO();
                 throw new OCIDatabaseWaitForTerminationFailedException(e);
             }
+        }
+
+        // deleting local configuration!
+        final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
+        if(toDelete.exists()) {
+            toDelete.delete();
         }
     }
 
