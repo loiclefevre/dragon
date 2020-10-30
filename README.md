@@ -10,6 +10,8 @@ This project aims to bring unprecedented user experience to developers by __simp
 - [Run](#run)
 - [Managed Stacks](#stacks)
 
+[![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/X-10r-zji9E/0.jpg)](https://www.youtube.com/watch?v=X-10r-zji9E)
+
 ## Download
 The latest stable release is v2.0.0.
 
