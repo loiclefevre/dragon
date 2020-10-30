@@ -15,6 +15,7 @@
     "public/manifest.json",
     "public/noise.png",
     "public/piLibs.js",
+	"public/piLibs.LICENSE.TXT",
     "public/robots.txt",
     "src/components/Background.js",
     "src/components/SODACollections.js",

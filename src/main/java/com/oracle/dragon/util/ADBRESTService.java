@@ -1,5 +1,15 @@
 package com.oracle.dragon.util;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oracle.dragon.model.LocalDragonConfiguration;
+import com.oracle.dragon.model.ORDSSQLServiceResponse;
+import com.oracle.dragon.model.ORDSSQLServiceResponseItems;
+import com.oracle.dragon.util.exception.LoadLocalConfigurationException;
+import com.oracle.dragon.util.exception.ORDSSQLServiceException;
+import com.oracle.dragon.util.exception.ORDSSQLServiceUnparsableResponseException;
+
+import java.io.IOException;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -57,6 +67,7 @@ public class ADBRESTService {
     }
 
     public String execute(final String command) {
+        // https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/20.2/aelig/rest-enabled-sql-service.html
         try {
             final HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(urlSQLService))
@@ -76,7 +87,33 @@ public class ADBRESTService {
                 throw new RuntimeException("Request was not successful (" + response.statusCode() + ")");
             }
 
-            return response.body();
+            // parsing body response to check for any error!
+            final String responseAsText = response.body();
+
+            final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            try {
+                final ORDSSQLServiceResponse ORDSResponse = mapper.readValue(responseAsText, ORDSSQLServiceResponse.class);
+
+                boolean atLeastOneError = false;
+                final StringBuilder errors = new StringBuilder();
+                for(ORDSSQLServiceResponseItems item:ORDSResponse.getItems()) {
+                    if(item.getErrorCode() != 0) {
+                        atLeastOneError = true;
+                        if(errors.length() > 0) {
+                            errors.append('\n');
+                        }
+                        errors.append("Error (Line ").append(item.getErrorLine()).append("): ").append(item.getErrorDetails());
+                    }
+                }
+
+                if(atLeastOneError) {
+                    throw new ORDSSQLServiceException(errors.toString());
+                }
+
+                return responseAsText;
+            } catch (IOException e) {
+                throw new ORDSSQLServiceUnparsableResponseException(responseAsText,e);
+            }
         } catch (Exception e) {
             throw new RuntimeException("REST SQL Service could not run " + command, e);
         }

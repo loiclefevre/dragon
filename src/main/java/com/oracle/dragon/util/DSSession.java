@@ -54,7 +54,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.0.0";
+    public static final String VERSION = "2.0.1";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -140,6 +140,7 @@ public class DSSession {
     }
 
     public static final Platform platform;
+    public static final boolean OCICloudShell;
 
     private Section section;
     private ConfigFileReader.ConfigFile configFile;
@@ -198,14 +199,23 @@ public class DSSession {
         if (osName.startsWith("windows")) {
             platform = Platform.Windows;
             Console.ENABLE_COLORS = false;
+            OCICloudShell = false;
         } else if (osName.startsWith("linux")) {
             platform = Platform.Linux;
             System.setProperty("java.awt.headless", "true");
+
+            if(System.getenv("CLOUD_SHELL_TOOL_SET") != null && System.getenv("OCI_REGION") != null && System.getenv("OCI_TENANCY") != null) {
+                OCICloudShell = true;
+            } else {
+                OCICloudShell = false;
+            }
         } else if (osName.startsWith("mac os")) {
             platform = Platform.MacOS;
             System.setProperty("java.awt.headless", "true");
+            OCICloudShell = false;
         } else {
             platform = Platform.Unsupported;
+            OCICloudShell = false;
         }
     }
 
@@ -227,7 +237,8 @@ public class DSSession {
         section = Section.CommandLineParameters;
         section.print("analyzing");
         for (int i = 0; i < args.length; i++) {
-            switch (args[i].toLowerCase()) {
+            final String arg = args[i].toLowerCase();
+            switch (arg) {
                 case "-db":
                     if (i + 1 < args.length) {
                         dbName = args[++i].toUpperCase();
@@ -287,18 +298,27 @@ public class DSSession {
                 case "-help":
                 case "--help":
                     section.printlnOK();
-                    println("Usage:");
-                    println("  -config-template       \tdisplay a configuration file template");
-                    println("  -profile <profile name>\tchoose the given profile name from " + CONFIGURATION_FILENAME + " (instead of DEFAULT)");
-                    println("  -db <database name>    \tdenotes the database name to create");
-                    println("  -load                  \tload corresponding data into collections");
-                    println("  -create-react-app [name]\tcreate a React frontend (default project name is \"frontend\")");
-                    println("  -destroy               \task to destroy the database");
+                    displayUsage();
                     System.exit(0);
                     break;
+
+                default:
+                    section.printlnKO("bad parameter: "+arg);
+                    displayUsage();
+                    System.exit(-10000);
             }
         }
         section.printlnOK();
+    }
+
+    private void displayUsage() {
+        println("Usage:");
+        println("  -config-template        \tdisplays a configuration file template");
+        println("  -profile <profile name> \tto choose the given profile name from " + CONFIGURATION_FILENAME + " (instead of DEFAULT)");
+        println("  -db <database name>     \tto denote the database name to create");
+        println("  -load                   \tloads corresponding data into collections");
+        println("  -create-react-app [name]\tcreates a React frontend (instead of frontend)");
+        println("  -destroy                \tto destroy the database");
     }
 
     public static void printlnConfigurationTemplate() {
@@ -320,7 +340,7 @@ public class DSSession {
         println();
         println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:");
         println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four");
-        println("fingerprint=<full path to private SSH key file>");
+        println("fingerprint=<fingerprint associated with the corresponding SSH *public* key>");
         println();
         println(" # OCID of your tenancy. To get the value, see:");
         println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
@@ -343,7 +363,7 @@ public class DSSession {
         println("# database_type=");
         println();
         println(" # Uncomment to specify another database user name than dragon (default)");
-        println("# database_user_name=dragon");
+        println("# database_user_name=<your database user name>");
         println();
         println(" # The database password used for database creation and dragon user");
         println(" # - 12 chars minimum and 30 chars maximum");
@@ -423,6 +443,11 @@ public class DSSession {
             if (configFile.get(CONFIG_FINGERPRINT) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_FINGERPRINT);
+            } else {
+                final String fingerprintValue = configFile.get(CONFIG_FINGERPRINT);
+                if(fingerprintValue.length() != 47) {
+                    throw new ConfigurationBadFingerprintParameterException(CONFIG_FINGERPRINT,CONFIGURATION_FILENAME,fingerprintValue);
+                }
             }
 
             // Optional config file parameters
@@ -523,7 +548,7 @@ public class DSSession {
         }
 
         if (operation == Operation.CreateDatabase && createStack) {
-            final CodeGenerator c = new CodeGenerator(stackType, stackName, platform, localConfiguration);
+            final CodeGenerator c = new CodeGenerator(stackType, stackName, localConfiguration);
             c.work();
         }
     }
@@ -681,12 +706,21 @@ public class DSSession {
 
         section.printlnOK(walletFileName);
 
+        final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
+
+        // Save the local config file as early as possible in case of problems afterward so that one can destroy it
+        section = Section.LocalConfiguration;
+        try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
+            out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true));
+        } catch (IOException e) {
+            throw new LocalConfigurationNotSavedException(e);
+        }
+        section.printlnOK();
+
         section = Section.DatabaseConfiguration;
 
         section.print(String.format("creating %s user", databaseUserName));
         createSchema(autonomousDatabase);
-
-        final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
 
         if (configFile.get(CONFIG_COLLECTIONS) != null) {
             createCollections(rSQLS, autonomousDatabase);
@@ -781,15 +815,6 @@ public class DSSession {
             section.printlnOK();
         }
 
-
-        section = Section.LocalConfiguration;
-        try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
-            out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true));
-        } catch (IOException e) {
-            throw new LocalConfigurationNotSavedException(e);
-        }
-        section.printlnOK();
-
         // reload just saved JSON local configuration as POJO for further processing (create stack...)
         loadLocalConfiguration();
 
@@ -803,7 +828,7 @@ public class DSSession {
         final ADBRESTService rSQLS = new ADBRESTService(adb.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", configFile.get(CONFIG_DATABASE_PASSWORD));
 
         try {
-            rSQLS.execute(String.format("create user %s identified by %s DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
+            rSQLS.execute(String.format("create user %s identified by \"%s\" DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
                     "alter user %s quota unlimited on data;\n" +
                     "grant dwrole, create session, soda_app, alter session to %s;\n" +
                     "grant execute on CTX_DDL to %s;\n" +

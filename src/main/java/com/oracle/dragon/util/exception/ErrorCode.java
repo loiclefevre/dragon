@@ -34,7 +34,8 @@ public enum ErrorCode {
     AutonomousDatabaseLimitReached(-31),
     LoadLocalConfiguration(-32),
     LoadStackMetadata(-33),
-    StackFileNotFound(-34);
+    StackFileNotFound(-34),
+    ConfigurationBadFingerprintParameter(-35);
 
     public final int internalErrorCode;
 
