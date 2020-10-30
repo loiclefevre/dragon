@@ -1,9 +1,14 @@
 ![](./www/dragon_stack.png)
 
 # From Zero to WOW in 5 minutes
-This project aims to bring unprecedented user experience to developers by __simplifying__ the deployment of applications using an Autonomous Database*. 
+This project aims to bring unprecedented user experience to developers by __simplifying__ the deployment of applications using an [Autonomous Database](#why-oracle-autonomous-database-for-developers). 
 
 # 30 seconds installation steps
+
+- [Download](#download)
+- [Configure](#configure)
+- [Run](#run)
+- [Managed Stacks](#stacks)
 
 ## Download
 The latest stable release is v2.0.0.
@@ -111,6 +116,11 @@ data_path=.
 
 
 ## Run
+
+Example from OCI Cloud Shell (Linux):
+
+![Run](./www/dragon_cloud_shell.gif)
+
 *(you must have a valid dragon.config file in the current directory)*
 
 Linux and OCI Cloud Shell:
@@ -143,11 +153,25 @@ To destroy your database (Linux and OCI Cloud Shell):
 $ ./dragon-linux-x86_64-2.0.0 -destroy
 ```
 
-Run example from OCI Cloud Shell (Linux):
+## Stacks
 
-![Run](./www/dragon_cloud_shell.gif)
+As of v2.0.0, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
 
-### Why Oracle Autonomous Database* for Developers?
+### OCI Cloud Shell (Linux)
+
+For OCI Cloud Shell, you may use NGROK (free version) to allow access to your website deployed locally.
+
+```
+wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+
+unzip ngrok-stable-linux-amd64.zip
+
+npm start &
+
+./ngrok http 3000
+``` 
+
+## Why Oracle Autonomous Database* for Developers?
 
 Simple to use, it works, it is optimized already, __no__ administrative burdens, develop right away!
 
