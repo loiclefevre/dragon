@@ -1,11 +1,11 @@
 ![](./www/dragon_stack.png)
 
-## From Zero to WOW in 5 minutes
+# From Zero to WOW in 5 minutes
 This project aims to bring unprecedented user experience to developers by __simplifying__ the deployment of applications using an Autonomous Database*. 
 
-## 30 seconds installation steps
+# 30 seconds installation steps
 
-### Download
+## Download
 The latest stable release is v2.0.0.
 
 Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
