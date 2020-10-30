@@ -28,7 +28,7 @@ chmod +x dragon-osx-*
 
 The DRAGON Stack is driven by the command line arguments and a configuration file named *dragon.config*:
 
-#### CLI arguments
+### CLI arguments
 
 ```
 ./dragon-linux-x86_64-2.0.0 -help
@@ -46,7 +46,7 @@ Usage:
 
 If you wish to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also wish to load existing data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -load CLI argument__.  
 
-#### Configuration file
+### Configuration file
 
 If no *dragon.config* exist in the current directory, then by running the dragon stack CLI, you get a default configuration template to complete and write into the *dragon.config*. It includes various links to Oracle Cloud Infrastructure documentation to get you started. 
 
