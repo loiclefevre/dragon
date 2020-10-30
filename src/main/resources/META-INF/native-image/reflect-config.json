@@ -290,6 +290,21 @@
   ]
 },
 {
+  "name":"com.oracle.dragon.model.ORDSSQLServiceResponse",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.dragon.model.ORDSSQLServiceResponseItems",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.dragon.model.ORDSSQLServiceResponseItems[]"
+},
+{
   "name":"com.oracle.dragon.model.StackMetadata",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
