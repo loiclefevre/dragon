@@ -90,7 +90,8 @@ public class DSSession {
 
     public enum Operation {
         CreateDatabase,
-        DestroyDatabase
+        DestroyDatabase,
+        LoadData
     }
 
     public enum Section {
@@ -204,7 +205,7 @@ public class DSSession {
             platform = Platform.Linux;
             System.setProperty("java.awt.headless", "true");
 
-            if(System.getenv("CLOUD_SHELL_TOOL_SET") != null && System.getenv("OCI_REGION") != null && System.getenv("OCI_TENANCY") != null) {
+            if (System.getenv("CLOUD_SHELL_TOOL_SET") != null && System.getenv("OCI_REGION") != null && System.getenv("OCI_TENANCY") != null) {
                 OCICloudShell = true;
             } else {
                 OCICloudShell = false;
@@ -267,6 +268,9 @@ public class DSSession {
                 case "-load":
                 case "--load":
                     load = true;
+                    if(localConfiguration != null) {
+                        operation = Operation.LoadData;
+                    }
                     break;
 
                 case "-info":
@@ -303,7 +307,7 @@ public class DSSession {
                     break;
 
                 default:
-                    section.printlnKO("bad parameter: "+arg);
+                    section.printlnKO("bad parameter: " + arg);
                     displayUsage();
                     System.exit(-10000);
             }
@@ -384,12 +388,14 @@ public class DSSession {
         println();
     }
 
-    public void loadLocalConfiguration() throws DSException {
+    public void loadLocalConfiguration(boolean displaySection) throws DSException {
         final File localConfigurationFile = new File(LOCAL_CONFIGURATION_FILENAME);
 
         if (localConfigurationFile.exists() && localConfigurationFile.isFile()) {
-            section = Section.LocalConfiguration;
-            section.print("parsing");
+            if (displaySection) {
+                section = Section.LocalConfiguration;
+                section.print("parsing");
+            }
 
             final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             try {
@@ -398,7 +404,9 @@ public class DSSession {
                 throw new LoadLocalConfigurationException(LOCAL_CONFIGURATION_FILENAME, e);
             }
 
-            section.printlnOK();
+            if(displaySection) {
+                section.printlnOK();
+            }
         }
     }
 
@@ -445,8 +453,8 @@ public class DSSession {
                 throw new ConfigurationMissesParameterException(CONFIG_FINGERPRINT);
             } else {
                 final String fingerprintValue = configFile.get(CONFIG_FINGERPRINT);
-                if(fingerprintValue.length() != 47) {
-                    throw new ConfigurationBadFingerprintParameterException(CONFIG_FINGERPRINT,CONFIGURATION_FILENAME,fingerprintValue);
+                if (fingerprintValue.length() != 47) {
+                    throw new ConfigurationBadFingerprintParameterException(CONFIG_FINGERPRINT, CONFIGURATION_FILENAME, fingerprintValue);
                 }
             }
 
@@ -543,6 +551,13 @@ public class DSSession {
                 if (localConfiguration != null && localConfiguration.getDbName().equals(dbName)) {
                     initializeClients();
                     destroyDatabase();
+                }
+                break;
+
+            case LoadData:
+                if (localConfiguration != null && localConfiguration.getDbName().equals(dbName)) {
+                    initializeClients();
+                    loadData();
                 }
                 break;
         }
@@ -811,17 +826,38 @@ public class DSSession {
 
         if (load) {
             section = Section.LoadDataIntoCollections;
-            loadCollections(namespaceName, rSQLS);
+            loadData(namespaceName, rSQLS);
             section.printlnOK();
         }
 
         // reload just saved JSON local configuration as POJO for further processing (create stack...)
-        loadLocalConfiguration();
+        loadLocalConfiguration(false);
 
         Console.println("You can connect to your database using SQL Developer Web:");
         final String url = rSQLS.getUrlPrefix() + "sign-in/?username=" + databaseUserName.toUpperCase() + "&r=_sdw%2F";
         Console.println("- URL  : " + url);
         Console.println("- login: " + databaseUserName.toLowerCase());
+    }
+
+    private void loadData() throws DSException {
+        section = Section.LoadDataIntoCollections;
+
+        objectStorageClient = new ObjectStorageClient(provider);
+        objectStorageClient.setRegion(region);
+
+        section.print("checking existing buckets");
+        final GetNamespaceResponse namespaceResponse = objectStorageClient.getNamespace(GetNamespaceRequest.builder().build());
+        final String namespaceName = namespaceResponse.getValue();
+
+        final ADBRESTService rSQLS = new ADBRESTService(localConfiguration.getSqlDevWeb(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
+
+        loadData(namespaceName, rSQLS);
+
+        section.printlnOK();
+    }
+
+    private void loadData(final String namespaceName, final ADBRESTService rSQLS) throws DSException {
+        loadCollections(namespaceName, rSQLS);
     }
 
     private void createSchema(AutonomousDatabase adb) throws DatabaseUserCreationFailedException {
@@ -918,6 +954,8 @@ public class DSSession {
 
                 // find all names starting by <collection name>_XXX.json and stored in some data folder (specified in CONFIGURATION_FILENAME)
                 final File[] dataFiles = dataPath.listFiles(new JSONCollectionFilenameFilter(collectionName));
+
+                if( dataFiles == null || dataFiles.length == 0 ) continue;
 
                 Map<String, String> metadata = null;
 
@@ -1072,7 +1110,7 @@ public class DSSession {
 
         // deleting local configuration!
         final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
-        if(toDelete.exists()) {
+        if (toDelete.exists()) {
             toDelete.delete();
         }
     }

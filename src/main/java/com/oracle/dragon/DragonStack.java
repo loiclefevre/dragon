@@ -23,11 +23,11 @@ public class DragonStack {
         try {
             final DSSession session = new DSSession();
 
+            session.loadLocalConfiguration(true);
+
             session.analyzeCommandLineParameters(args);
 
             session.loadConfiguration();
-
-            session.loadLocalConfiguration();
 
             session.displayInformation();
 
