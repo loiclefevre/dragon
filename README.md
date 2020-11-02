@@ -1,11 +1,16 @@
 ![](./www/dragon_stack.png)
 
-# From Zero to WOW in 5 minutes
-This project aims to bring unprecedented user experience to developers by __simplifying__ the deployment of applications using an [Autonomous Database](#why-oracle-autonomous-database-for-developers). 
+# From Zero to WOW in 5 minutes 
+![](./www/command-line-example.png)
+- Generates the source code of a pre-configured [REACT](https://reactjs.org/) frontend
+- Provisions an autonomous backend ([Always Free autonomous database](#why-oracle-autonomous-database-for-developers) + REST Data Services)
+- (optional) Loads your JSON data into your collection(s)
+
+__... in 5 minutes.__
 
 # 30 seconds installation steps
 
-- [Download](#download)
+- Download [Linux and Oracle Cloud Infrastructure Cloud Shell](#linux-and-oracle-cloud-infrastructure-cloud-shell), [Windows](#windows), [MAC OS](#mac-os)
 - [Configure](#configure)
 - [Run](#run)
 - [Managed Stacks](#stacks)
@@ -13,21 +18,21 @@ This project aims to bring unprecedented user experience to developers by __simp
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/X-10r-zji9E/0.jpg)](https://www.youtube.com/watch?v=X-10r-zji9E)
 
 ## Download
-The latest stable release is v2.0.0.
+The latest stable release is v2.0.1.
 
-Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
+### Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
 ```
-rm -f ./dragon-linux-x86_64-2.0.0
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.0/dragon-linux-x86_64-2.0.0
+rm -f ./dragon-linux-x86_64-2.0.1
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.1/dragon-linux-x86_64-2.0.1
 chmod +x dragon-linux-*
 ```
-Windows:
+### Windows:
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.0/dragon-windows-x86_64-2.0.0.exe -OutFile dragon-windows-x86_64-2.0.0.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.1/dragon-windows-x86_64-2.0.1.exe -OutFile dragon-windows-x86_64-2.0.1.exe
 ```
-MAC OS:
+### MAC OS:
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.0/dragon-osx-x86_64-2.0.0
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.1/dragon-osx-x86_64-2.0.1
 chmod +x dragon-osx-*
 ```
 
@@ -38,20 +43,23 @@ The DRAGON Stack is driven by the command line arguments and a configuration fil
 ### CLI arguments
 
 ```
-./dragon-linux-x86_64-2.0.0 -help
-DRAGON Stack manager v2.0.0
+./dragon-linux-x86_64-2.0.1 -help
+DRAGON Stack manager v2.0.1
 
 > Command line parameters ................................................... ok
 Usage:
   -config-template              display a configuration file template
   -profile <profile name>       choose the given profile name from dragon.config (instead of DEFAULT)
-  -db <database name>           denotes the database name to create
-  -load                         load corresponding data into collections
+  -db <database name>           denotes the database name to create or destroy
+  -load                         loads JSON data corresponding to collections (default: no data loaded)
+                                . use with configuration parameters database_collections and data_path
+                                . loading JSON data can be done during and/or after database provisioning
+                                . JSON file names must match <collection name>[_[0-9]+].json
   -create-react-app [name]      create a React frontend (default project name is "frontend")
   -destroy                      ask to destroy the database
 ```
 
-If you wish to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also wish to load existing data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -load CLI argument__.  
+If you need to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also need to load existing JSON data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -load CLI argument__.  
 
 ### Configuration file
 
@@ -127,37 +135,37 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.0
+$ ./dragon-linux-x86_64-2.0.1
 ```
 
 To load data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.0 -load
+$ ./dragon-linux-x86_64-2.0.1 -load
 ```
 
 To load data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.0 -load -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.1 -load -create-react-app myfrontend
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.0.exe
+> dragon-windows-x86_64-2.0.1.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.0
+$ ./dragon-osx-x86_64-2.0.1
 ```
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.0 -destroy
+$ ./dragon-linux-x86_64-2.0.1 -destroy
 ```
 
 ## Stacks
 
-As of v2.0.0, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
+As of v2.0.1, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
 
 ### OCI Cloud Shell (Linux)
 
@@ -181,7 +189,7 @@ Converged, it means, you get the consistency of a _relational_ database, the _fl
 
  
  \* Autonomous Database can be:
- - __Always Free__ Autonomous Transaction Processing (ATP, aka Converged Database)
+ - __[Always Free](https://signup.oraclecloud.com/?language=en&intcmp=:ow:o:p:feb:0916FreePageBannerButton&sourceType=:ow:o:h:po:OHPPanel1nav0625%2B:ow:o:p:feb:0916FreePageBannerButton)__ Autonomous Transaction Processing (ATP, aka Converged Database)
  - Autonomous JSON Database (AJD)
  - Autonomous Transaction Processing (ATP)
  - Autonomous Data Warehouse (ADW)
