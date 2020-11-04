@@ -18,21 +18,21 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/X-10r-zji9E/0.jpg)](https://www.youtube.com/watch?v=X-10r-zji9E)
 
 ## Download
-The latest stable release is v2.0.1.
+The latest stable release is v2.0.2.
 
 ### Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
 ```
-rm -f ./dragon-linux-x86_64-2.0.1
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.1/dragon-linux-x86_64-2.0.1
+rm -f ./dragon-linux-x86_64-2.0.2
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.2/dragon-linux-x86_64-2.0.2
 chmod +x dragon-linux-*
 ```
 ### Windows:
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.1/dragon-windows-x86_64-2.0.1.exe -OutFile dragon-windows-x86_64-2.0.1.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.2/dragon-windows-x86_64-2.0.2.exe -OutFile dragon-windows-x86_64-2.0.2.exe
 ```
 ### MAC OS:
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.1/dragon-osx-x86_64-2.0.1
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.2/dragon-osx-x86_64-2.0.2
 chmod +x dragon-osx-*
 ```
 
@@ -42,22 +42,7 @@ The DRAGON Stack is driven by the command line arguments and a configuration fil
 
 ### CLI arguments
 
-```
-./dragon-linux-x86_64-2.0.1 -help
-DRAGON Stack manager v2.0.1
-
-> Command line parameters ................................................... ok
-Usage:
-  -config-template              display a configuration file template
-  -profile <profile name>       choose the given profile name from dragon.config (instead of DEFAULT)
-  -db <database name>           denotes the database name to create or destroy
-  -load                         loads JSON data corresponding to collections (default: no data loaded)
-                                . use with configuration parameters database_collections and data_path
-                                . loading JSON data can be done during and/or after database provisioning
-                                . JSON file names must match <collection name>[_[0-9]+].json
-  -create-react-app [name]      create a React frontend (default project name is "frontend")
-  -destroy                      ask to destroy the database
-```
+![](./www/help.png)
 
 If you need to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also need to load existing JSON data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -load CLI argument__.  
 
@@ -135,32 +120,32 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.1
+$ ./dragon-linux-x86_64-2.0.2
 ```
 
 To load data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.1 -load
+$ ./dragon-linux-x86_64-2.0.2 -load
 ```
 
 To load data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.1 -load -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.2 -load -create-react-app myfrontend
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.1.exe
+> dragon-windows-x86_64-2.0.2.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.1
+$ ./dragon-osx-x86_64-2.0.2
 ```
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.1 -destroy
+$ ./dragon-linux-x86_64-2.0.2 -destroy
 ```
 
 ## Stacks
