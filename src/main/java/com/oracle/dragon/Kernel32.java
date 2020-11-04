@@ -2,7 +2,6 @@ package com.oracle.dragon;
 
 import com.oracle.dragon.util.Console;
 import org.graalvm.nativeimage.Platform;
-import org.graalvm.nativeimage.Platforms;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CFunction;
 import org.graalvm.word.Pointer;
@@ -13,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 @CContext(Kernel32.Directives.class)
-@Platforms({Platform.WINDOWS.class, Platform.WINDOWS_AMD64.class, Platform.LINUX.class, Platform.LINUX_AMD64.class, Platform.DARWIN.class, Platform.DARWIN_AMD64.class})
+//@Platforms({Platform.WINDOWS.class, Platform.WINDOWS_AMD64.class, Platform.LINUX.class, Platform.LINUX_AMD64.class, Platform.DARWIN.class, Platform.DARWIN_AMD64.class})
 public class Kernel32 {
 
     public static void init() {
