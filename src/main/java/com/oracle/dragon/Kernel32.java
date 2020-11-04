@@ -17,26 +17,23 @@ import java.util.List;
 public class Kernel32 {
 
     public static void init() {
-        if (ImageInfo.inImageRuntimeCode()) {
-            final String osName = System.getProperty("os.name").toLowerCase();
-            if (osName.startsWith("windows")) {
-                final BigDecimal OSVersion = new BigDecimal(System.getProperty("os.version"));
-                final String VMName = System.getProperty("java.vm.name");
-                if (OSVersion.doubleValue() >= 10.0d || (OSVersion.doubleValue() >= 6.2d && "Substrate VM".equalsIgnoreCase(VMName))) {
+        if (ImageInfo.inImageRuntimeCode() && Platform.includedIn(Platform.WINDOWS.class)) {
+            final BigDecimal OSVersion = new BigDecimal(System.getProperty("os.version"));
+            final String VMName = System.getProperty("java.vm.name");
+            if (OSVersion.doubleValue() >= 10.0d || (OSVersion.doubleValue() >= 6.2d && "Substrate VM".equalsIgnoreCase(VMName))) {
 //                System.out.println("os.version: OK");
-                    try {
-                        final Pointer handle = Kernel32.getStdHandle(-11);
+                try {
+                    final Pointer handle = Kernel32.getStdHandle(-11);
 //                    System.out.println("Kernel32.getStdHandle: OK");
-                        Kernel32.setConsoleMode(handle, 7);
+                    Kernel32.setConsoleMode(handle, 7);
 //                    System.out.println("Kernel32.setConsoleMode: OK");
-                        Console.ENABLE_COLORS = true;
+                    Console.ENABLE_COLORS = true;
 //                    System.out.println("Console.ENABLE_COLORS: "+Console.ENABLE_COLORS);
 //                    System.out.println("Colors for Windows 10+ console enabled!");
-                    } catch (Throwable t) {
-                        Console.ENABLE_COLORS = false;
+                } catch (Throwable t) {
+                    Console.ENABLE_COLORS = false;
 //                    t.printStackTrace();
 //                    System.out.println("Console.ENABLE_COLORS: "+Console.ENABLE_COLORS);
-                    }
                 }
             }
         }
