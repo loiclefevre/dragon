@@ -35,7 +35,11 @@ public enum ErrorCode {
     LoadLocalConfiguration(-32),
     LoadStackMetadata(-33),
     StackFileNotFound(-34),
-    ConfigurationBadFingerprintParameter(-35);
+    ConfigurationBadFingerprintParameter(-35),
+    ConfigurationUnsupportedParameter(-36),
+    ConfigurationMissingKeyFile(-37),
+    ConfigurationKeyFileNotAFile(-38),
+    UpgradeFailed(-39), UpgradeTimeout(-40);
 
     public final int internalErrorCode;
 

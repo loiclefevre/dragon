@@ -1,7 +1,6 @@
 package com.oracle.dragon;
 
 import com.oracle.bmc.model.BmcException;
-import com.oracle.dragon.util.Console;
 import com.oracle.dragon.util.DSSession;
 import com.oracle.dragon.util.exception.ConfigurationFileNotFoundException;
 import com.oracle.dragon.util.exception.ConfigurationLoadException;
@@ -18,6 +17,8 @@ import static com.oracle.dragon.util.Console.*;
 public class DragonStack {
 
     public static void main(final String[] args) {
+        Kernel32.init();
+
         final long totalDuration = System.currentTimeMillis();
 
         try {
@@ -51,16 +52,16 @@ public class DragonStack {
                 e.printStackTrace(System.err);
             }
         } catch( ConfigurationFileNotFoundException | ConfigurationLoadException ce ) {
-            ce.displayMessageAndExit(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET, true);
+            ce.displayMessageAndExit(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET, true);
         }
         catch (DSException e) {
-            e.displayMessageAndExit(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET);
+            e.displayMessageAndExit(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET);
         } catch (Exception e) {
             println(Style.ANSI_RED + "\n================================================================================");
             println(Style.ANSI_RED + "Unhandled exception:");
             e.printStackTrace(System.err);
         } finally {
-            println(Style.ANSI_BLUE + "duration: " + getDurationSince(totalDuration));
+            println(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration));
         }
     }
 }

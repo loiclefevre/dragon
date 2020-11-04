@@ -6,7 +6,6 @@ import java.time.Duration;
  * Console related helper methods.
  */
 public class Console {
-
     /**
      * Enable or disable console output ANSI color coding usage.
      */
@@ -16,14 +15,17 @@ public class Console {
 
     public enum Style {
         ANSI_RESET("\u001B[0m"),
+        ANSI_UNDERLINE("\u001B[4;1m"),
+        ANSI_BRIGHT("\u001B[1m"),
         ANSI_BLACK("\u001B[30m"),
         ANSI_RED("\u001B[31;1m"),
-        ANSI_GREEN("\u001B[32m"),
+        ANSI_BRIGHT_GREEN("\u001B[92;1m"),
         ANSI_YELLOW("\u001B[33;1m"),
         ANSI_BLUE("\u001B[34m"),
         ANSI_PURPLE("\u001B[35m"),
         ANSI_CYAN("\u001B[36m"),
         ANSI_WHITE("\u001B[37m"),
+        ANSI_BRIGHT_CYAN("\u001B[96m"),
         ANSI_BLACK_BACKGROUND("\u001B[40m"),
         ANSI_RED_BACKGROUND("\u001B[41m"),
         ANSI_GREEN_BACKGROUND("\u001B[42m"),
@@ -31,7 +33,11 @@ public class Console {
         ANSI_BLUE_BACKGROUND("\u001B[44m"),
         ANSI_PURPLE_BACKGROUND("\u001B[45m"),
         ANSI_CYAN_BACKGROUND("\u001B[46m"),
-        ANSI_WHITE_BACKGROUND("\u001B[47m");
+        ANSI_WHITE_BACKGROUND("\u001B[47m"),
+        ANSI_TITLE("\u001B[101;93m"),
+        ANSI_VSC_DASH("\u001B[38;2;249;38;114m"),
+        ANSI_VSC_BLUE("\u001B[38;2;97;202;220m")
+        ;
 
         private final String pattern;
 

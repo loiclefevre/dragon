@@ -19,8 +19,8 @@ Inside that directory, you can run several commands:
 
 We suggest that you begin by typing:
 
-  cd <name>
-  npm install
-  npm start
+  [1mcd <name>[0m
+  [1mnpm install[0m
+  [1mnpm start[0m
 
 Happy hacking!

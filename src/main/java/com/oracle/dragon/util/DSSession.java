@@ -2,7 +2,6 @@ package com.oracle.dragon.util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oracle.bmc.ConfigFileReader;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
 import com.oracle.bmc.database.DatabaseClient;
@@ -38,13 +37,20 @@ import com.oracle.dragon.stacks.StackType;
 import com.oracle.dragon.util.exception.*;
 
 import java.io.*;
+import java.net.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.time.Duration;
+import java.util.*;
 
 import static com.oracle.dragon.util.Console.*;
+import static com.oracle.dragon.util.Console.Style.*;
 
 /**
  * DRAGON Stack session.
@@ -54,7 +60,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.0.1";
+    public static final String VERSION = "2.0.2";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -91,7 +97,8 @@ public class DSSession {
     public enum Operation {
         CreateDatabase,
         DestroyDatabase,
-        LoadData
+        LoadData,
+        UpgradeDragon
     }
 
     public enum Section {
@@ -105,7 +112,8 @@ public class DSSession {
         ObjectStorageConfiguration("Object storage configuration"),
         LoadDataIntoCollections("Data loading"),
         LocalConfiguration("Local configuration"),
-        CreateStack("Stack creation");
+        CreateStack("Stack creation"),
+        Upgrade("DRAGON upgrade");
 
         private final String name;
 
@@ -120,7 +128,7 @@ public class DSSession {
         }
 
         public void printlnOK() {
-            System.out.print(Style.ANSI_GREEN);
+            System.out.print(Style.ANSI_BRIGHT_GREEN);
             printBoundedln(name, "ok");
         }
 
@@ -135,16 +143,17 @@ public class DSSession {
         }
 
         public void printlnOK(String msg) {
-            System.out.print(Style.ANSI_GREEN);
+            System.out.print(Style.ANSI_BRIGHT_GREEN);
             printBoundedln(name, String.format("ok [%s]", msg));
         }
     }
 
     public static final Platform platform;
     public static final boolean OCICloudShell;
+    public static boolean vscode;
 
     private Section section;
-    private ConfigFileReader.ConfigFile configFile;
+    private DRAGONConfigFile.ConfigFile configFile;
     private AuthenticationDetailsProvider provider;
     private DatabaseClient dbClient;
     private WorkRequestClient workRequestClient;
@@ -199,8 +208,15 @@ public class DSSession {
         final String osName = System.getProperty("os.name").toLowerCase();
         if (osName.startsWith("windows")) {
             platform = Platform.Windows;
-            Console.ENABLE_COLORS = false;
             OCICloudShell = false;
+
+            try {
+                final ProcessHandle processHandle = ProcessHandle.current();
+                final String shell = processHandle.parent().get().info().command().get();
+                vscode = processHandle.parent().get().parent().get().parent().get().info().command().get().toLowerCase().endsWith("code.exe");
+            } catch (NoSuchElementException ignored) {
+                //ignored.printStackTrace();
+            }
         } else if (osName.startsWith("linux")) {
             platform = Platform.Linux;
             System.setProperty("java.awt.headless", "true");
@@ -221,7 +237,11 @@ public class DSSession {
     }
 
     private static void banner() {
-        print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_YELLOW, VERSION));
+        if (ENABLE_COLORS) {
+            print(String.format( "\u001B[0m\u001B[1m\u001B[4m\u001B[38;2;193;39;45mD\u001B[38;2;199;52;46mR\u001B[38;2;208;75;49mA\u001B[38;2;209;95;51mG\u001B[38;2;231;130;54mO\u001B[38;2;249;171;58mN \u001B[33mStack manager v%s", VERSION));
+        } else {
+            print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_TITLE, VERSION));
+        }
         println();
         println();
     }
@@ -262,14 +282,28 @@ public class DSSession {
 
                 case "-destroy":
                 case "--destroy":
-                    operation = Operation.DestroyDatabase;
+                    if (localConfiguration != null) {
+                        if (operation == Operation.CreateDatabase) {
+                            operation = Operation.DestroyDatabase;
+                        } else {
+                            section.printlnKO("conflicting command: " + arg);
+                            displayUsage();
+                            System.exit(-9998);
+                        }
+                    }
                     break;
 
-                case "-load":
-                case "--load":
+                case "-loadjson":
+                case "--loadjson":
                     load = true;
-                    if(localConfiguration != null) {
-                        operation = Operation.LoadData;
+                    if (localConfiguration != null) {
+                        if (operation == Operation.CreateDatabase) {
+                            operation = Operation.LoadData;
+                        } else {
+                            section.printlnKO("conflicting command: " + arg);
+                            displayUsage();
+                            System.exit(-9999);
+                        }
                     }
                     break;
 
@@ -295,6 +329,11 @@ public class DSSession {
                     }
                     break;
 
+                case "-upgrade":
+                case "--upgrade":
+                    operation = Operation.UpgradeDragon;
+                    break;
+
                 case "-h":
                 case "-?":
                 case "/?":
@@ -307,7 +346,7 @@ public class DSSession {
                     break;
 
                 default:
-                    section.printlnKO("bad parameter: " + arg);
+                    section.printlnKO("bad command: " + arg);
                     displayUsage();
                     System.exit(-10000);
             }
@@ -316,21 +355,26 @@ public class DSSession {
     }
 
     private void displayUsage() {
-        println("Usage:");
-        println("  -config-template        \tdisplays a configuration file template");
-        println("  -profile <profile name> \tto choose the given profile name from " + CONFIGURATION_FILENAME + " (instead of DEFAULT)");
-        println("  -db <database name>     \tto denote the database name to create");
-        println("  -load                   \tloads corresponding data into collections");
-        println("  -create-react-app [name]\tcreates a React frontend (instead of frontend)");
-        println("  -destroy                \tto destroy the database");
+        println(ANSI_UNDERLINE + "Usage:");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"config"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"template"+ANSI_RESET+"        \tdisplays a configuration file template");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"profile"+ANSI_RESET+" <profile name> \tto choose the given profile name from " + CONFIGURATION_FILENAME + " (default profile name: DEFAULT)");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"db"+ANSI_RESET+" <database name>     \tto denote the database name to create or destroy");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"loadjson"+ANSI_RESET+"               \tloads JSON data corresponding to collections (default: no data loaded)");
+        println("                          \t. use with configuration parameters database_collections and data_path");
+        println("                          \t. loading JSON data can be done during and/or after database provisioning");
+        println("                          \t. JSON file names must match <collection name>[_[0-9]+].json");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"create"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"react"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"app"+ANSI_RESET+" [name]\tcreates a React frontend (default name: frontend)");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"destroy"+ANSI_RESET+"                \tto destroy the database");
+        println("  "+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"upgrade"+ANSI_RESET+"                \tto download the latest version for your platform... (if available)");
     }
 
     public static void printlnConfigurationTemplate() {
-        println("Configuration template (save the content in a file named \"" + CONFIGURATION_FILENAME + "\"):");
+        println("Configuration template (save the content in a file named "+ANSI_YELLOW+"\"" + CONFIGURATION_FILENAME + "\"):");
         println();
         println();
         println(" # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT");
         println(" # You can choose a profile using the -profile command line argument");
+        println(" # This configuration file must have at least one profile named DEFAULT");
         println("[DEFAULT]");
         println();
         println(" # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:");
@@ -404,7 +448,7 @@ public class DSSession {
                 throw new LoadLocalConfigurationException(LOCAL_CONFIGURATION_FILENAME, e);
             }
 
-            if(displaySection) {
+            if (displaySection) {
                 section.printlnOK();
             }
         }
@@ -415,86 +459,128 @@ public class DSSession {
         section.print("parsing");
 
         try {
-            configFile = ConfigFileReader.parse(CONFIGURATION_FILENAME, profileName);
+            this.configFile = DRAGONConfigFile.parse(CONFIGURATION_FILENAME, profileName);
 
-            if ((region = configFile.get(CONFIG_REGION)) == null) {
+            for (String key : this.configFile.getAllKeys()) {
+                switch (key) {
+                    case CONFIG_REGION:
+                    case CONFIG_KEY_FILE:
+                    case CONFIG_TENANCY_ID:
+                    case CONFIG_COMPARTMENT_ID:
+                    case CONFIG_DATABASE_PASSWORD:
+                    case CONFIG_USER:
+                    case CONFIG_AUTH_TOKEN:
+                    case CONFIG_FINGERPRINT:
+                    case CONFIG_DATABASE_USER_NAME:
+                    case CONFIG_DATABASE_LICENSE_TYPE:
+                    case CONFIG_DATABASE_TYPE:
+                    case CONFIG_DATA_PATH:
+                    case CONFIG_COLLECTIONS:
+                        break;
+
+                    default:
+                        section.printlnKO();
+                        throw new ConfigurationUnsupportedParameterException(key, profileName);
+                }
+            }
+
+            if ((region = this.configFile.get(CONFIG_REGION)) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_REGION);
             }
 
             region = region.toUpperCase().replaceAll("-", "_");
 
-            if (configFile.get(CONFIG_KEY_FILE) == null) {
+            final String keyFilename = this.configFile.get(CONFIG_KEY_FILE);
+            if (keyFilename == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_KEY_FILE);
+            } else {
+                final File keyFile = new File(keyFilename);
+                if (!keyFile.exists()) {
+                    section.printlnKO();
+                    throw new ConfigurationMissingKeyFileException(CONFIG_KEY_FILE, keyFilename);
+                }
+                if (!keyFile.isFile()) {
+                    section.printlnKO();
+                    throw new ConfigurationKeyFileNotAFileException(CONFIG_KEY_FILE, keyFilename);
+                }
+                // TODO: check content contains "-----BEGIN RSA PRIVATE KEY-----" and "-----END RSA PRIVATE KEY-----"
             }
-            if (configFile.get(CONFIG_TENANCY_ID) == null) {
+
+            if (this.configFile.get(CONFIG_TENANCY_ID) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_TENANCY_ID);
             }
-            if (configFile.get(CONFIG_COMPARTMENT_ID) == null) {
+            if (this.configFile.get(CONFIG_COMPARTMENT_ID) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_COMPARTMENT_ID);
             }
-            if (configFile.get(CONFIG_DATABASE_PASSWORD) == null) {
+            if (this.configFile.get(CONFIG_DATABASE_PASSWORD) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_DATABASE_PASSWORD);
             }
-            if (configFile.get(CONFIG_USER) == null) {
+            if (this.configFile.get(CONFIG_USER) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_USER);
             }
-            if (configFile.get(CONFIG_AUTH_TOKEN) == null) {
+            if (this.configFile.get(CONFIG_AUTH_TOKEN) == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_AUTH_TOKEN);
             }
-            if (configFile.get(CONFIG_FINGERPRINT) == null) {
+
+            final String fingerprintValue = this.configFile.get(CONFIG_FINGERPRINT);
+            if (fingerprintValue == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_FINGERPRINT);
             } else {
-                final String fingerprintValue = configFile.get(CONFIG_FINGERPRINT);
                 if (fingerprintValue.length() != 47) {
+                    section.printlnKO();
                     throw new ConfigurationBadFingerprintParameterException(CONFIG_FINGERPRINT, CONFIGURATION_FILENAME, fingerprintValue);
                 }
             }
 
             // Optional config file parameters
-            if (configFile.get(CONFIG_DATABASE_USER_NAME) != null) {
-                databaseUserName = configFile.get(CONFIG_DATABASE_USER_NAME);
+            if (this.configFile.get(CONFIG_DATABASE_USER_NAME) != null) {
+                databaseUserName = this.configFile.get(CONFIG_DATABASE_USER_NAME);
             }
 
-            if (configFile.get(CONFIG_DATABASE_LICENSE_TYPE) != null) {
-                if (LicenseType.BYOL.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_LICENSE_TYPE))) {
+            if (this.configFile.get(CONFIG_DATABASE_LICENSE_TYPE) != null) {
+                if (LicenseType.BYOL.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_LICENSE_TYPE))) {
                     licenseType = LicenseType.BYOL;
                 } else {
-                    throw new ConfigurationWrongDatabaseLicenseTypeException(configFile.get(CONFIG_DATABASE_LICENSE_TYPE));
+                    section.printlnKO();
+                    throw new ConfigurationWrongDatabaseLicenseTypeException(this.configFile.get(CONFIG_DATABASE_LICENSE_TYPE));
                 }
             } else {
                 licenseType = LicenseType.LicenseIncluded;
             }
 
-            if (configFile.get(CONFIG_DATABASE_TYPE) != null) {
-                if (DatabaseType.AJD.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_TYPE))) {
+            if (this.configFile.get(CONFIG_DATABASE_TYPE) != null) {
+                if (DatabaseType.AJD.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_TYPE))) {
                     databaseType = DatabaseType.AJD;
-                } else if (DatabaseType.ATP.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_TYPE))) {
+                } else if (DatabaseType.ATP.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_TYPE))) {
                     databaseType = DatabaseType.ATP;
-                } else if (DatabaseType.ADW.toString().equalsIgnoreCase(configFile.get(CONFIG_DATABASE_TYPE))) {
+                } else if (DatabaseType.ADW.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_TYPE))) {
                     databaseType = DatabaseType.ADW;
                 } else {
-                    throw new ConfigurationWrongDatabaseTypeException(configFile.get(CONFIG_DATABASE_TYPE));
+                    section.printlnKO();
+                    throw new ConfigurationWrongDatabaseTypeException(this.configFile.get(CONFIG_DATABASE_TYPE));
                 }
             }
 
             if (load) {
-                if (configFile.get(CONFIG_DATA_PATH) != null) {
-                    final File tempPath = new File(configFile.get(CONFIG_DATA_PATH));
+                if (this.configFile.get(CONFIG_DATA_PATH) != null) {
+                    final File tempPath = new File(this.configFile.get(CONFIG_DATA_PATH));
 
                     if (!tempPath.exists()) {
-                        throw new ConfigurationDataPathNotFoundException(configFile.get(CONFIG_DATA_PATH));
+                        section.printlnKO();
+                        throw new ConfigurationDataPathNotFoundException(this.configFile.get(CONFIG_DATA_PATH));
                     }
 
                     if (!tempPath.isDirectory()) {
-                        throw new ConfigurationDataPathDirectoryException(configFile.get(CONFIG_DATA_PATH));
+                        section.printlnKO();
+                        throw new ConfigurationDataPathDirectoryException(this.configFile.get(CONFIG_DATA_PATH));
                     }
 
                     dataPath = tempPath;
@@ -519,15 +605,19 @@ public class DSSession {
         section.printlnOK();
     }
 
-    private void initializeClients() throws OCIAPIAuthenticationPrivateKeyNotFoundException, OCIAPIDatabaseException {
-        section = Section.OCIConnection;
-        section.print("authentication pending");
-        provider = new ConfigFileAuthenticationDetailsProvider(configFile);
-
-        section.print("database pending");
+    private void initializeClients() throws DSException {
         try {
+            section = Section.OCIConnection;
+            section.print("authentication pending");
+            provider = new ConfigFileAuthenticationDetailsProvider(configFile.getConfigurationFilePath(), configFile.getProfile());
+
+            section.print("database pending");
+
             dbClient = new DatabaseClient(provider);
             dbClient.setRegion(region);
+        } catch (IOException ioe) {
+            section.printlnKO();
+            throw new ConfigurationLoadException(ioe);
         } catch (IllegalArgumentException iae) {
             if (iae.getMessage().startsWith("Could not find private key")) {
                 section.printlnKO("private key not found");
@@ -560,12 +650,233 @@ public class DSSession {
                     loadData();
                 }
                 break;
+
+            case UpgradeDragon:
+                checkForUpgrade();
+                break;
         }
 
         if (operation == Operation.CreateDatabase && createStack) {
             final CodeGenerator c = new CodeGenerator(stackType, stackName, localConfiguration);
             c.work();
         }
+    }
+
+    private void checkForUpgrade() throws DSException {
+        section = Section.Upgrade;
+        section.print("gathering metadata");
+
+        try {
+            final HttpRequest request = HttpRequest.newBuilder()
+                    .timeout(Duration.ofSeconds(10L))
+                    .uri(new URI("https://github.com/loiclefevre/dragon/releases/latest"))
+                    .setHeader("Pragma", "no-cache")
+                    .GET()
+                    .build();
+
+            final CookieManager cm = new CookieManager();
+            CookieHandler.setDefault(cm);
+
+            final HttpResponse<String> response = HttpClient
+                    .newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .proxy(ProxySelector.getDefault()) // TODO: look to make that work with Oracle VPN...
+                    // Upgrade failed because of network communication error!
+                    //java.net.http.HttpConnectTimeoutException: HTTP connect timed out
+                    //        at jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:555)
+                    //        at jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:119)
+                    //        at com.oracle.dragon.util.DSSession.checkForUpgrade(DSSession.java:682)
+                    //        at com.oracle.dragon.util.DSSession.work(DSSession.java:650)
+                    //        at com.oracle.dragon.DragonStack.main(DragonStack.java:34)
+                    //Caused by: java.net.http.HttpConnectTimeoutException: HTTP connect timed out
+                    //        at jdk.internal.net.http.ResponseTimerEvent.handle(ResponseTimerEvent.java:68)
+                    //        at jdk.internal.net.http.HttpClientImpl.purgeTimeoutsAndReturnNextDeadline(HttpClientImpl.java:1248)
+                    //        at jdk.internal.net.http.HttpClientImpl$SelectorManager.run(HttpClientImpl.java:877)
+                    //        at com.oracle.svm.core.thread.JavaThreads.threadStartRoutine(JavaThreads.java:517)
+                    //        at com.oracle.svm.core.windows.WindowsJavaThreads.osThreadStartRoutine(WindowsJavaThreads.java:138)
+                    //Caused by: java.net.ConnectException: HTTP connect timed out
+                    //        at jdk.internal.net.http.ResponseTimerEvent.handle(ResponseTimerEvent.java:69)
+                    //        ... 4 more
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .cookieHandler(CookieHandler.getDefault())
+                    .build()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                section.printlnKO();
+                throw new UpgradeFailedException(response.statusCode());
+            }
+
+            final String page = response.body();
+
+            final String tagPattern = "<a href=\"/loiclefevre/dragon/releases/tag/";
+            final int tagStart = page.indexOf(tagPattern);
+
+            if (tagStart != -1) {
+                String latestVersion = page.substring(tagStart + tagPattern.length(), page.indexOf("\">", tagStart + tagPattern.length()));
+
+                if (latestVersion.startsWith("v")) {
+                    latestVersion = latestVersion.substring(1);
+                }
+
+                // a newer version available?
+                if (!VERSION.equals(latestVersion) && isAboveVersion(latestVersion)) {
+                    section.print("downloading v" + latestVersion + " ...");
+
+                    int searchFromPos = tagStart;
+                    final String downloadLinkPattern = "<a href=\"/loiclefevre/dragon/releases/download/v" + latestVersion + "/dragon-";
+                    boolean downloaded = false;
+                    String link = "";
+
+                    while (!downloaded) {
+                        int downloadLinkStartPos = page.indexOf(downloadLinkPattern, searchFromPos);
+
+                        if (downloadLinkStartPos == -1) break;
+
+                        link = page.substring(downloadLinkStartPos + "<a href=\"".length(), page.indexOf("\"", downloadLinkStartPos + downloadLinkPattern.length()));
+
+                        switch (platform) {
+                            case Windows:
+                                if (link.contains("windows")) {
+                                    downloaded = downloadRelease(link);
+                                }
+                                break;
+
+                            case Linux:
+                                if (link.contains("linux")) {
+                                    downloaded = downloadRelease(link);
+                                }
+                                break;
+
+                            case MacOS:
+                                if (link.contains("osx")) {
+                                    downloaded = downloadRelease(link);
+                                }
+                                break;
+                        }
+
+                        searchFromPos = downloadLinkStartPos + downloadLinkPattern.length();
+                    }
+
+                    if (downloaded) {
+                        final String fileName = link.substring(link.lastIndexOf('/') + 1);
+
+                        if (platform == Platform.Linux || platform == Platform.MacOS) {
+                            final File release = new File(".", fileName);
+
+                            // make it executable!
+                            final Set<PosixFilePermission> perms = new HashSet<>();
+                            perms.add(PosixFilePermission.OWNER_READ);
+                            perms.add(PosixFilePermission.OWNER_WRITE);
+                            perms.add(PosixFilePermission.OWNER_EXECUTE);
+
+                            Files.setPosixFilePermissions(release.toPath(), perms);
+                        }
+
+                        section.printlnOK(fileName);
+                    } else {
+                        section.printlnKO("no new release for your platform");
+                    }
+                } else {
+                    section.printlnOK("you are up to date :)");
+                }
+            } else {
+                section.printlnKO();
+                throw new UpgradeFailedException("metadata integrity");
+            }
+        } catch (InterruptedException e) {
+            section.printlnKO();
+            throw new UpgradeTimeoutException(10);
+        } catch (URISyntaxException e) {
+            section.printlnKO();
+            throw new UpgradeFailedException(e);
+        } catch (IOException e) {
+            section.printlnKO();
+            throw new UpgradeFailedException(e);
+        }
+    }
+
+    private boolean downloadRelease(String link) throws URISyntaxException, IOException, InterruptedException, UpgradeFailedException {
+        final HttpRequest requestDownload = HttpRequest.newBuilder()
+                .uri(new URI("https://github.com" + link))
+                .setHeader("Pragma", "no-cache")
+                .GET()
+                .build();
+
+        final HttpResponse<Path> responseDownload = HttpClient
+                .newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .proxy(ProxySelector.getDefault())
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .cookieHandler(CookieHandler.getDefault())
+                .build()
+                .send(requestDownload, HttpResponse.BodyHandlers.ofFileDownload(new File(".").toPath(), new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE}));
+
+        if (responseDownload.statusCode() != 200) {
+            section.printlnKO();
+            throw new UpgradeFailedException(link, responseDownload.statusCode());
+        }
+
+        return true;
+    }
+
+    private class Version implements Comparable<Version> {
+        private int major;
+        private int middle;
+        private int minor;
+
+        public Version(String version) {
+            int dot = version.indexOf('.');
+            major = Integer.parseInt(version.substring(0, dot));
+            int firstDot = dot;
+            dot = version.indexOf('.', dot + 1);
+            middle = Integer.parseInt(version.substring(firstDot + 1, dot));
+            minor = Integer.parseInt(version.substring(version.lastIndexOf('.') + 1, version.length()));
+        }
+
+        public Version(int major, int middle, int minor) {
+            this.major = major;
+            this.middle = middle;
+            this.minor = minor;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Version version = (Version) o;
+
+            if (major != version.major) return false;
+            if (middle != version.middle) return false;
+            return minor == version.minor;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = major;
+            result = 31 * result + middle;
+            result = 31 * result + minor;
+            return result;
+        }
+
+        private int getLongVersion() {
+            return 1000000 * major + 1000 * middle + minor;
+        }
+
+        @Override
+        public int compareTo(Version o) {
+            if (getLongVersion() < o.getLongVersion()) return -1;
+            else if (getLongVersion() > o.getLongVersion()) return 1;
+            else return 0;
+        }
+    }
+
+    private boolean isAboveVersion(String latestVersion) {
+        Version current = new Version(VERSION);
+        Version maybeNewVersion = new Version(latestVersion);
+
+        return current.compareTo(maybeNewVersion) < 0;
     }
 
     private void createADB() throws DSException {
@@ -835,8 +1146,8 @@ public class DSSession {
 
         Console.println("You can connect to your database using SQL Developer Web:");
         final String url = rSQLS.getUrlPrefix() + "sign-in/?username=" + databaseUserName.toUpperCase() + "&r=_sdw%2F";
-        Console.println("- URL  : " + url);
-        Console.println("- login: " + databaseUserName.toLowerCase());
+        Console.println("- URL  : " + ANSI_UNDERLINE + url);
+        Console.println("- login: " + ANSI_BRIGHT + databaseUserName.toLowerCase());
     }
 
     private void loadData() throws DSException {
@@ -955,7 +1266,7 @@ public class DSSession {
                 // find all names starting by <collection name>_XXX.json and stored in some data folder (specified in CONFIGURATION_FILENAME)
                 final File[] dataFiles = dataPath.listFiles(new JSONCollectionFilenameFilter(collectionName));
 
-                if( dataFiles == null || dataFiles.length == 0 ) continue;
+                if (dataFiles == null || dataFiles.length == 0) continue;
 
                 Map<String, String> metadata = null;
 
@@ -975,9 +1286,13 @@ public class DSSession {
                                     //.opcMeta(metadata)
                                     .build();
 
-                    UploadManager.UploadRequest uploadDetails = UploadManager.UploadRequest.builder(file).allowOverwrite(true).build(request);
-                    UploadManager.UploadResponse response = uploadManager.upload(uploadDetails);
-
+                    // old version:                     UploadManager.UploadRequest uploadDetails = UploadManager.UploadRequest.builder(file).allowOverwrite(true).build(request);
+                    try {
+                        UploadManager.UploadRequest uploadDetails = UploadManager.UploadRequest.builder(new JSONFlattenerInputStream(new BufferedInputStream(new FileInputStream(file), 1024 * 1024)), file.length()).allowOverwrite(true).build(request);
+                        UploadManager.UploadResponse response = uploadManager.upload(uploadDetails);
+                    } catch (FileNotFoundException ignored) {
+                        // should not happen!
+                    }
 
                     //System.out.println("https://objectstorage."+getRegionForURL()+".oraclecloud.com/n/"+namespaceName+"/b/"+"dragon"+"/o/"+(dbName+"/"+collectionName+"/"+file.getName()).replaceAll("/", "%2F"));
 
@@ -1105,6 +1420,12 @@ public class DSSession {
             } catch (Exception e) {
                 section.printlnKO();
                 throw new OCIDatabaseWaitForTerminationFailedException(e);
+            } finally {
+                // deleting local configuration!
+                final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
+                if (toDelete.exists()) {
+                    toDelete.delete();
+                }
             }
         }
 

@@ -154,10 +154,6 @@ function startEffect() {
     "    vec3 ta = vec3(0.0, 1.0, 0.0);\n" +
     "    float cr = 0.5*cos(0.7*iTime);\n" +
     "\n" +    
-    "    // shake\n" +
-    "    //ro += 0.1*(-1.0+2.0*textureLod( iChannel0, iTime*vec2(0.010,0.014), 0.0 ).xyz);\n" +
-    "    //ta += 0.1*(-1.0+2.0*textureLod( iChannel0, iTime*vec2(0.013,0.008), 0.0 ).xyz);\n" +
-    "\n" +    
     "    // build ray\n" +
     "    vec3 ww = normalize( ta - ro);\n" +
     "    vec3 uu = normalize(cross( vec3(sin(cr),cos(cr),0.0), ww ));\n" +
@@ -341,7 +337,6 @@ function MakeHeader()
         else if( inp.mInfo.mType=="volume"  ) header += "uniform sampler3D iChannel" + i + ";\n";
         else                                  header += "uniform sampler2D iChannel" + i + ";\n";
 
-        // new API (see shadertoy.com/view/wtdGW8)
         header += "uniform struct {\n";
              if( inp==null )                  header += "  sampler2D";
         else if( inp.mInfo.mType=="cubemap" ) header += "  samplerCube";

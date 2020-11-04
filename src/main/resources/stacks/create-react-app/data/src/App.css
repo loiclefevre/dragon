@@ -18,7 +18,7 @@
 
 .Dragon-logo {
   position: absolute;
-  height: 20vh;
+  height: 15vh;
   left: 0;
   bottom: 0;
 }
@@ -91,7 +91,7 @@
   font-size: calc(5px + 2vmin);
   color: white;
   position: absolute;
-  bottom: 5vh;
+  bottom: 0vh;
   z-index: 3;
   width: 100%;
 }
@@ -132,4 +132,11 @@ p, figure {
 .small-text {
   font-size: calc(2px + 2vmin);
   color: lightgray;
+}
+
+.credits {
+  font-size: calc(2px + 1vmin);
+  position: absolute;
+  bottom: 0vh;
+  right: 0vh;
 }

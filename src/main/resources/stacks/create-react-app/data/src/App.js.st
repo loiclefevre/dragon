@@ -88,6 +88,22 @@ function App() {
           >
           <img src={dragonlogo} className="Dragon-logo" alt="DRAGON Stack logo" title="DRAGON Stack" />
         </a>
+        <p className="credits">Background inspired from this <a
+              className="App-link"
+			  href="https://www.shadertoy.com/view/MdfGRX"
+              target="_blank"
+              rel="noopener noreferrer"
+			  >
+			  shader
+			</a> by <a
+              className="App-link"
+			  href="http://iquilezles.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+			  >
+			  Iñigo Quilez
+			</a>
+		</p>
       </footer>
     </div>
   );

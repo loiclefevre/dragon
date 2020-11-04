@@ -17,14 +17,14 @@ public class DSException extends Exception {
         this.throwable = throwable;
     }
 
-    public void displayMessageAndExit(String lastMessage, boolean displayUsage) {
+    public void displayMessageAndExit(String lastMessage, boolean displayConfigurationTemplate) {
         System.err.println(getMessage());
         if(throwable != null) {
             throwable.printStackTrace(System.err);
         }
         System.err.flush();
 
-        if(displayUsage) {
+        if(displayConfigurationTemplate) {
             DSSession.printlnConfigurationTemplate();
         }
 
