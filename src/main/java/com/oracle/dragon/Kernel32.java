@@ -70,6 +70,7 @@ public class Kernel32 {
     );
     */
     @CFunction("GetStdHandle")
+    @Platforms(Platform.WINDOWS.class)
     static native Pointer getStdHandle(int nStdHandle);
 
     /*
@@ -79,5 +80,6 @@ public class Kernel32 {
     );
      */
     @CFunction("SetConsoleMode")
+    @Platforms(Platform.WINDOWS.class)
     static native int setConsoleMode(Pointer hConsoleHandle, int dwMode);
 }
