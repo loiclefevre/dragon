@@ -7,7 +7,7 @@
 
 __... in 5 minutes.__
 
-![](./www/react-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/nodejs-logo.png)
+![](./www/react-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/ords-logo.png) ![](./www/nodejs-logo.png)
 
 # 30 seconds installation steps
 
