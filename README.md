@@ -10,7 +10,7 @@ __... in 5 minutes.__
 
 # 30 seconds installation steps
 
-- Download [Linux and Oracle Cloud Infrastructure Cloud Shell](#linux-and-oracle-cloud-infrastructure-cloud-shell), [Windows](#windows), [MAC OS](#mac-os)
+- Download [Linux and Oracle Cloud Infrastructure Cloud Shell](#linux-and-oracle-cloud-infrastructure-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
 - [Configure](#configure)
 - [Run](#run)
 - [Managed Stacks](#stacks)
