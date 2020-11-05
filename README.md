@@ -1,5 +1,7 @@
 ![](./www/dragon_stack.png)
 
+![](./www/react-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/nodejs-logo.png)
+
 # From Zero to WOW in 5 minutes 
 ![](./www/command-line-example.png)
 - Generates the source code of a pre-configured [REACT](https://reactjs.org/) frontend
