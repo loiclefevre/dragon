@@ -44,7 +44,7 @@ The DRAGON Stack is driven by the command line arguments and a configuration fil
 
 ![](./www/help.png)
 
-If you need to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also need to load existing JSON data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -load CLI argument__.  
+If you need to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also need to load existing JSON data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -loadjson CLI argument__.  
 
 ### Configuration file
 
@@ -123,14 +123,14 @@ Linux and OCI Cloud Shell:
 $ ./dragon-linux-x86_64-2.0.2
 ```
 
-To load data as well as provisioning (Linux and OCI Cloud Shell):
+To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.2 -load
+$ ./dragon-linux-x86_64-2.0.2 -loadjson
 ```
 
-To load data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
+To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.2 -load -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.2 -loadjson -create-react-app myfrontend
 ```
 
 Windows:
