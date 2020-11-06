@@ -1,0 +1,17 @@
+{
+  "url": "https://github.com/spring-projects/spring-petclinic/archive/main.zip",
+  "skipDirectoryLevel": 1,
+  "files": [
+    "src/",
+    "src/main/",
+    "src/main/resources/",
+    "src/main/resources/application.properties.st",
+    "src/main/resources/db/",
+    "src/main/resources/db/oracleautonomousdatabase/",
+    "src/main/resources/db/oracleautonomousdatabase/data.sql",
+    "src/main/resources/db/oracleautonomousdatabase/cleanup.sql",
+    "src/main/resources/db/oracleautonomousdatabase/schema.sql",
+    "src/main/resources/static/resources/images/favicon.png",
+    "petclinic.LICENSE.txt"
+  ]
+}

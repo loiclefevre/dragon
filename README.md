@@ -1,17 +1,18 @@
 ![](./www/dragon_stack.png)
 # From Zero to WOW in 5 minutes 
 ![](./www/command-line-example.png)
-- Generates the source code of a pre-configured [REACT](https://reactjs.org/) frontend
+- Generates the source code for a _pre-configured_ [REACT](https://reactjs.org/) frontend or for the [Spring-Boot](https://spring.io/projects/spring-boot) Petclinic web application 
 - Provisions an autonomous backend ([Always Free autonomous database](#why-oracle-autonomous-database-for-developers) + REST Data Services)
 - (optional) Loads your JSON data into your collection(s)
 
 __... in 5 minutes.__
 
-![](./www/react-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/ords-logo.png) ![](./www/nodejs-logo.png)
+![](./www/react-logo.png) ![](./www/spring-boot-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/ords-logo.png) ![](./www/nodejs-logo.png) ![](./www/maven-logo.png)
 
 # 30 seconds installation steps
 
 - Download [Linux and Oracle Cloud Infrastructure Cloud Shell](#linux-and-oracle-cloud-infrastructure-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
+  - Upgrade using the __-upgrade__ command (since v2.0.2)
 - [Configure](#configure)
 - [Run](#run)
 - [Managed Stacks](#stacks)
@@ -19,21 +20,21 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/X-10r-zji9E/0.jpg)](https://www.youtube.com/watch?v=X-10r-zji9E)
 
 ## Download
-The latest stable release is v2.0.2.
+The latest stable release is v2.0.3.
 
 ### Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
 ```
-rm -f ./dragon-linux-x86_64-2.0.2
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.2/dragon-linux-x86_64-2.0.2
+rm -f ./dragon-linux-x86_64-2.0.3
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.3/dragon-linux-x86_64-2.0.3
 chmod +x dragon-linux-*
 ```
 ### Windows:
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.2/dragon-windows-x86_64-2.0.2.exe -OutFile dragon-windows-x86_64-2.0.2.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.3/dragon-windows-x86_64-2.0.3.exe -OutFile dragon-windows-x86_64-2.0.3.exe
 ```
 ### MAC OS:
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.2/dragon-osx-x86_64-2.0.2
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.3/dragon-osx-x86_64-2.0.3
 chmod +x dragon-osx-*
 ```
 
@@ -64,6 +65,9 @@ user=ocid1.user.oc1..<unique_ID>
  # /!\ Warning: The key pair must be in PEM format. For instructions on generating a key pair in PEM format, see:
  # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#Required_Keys_and_OCIDs
 key_file=<full path to SSH private key file>
+
+ # Uncomment in the case your SSH private key needs a pass phrase.
+# pass_phrase=<pass phrase to use with your SSH private key>
 
  # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:
  # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four
@@ -121,32 +125,32 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.2
+$ ./dragon-linux-x86_64-2.0.3
 ```
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.2 -loadjson
+$ ./dragon-linux-x86_64-2.0.3 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.2 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.3 -loadjson -create-react-app myfrontend
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.2.exe
+> dragon-windows-x86_64-2.0.3.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.2
+$ ./dragon-osx-x86_64-2.0.3
 ```
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.2 -destroy
+$ ./dragon-linux-x86_64-2.0.3 -destroy
 ```
 
 ## Stacks
@@ -163,8 +167,16 @@ wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
 unzip ngrok-stable-linux-amd64.zip
 
 npm start &
+```
 
+For [React](https://reactjs.org/) frontend:
+```
 ./ngrok http 3000
+``` 
+
+For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
+```
+./ngrok http 8080
 ``` 
 
 ## Why Oracle Autonomous Database* for Developers?
@@ -187,6 +199,5 @@ I would like to thank the people that contributed to this project:
 - [Manu M.](https://github.com/mmanu-gh), and [Davide Burdese](https://github.com/davideburdese): for testing and reporting bugs
 - [Jon Russel](https://github.com/jon-russell): for creating the DRAGON logo :)
 - [Kay Malcolm](https://github.com/kaymalcolm), [T. McGinn](https://github.com/tmcginn), and [Kamryn V.](https://github.com/kamryn-v): for the energy, the motivation and the Live Labs!!! :)
-
 
 ![](./www/dragon-logo.png)

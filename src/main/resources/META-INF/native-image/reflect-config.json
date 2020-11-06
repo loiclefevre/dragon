@@ -44,6 +44,11 @@
   "allDeclaredMethods":true
 },
 {
+  "name":"com.oracle.bmc.database.model.AutonomousDatabase$OperationsInsightsStatus",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
   "name":"com.oracle.bmc.database.model.AutonomousDatabase$PermissionLevel",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
@@ -119,6 +124,11 @@
 },
 {
   "name":"com.oracle.bmc.database.model.AutonomousDatabaseSummary$OpenMode",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.database.model.AutonomousDatabaseSummary$OperationsInsightsStatus",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
 },
@@ -290,9 +300,11 @@
     {"name":"getDatabaseServiceURL","parameterTypes":[] }, 
     {"name":"getDbUserName","parameterTypes":[] }, 
     {"name":"getDbUserPassword","parameterTypes":[] }, 
+    {"name":"getExtractedWallet","parameterTypes":[] }, 
     {"name":"getSodaAPI","parameterTypes":[] }, 
     {"name":"getSqlAPI","parameterTypes":[] }, 
-    {"name":"getSqlDevWeb","parameterTypes":[] }
+    {"name":"getSqlDevWeb","parameterTypes":[] }, 
+    {"name":"getWalletFile","parameterTypes":[] }
   ]
 },
 {

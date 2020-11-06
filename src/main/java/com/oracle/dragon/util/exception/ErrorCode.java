@@ -39,7 +39,8 @@ public enum ErrorCode {
     ConfigurationUnsupportedParameter(-36),
     ConfigurationMissingKeyFile(-37),
     ConfigurationKeyFileNotAFile(-38),
-    UpgradeFailed(-39), UpgradeTimeout(-40);
+    UpgradeFailed(-39), UpgradeTimeout(-40),
+    StackFileDownload(-41);
 
     public final int internalErrorCode;
 

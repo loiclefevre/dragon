@@ -12,6 +12,8 @@ public class LocalDragonConfiguration {
     private String dbName;
     private String dbUserName;
     private String dbUserPassword;
+    private String walletFile;
+    private String extractedWallet;
 
     public LocalDragonConfiguration() {
     }
@@ -102,5 +104,21 @@ public class LocalDragonConfiguration {
 
     public void setSodaAPI(String sodaAPI) {
         this.sodaAPI = sodaAPI;
+    }
+
+    public String getWalletFile() {
+        return walletFile;
+    }
+
+    public void setWalletFile(String walletFile) {
+        this.walletFile = walletFile;
+    }
+
+    public String getExtractedWallet() {
+        return extractedWallet;
+    }
+
+    public void setExtractedWallet(String extractedWallet) {
+        this.extractedWallet = extractedWallet;
     }
 }

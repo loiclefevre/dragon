@@ -13,9 +13,11 @@ public class Console {
 
     public final static int MAX_COLUMNS = 80;
 
+    // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#screen-colors
     public enum Style {
         ANSI_RESET("\u001B[0m"),
         ANSI_UNDERLINE("\u001B[4;1m"),
+        ANSI_INVERT("\u001B[7m"),
         ANSI_BRIGHT("\u001B[1m"),
         ANSI_BLACK("\u001B[30m"),
         ANSI_RED("\u001B[31;1m"),

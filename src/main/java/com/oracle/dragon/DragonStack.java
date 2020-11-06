@@ -16,6 +16,10 @@ import static com.oracle.dragon.util.Console.*;
  */
 public class DragonStack {
 
+    static {
+        System.setProperty("java.net.useSystemProxies","true");
+    }
+
     public static void main(final String[] args) {
         Kernel32.init();
 

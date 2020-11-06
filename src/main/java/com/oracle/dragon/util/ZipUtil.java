@@ -56,4 +56,46 @@ public class ZipUtil {
             return false;
         }
     }
+
+    public static void unzipInputStream(InputStream in, File destinationDirectory, int skipDirLevel) throws IOException {
+        //buffer for read and write data to file
+        byte[] buffer = new byte[1024];
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(in, 512 * 1024))) {
+            ZipEntry ze = zis.getNextEntry();
+            while (ze != null) {
+                final String fileName = skipNDirLevel(ze.getName(),skipDirLevel);
+                final File newFile = new File(destinationDirectory, fileName);
+
+                //create directories for sub directories in zip
+                boolean dirCreated = new File(newFile.getParent()).mkdirs();
+
+                if (!ze.isDirectory()) {
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
+                    }
+                }
+                //close this ZipEntry
+                zis.closeEntry();
+                ze = zis.getNextEntry();
+            }
+            //close last ZipEntry
+            zis.closeEntry();
+        }
+    }
+
+    private static String skipNDirLevel(String name, int skipDirLevel) {
+        String currentName = name;
+
+        for(int i = 0; i < skipDirLevel; i++) {
+            final int slashPos = currentName.indexOf('/');
+            if(slashPos == -1) break;
+            currentName = currentName.substring(slashPos);
+        }
+
+        return currentName;
+    }
+
 }
