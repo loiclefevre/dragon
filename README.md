@@ -40,17 +40,17 @@ chmod +x dragon-osx-*
 
 ## Configure
 
-The DRAGON Stack is driven by the command line arguments and a configuration file named *dragon.config*:
+The DRAGON Stack manager is driven by the command line arguments and the configuration file named *dragon.config* present in your current directory:
 
 ### CLI arguments
 
 ![](./www/help.png)
 
-If you need to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also need to load existing JSON data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -loadjson CLI argument__.  
-
 ### Configuration file
 
-If no *dragon.config* exist in the current directory, then by running the dragon stack CLI, you get a default configuration template to complete and write into the *dragon.config*. It includes various links to Oracle Cloud Infrastructure documentation to get you started. 
+If no *dragon.config* exist in the current directory, then by running the dragon stack CLI, you get a default configuration template to complete and write into the *dragon.config*. It includes various links to Oracle Cloud Infrastructure documentation to get you started.
+
+_New with v2.0.4_, using the __-create-keys__ parameter along the __-config-template__ command makes the whole process of generating API Keys pair a non-event!  
 
 ```
  # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT
@@ -128,6 +128,20 @@ Linux and OCI Cloud Shell:
 $ ./dragon-linux-x86_64-2.0.4
 ```
 
+Windows:
+```
+> dragon-windows-x86_64-2.0.4.exe
+```
+
+MAC OS:
+```
+$ ./dragon-osx-x86_64-2.0.4
+```
+
+### Loading JSON data
+
+If you need to create JSON collections during the provisioning process, you may use the configuration file parameter __database_collections__ (see hereunder). If you also need to load existing JSON data into these collections, you may put your JSON documents in files having the same name as the collection name plus the .json extension. These files must be of JSON dump format with exactly one JSON document per line. No array, no comma separating the documents but carriage returns! __Your files will be loaded only if you ask for it using the -loadjson CLI argument__.  
+
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
 $ ./dragon-linux-x86_64-2.0.4 -loadjson
@@ -138,15 +152,7 @@ To load JSON data as well as provisioning and finally create a React application
 $ ./dragon-linux-x86_64-2.0.4 -loadjson -create-react-app myfrontend
 ```
 
-Windows:
-```
-> dragon-windows-x86_64-2.0.4.exe
-```
-
-MAC OS:
-```
-$ ./dragon-osx-x86_64-2.0.4
-```
+### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
