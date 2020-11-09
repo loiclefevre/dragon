@@ -25,7 +25,7 @@ public class DSException extends Exception {
         System.err.flush();
 
         if(displayConfigurationTemplate) {
-            DSSession.printlnConfigurationTemplate();
+            DSSession.printlnConfigurationTemplate(false, null);
         }
 
         System.out.println(lastMessage);

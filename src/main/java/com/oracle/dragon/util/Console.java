@@ -1,5 +1,6 @@
 package com.oracle.dragon.util;
 
+import java.awt.*;
 import java.time.Duration;
 
 /**
@@ -36,10 +37,9 @@ public class Console {
         ANSI_PURPLE_BACKGROUND("\u001B[45m"),
         ANSI_CYAN_BACKGROUND("\u001B[46m"),
         ANSI_WHITE_BACKGROUND("\u001B[47m"),
-        ANSI_TITLE("\u001B[101;93m"),
+        ANSI_TITLE("\u001B[33;4;1m"),
         ANSI_VSC_DASH("\u001B[38;2;249;38;114m"),
-        ANSI_VSC_BLUE("\u001B[38;2;97;202;220m")
-        ;
+        ANSI_VSC_BLUE("\u001B[38;2;97;202;220m");
 
         private final String pattern;
 
@@ -115,5 +115,51 @@ public class Console {
             final Duration duration = Duration.ofMillis(durationMillis);
             return duration.toString().substring(2).replaceAll("(\\d[HMS])(?!$)", "$1 ").replaceAll("\\.\\d+", "").toLowerCase();
         }
+    }
+
+    public static void printGradient(Color from, Color to, String msg, boolean bright, boolean underline) {
+        final StringBuilder s = new StringBuilder();
+        s.append(Style.ANSI_RESET);
+        if (bright) {
+            s.append(Style.ANSI_BRIGHT);
+        }
+        if (underline) {
+            s.append(Style.ANSI_UNDERLINE);
+        }
+
+        final int length = msg.length();
+
+        int r = from.getRed();
+        int g = from.getGreen();
+        int b = from.getBlue();
+
+        double rd = r;
+        double gd = g;
+        double bd = b;
+
+        final double rInc = (to.getRed() - from.getRed()) / (double)length;
+        final double gInc = (to.getGreen() - from.getGreen()) / (double)length;
+        final double bInc = (to.getBlue() - from.getBlue()) / (double)length;
+
+        for (int i = 0; i < length; i++) {
+            if (i == length - 1) {
+                s.append(String.format("\u001B[38;2;%d;%d;%dm", to.getRed(), to.getGreen(), to.getBlue()));
+            } else {
+                s.append(String.format("\u001B[38;2;%d;%d;%dm", r, g, b));
+                rd += rInc;
+                gd += gInc;
+                bd += bInc;
+
+                r = (int)rd;
+                g = (int)gd;
+                b = (int)bd;
+            }
+
+            s.append(msg.charAt(i));
+        }
+
+
+        s.append(Style.ANSI_RESET);
+        print(s.toString());
     }
 }

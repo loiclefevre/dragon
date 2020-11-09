@@ -31,11 +31,13 @@ import com.oracle.bmc.workrequests.requests.GetWorkRequestRequest;
 import com.oracle.bmc.workrequests.requests.ListWorkRequestErrorsRequest;
 import com.oracle.bmc.workrequests.responses.GetWorkRequestResponse;
 import com.oracle.bmc.workrequests.responses.ListWorkRequestErrorsResponse;
+import com.oracle.dragon.model.Keys;
 import com.oracle.dragon.model.LocalDragonConfiguration;
 import com.oracle.dragon.stacks.CodeGenerator;
 import com.oracle.dragon.stacks.StackType;
 import com.oracle.dragon.util.exception.*;
 
+import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.net.http.HttpClient;
@@ -60,7 +62,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.0.3";
+    public static final String VERSION = "2.0.4";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -115,7 +117,8 @@ public class DSSession {
         LocalConfiguration("Local configuration"),
         CreateStack("Stack creation"),
         Upgrade("DRAGON upgrade"),
-        PostProcessingStack("Stack post processing");
+        PostProcessingStack("Stack post processing"),
+        CreateKeys("Keys creation");
 
         private final String name;
 
@@ -239,8 +242,8 @@ public class DSSession {
     }
 
     private static void banner() {
-        if (ENABLE_COLORS) {
-            print(String.format( "\u001B[0m\u001B[1m\u001B[4m\u001B[38;2;199;52;45mD\u001B[38;2;199;52;46mR\u001B[38;2;208;75;49mA\u001B[38;2;209;95;51mG\u001B[38;2;231;130;54mO\u001B[38;2;249;171;58mN \u001B[33mStack manager v%s", VERSION));
+        if (ENABLE_COLORS && platform == Platform.Windows && !vscode) {
+            printGradient(new Color(199,52,46), Color.yellow, String.format("DRAGON Stack manager v%s", VERSION), true, true);
         } else {
             print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_TITLE, VERSION));
         }
@@ -314,10 +317,15 @@ public class DSSession {
                     info = true;
                     break;
 
+                case "-create-keys":
+                case "--create-keys":
+                    break;
+
                 case "-config-template":
                 case "--config-template":
                     section.printlnOK();
-                    printlnConfigurationTemplate();
+                    final boolean hasToCreateKeys = checkForArgument(args, new String[]{"-create-keys", "--create-keys"});
+                    printlnConfigurationTemplate(hasToCreateKeys, Section.CreateKeys);
                     System.exit(0);
                     break;
 
@@ -368,29 +376,71 @@ public class DSSession {
         section.printlnOK();
     }
 
+    private boolean checkForArgument(String[] args, String[] possibleValues) {
+        for (String arg : args) {
+            for (String possibleArgument : possibleValues) {
+                if (arg.toLowerCase().equals(possibleArgument)) return true;
+            }
+        }
+
+        return false;
+    }
+
     private void displayUsage() {
         println(ANSI_UNDERLINE + "Usage:");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"config"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"template"+ANSI_RESET+"                    \tdisplays a configuration file template");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"profile"+ANSI_RESET+" <profile name>             \tto choose the given profile name from " + CONFIGURATION_FILENAME + " (default profile name: DEFAULT)");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"db"+ANSI_RESET+" <database name>                 \tto denote the database name to create or destroy");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"loadjson"+ANSI_RESET+"                           \tloads "+ANSI_BRIGHT+"{JSON}"+ANSI_RESET+" data corresponding to collections (default: no data loaded)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "config" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "template" + ANSI_RESET + "                    \tdisplays a configuration file template");
+        println(ANSI_VSC_DASH + "  -" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "keys" + ANSI_RESET + "                      \tcreate the user's OCI API Key pair (use with -config-template)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "profile" + ANSI_RESET + " <profile name>             \tto choose the given profile name from " + CONFIGURATION_FILENAME + " (default profile name: DEFAULT)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + " <database name>                 \tto denote the database name to create or destroy");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "loadjson" + ANSI_RESET + "                           \tloads " + ANSI_BRIGHT + "{JSON}" + ANSI_RESET + " data corresponding to collections (default: no data loaded)");
         println("                                    \t . use with configuration parameters database_collections and data_path");
         println("                                    \t . loading JSON data can be done during and/or after database provisioning");
         println("                                    \t . JSON file names must match <collection name>[_[0-9]+].json");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"create"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"react"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"app"+ANSI_RESET+" [name]            \tcreates a "+ANSI_VSC_BLUE+"React"+ANSI_RESET+" frontend (default name: frontend)");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"create"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"spring"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"boot"+ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"petclinic"+ANSI_RESET+" [name]\tcreates the "+ANSI_BRIGHT_GREEN+"Spring Boot"+ANSI_RESET+" Petclinic (default name: petclinic)");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"destroy"+ANSI_RESET+"                            \tto destroy the database");
-        println(ANSI_VSC_DASH+"-"+ANSI_VSC_BLUE+"upgrade"+ANSI_RESET+"                            \tto download the latest version for your platform... (if available)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "react" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]            \tcreates a " + ANSI_VSC_BLUE + "React" + ANSI_RESET + " frontend (default name: frontend)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "spring" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "boot" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "petclinic" + ANSI_RESET + " [name]\tcreates the " + ANSI_BRIGHT_GREEN + "Spring Boot" + ANSI_RESET + " Petclinic (default name: petclinic)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "destroy" + ANSI_RESET + "                            \tto destroy the database");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... (if available)");
         println();
         println(ANSI_UNDERLINE + "Reporting issues:");
-        println("Please report any issue (bug, enhancement request, documentation needs...) at "+ANSI_UNDERLINE +"http://bit.ly/DragonStack" + ANSI_RESET+ " in the \"Issues\" tab.");
+        println("Please report any issue (bug, enhancement request, documentation needs...) at " + ANSI_UNDERLINE + "http://bit.ly/DragonStack" + ANSI_RESET + " in the \"Issues\" tab.");
     }
 
-    public static void printlnConfigurationTemplate() {
-        println("Configuration template (save the content in a file named "+ANSI_YELLOW+"\"" + CONFIGURATION_FILENAME + "\""+ANSI_RESET+"):");
-        println();
-        println();
-        println(" # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT");
+    public static void printlnConfigurationTemplate(final boolean hasToCreateKeys, final Section section) {
+        Keys keys = null;
+        if (hasToCreateKeys) {
+            println("Entering keys generation process...");
+            println("These keys (public and private) will be used for future connection to Oracle Cloud Infrastructure API endpoints.");
+            String passPhrase = null;
+            while (passPhrase == null || passPhrase.trim().length() == 0) {
+                print("Please enter a passphrase: ");
+                try {
+                    System.in.reset();
+                } catch (IOException ignored) {
+                }
+                passPhrase = new Scanner(System.in).next();
+            }
+
+            section.print("pending");
+
+            try {
+                keys = KeysUtil.createKeys(passPhrase);
+                section.printlnOK("Upload the Public Key");
+                println("Please upload this " + ANSI_YELLOW + "public" + ANSI_RESET + " key to your Oracle Cloud Infrastructure user's API Keys:");
+                println();
+                println(keys.publicKeyContent);
+                println("(instructions: " + ANSI_UNDERLINE + "https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#three" + ANSI_RESET + ")");
+                println("- public key saved in file: " + ANSI_BRIGHT + keys.publicKey.getAbsolutePath());
+                println("- private key saved in file: " + ANSI_BRIGHT + keys.privateKey.getAbsolutePath());
+                println();
+            } catch (Exception e) {
+                section.printlnKO();
+                //e.printStackTrace();
+            }
+        }
+
+        println("Configuration template (save the content in a file named " + ANSI_YELLOW + "\"" + CONFIGURATION_FILENAME + "\"" + ANSI_RESET + "):");
+        println("---" + ANSI_YELLOW + "8<" + ANSI_RESET + "-----------------------------------------------------------------------------------------");
+        println(" # DEFAULT profile " + ANSI_UNDERLINE + "(case sensitive)" + ANSI_RESET + ", you can define others: ASHBURN_REGION or TEST_ENVIRONMENT");
         println(" # You can choose a profile using the -profile command line argument");
         println(" # This configuration file must have at least one profile named DEFAULT");
         println("[DEFAULT]");
@@ -402,14 +452,26 @@ public class DSSession {
         println(" # Full path and filename of the SSH private key (use *solely* forward slashes).");
         println(" # /!\\ Warning: The key pair must be in PEM format (2048 bits). For instructions on generating a key pair in PEM format, see:");
         println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#Required_Keys_and_OCIDs");
-        println("key_file=<full path to SSH private key file>");
+        if (keys != null) {
+            println("key_file=" + keys.privateKey.getAbsolutePath().replace('\\', '/'));
+        } else {
+            println("key_file=<full path to SSH private key file>");
+        }
         println();
         println(" # Uncomment in the case your SSH private key needs a pass phrase.");
-        println("# pass_phrase=<pass phrase to use with your SSH private key>");
+        if (keys != null) {
+            println("pass_phrase=" + keys.passPhrase);
+        } else {
+            println("# pass_phrase=<pass phrase to use with your SSH private key>");
+        }
         println();
         println(" # Fingerprint for the SSH *public* key that was added to the user mentioned above. To get the value, see:");
         println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#four");
-        println("fingerprint=<fingerprint associated with the corresponding SSH *public* key>");
+        if (keys != null) {
+            println("fingerprint=" + keys.fingerprint);
+        } else {
+            println("fingerprint=<fingerprint associated with the corresponding SSH *public* key>");
+        }
         println();
         println(" # OCID of your tenancy. To get the value, see:");
         println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/apisigningkey.htm#five");
@@ -513,11 +575,16 @@ public class DSSession {
 
             region = region.toUpperCase().replaceAll("-", "_");
 
-            final String keyFilename = this.configFile.get(CONFIG_KEY_FILE);
+            String keyFilename = this.configFile.get(CONFIG_KEY_FILE);
             if (keyFilename == null) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_KEY_FILE);
             } else {
+                keyFilename = keyFilename.replace('\\', '/');
+                if (keyFilename.startsWith("~/")) {
+                    keyFilename = System.getProperty("user.home").replace('\\', '/') + keyFilename.substring(1);
+                }
+
                 final File keyFile = new File(keyFilename);
                 if (!keyFile.exists()) {
                     section.printlnKO();
@@ -527,7 +594,6 @@ public class DSSession {
                     section.printlnKO();
                     throw new ConfigurationKeyFileNotAFileException(CONFIG_KEY_FILE, keyFilename);
                 }
-                // TODO: check content contains "-----BEGIN RSA PRIVATE KEY-----" and "-----END RSA PRIVATE KEY-----"
             }
 
             if (this.configFile.get(CONFIG_TENANCY_ID) == null) {
@@ -1052,7 +1118,7 @@ public class DSSession {
             throw new DatabaseWalletCorruptedException(walletFile.getAbsolutePath());
         }
 
-        ZipUtil.unzipFile(walletFile, new File(".", "wallet_"+dbName.toLowerCase()));
+        ZipUtil.unzipFile(walletFile, new File(".", "wallet_" + dbName.toLowerCase()));
 
         section.printlnOK(walletFileName);
 
@@ -1269,8 +1335,8 @@ public class DSSession {
                 rSQLS.getUrlSQLService(),
                 rSQLS.getUrlSODAService(),
                 adb.getDbVersion(),
-                dbName, databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD), walletFile.getAbsolutePath().replace('\\','/' ),
-                new File(walletFile.getAbsoluteFile().getParent(),"wallet_"+dbName.toLowerCase()).getAbsolutePath().replace('\\','/' )
+                dbName, databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD), walletFile.getAbsolutePath().replace('\\', '/'),
+                new File(walletFile.getAbsoluteFile().getParent(), "wallet_" + dbName.toLowerCase()).getAbsolutePath().replace('\\', '/')
         );
     }
 
