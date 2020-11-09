@@ -1,5 +1,5 @@
 ![](./www/dragon_stack.png)
-# From Zero to WOW in 5 minutes 
+# From Zero to WOW in 5 minutes
 ![](./www/command-line-example.png)
 - Generates the source code for a _pre-configured_ [REACT](https://reactjs.org/) frontend or for the [Spring-Boot](https://spring.io/projects/spring-boot) Petclinic web application 
 - Provisions an autonomous backend ([Always Free autonomous database](#why-oracle-autonomous-database-for-developers) + REST Data Services)
@@ -7,17 +7,17 @@
 
 __... in 5 minutes.__
 
-![](./www/react-logo.png) ![](./www/spring-boot-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/ords-logo.png) ![](./www/nodejs-logo.png)
+![React.js frontend](./www/react-logo.png) ![Spring Boot application](./www/spring-boot-logo.png) ![Autonomous Database](./www/adb-logo.png) ![Polyglot GraalVM](./www/graalvm-logo.png) ![REST Data Services](./www/ords-logo.png) ![Node.js](./www/nodejs-logo.png)
 
 # 30 seconds installation steps
 
-- Download [Linux and Oracle Cloud Infrastructure Cloud Shell](#linux-and-oracle-cloud-infrastructure-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
+- Download [Linux](#linux-and-oracle-cloud-infrastructure-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
   - Upgrade using the __-upgrade__ command (since v2.0.2)
 - [Configure](#configure)
 - [Run](#run)
 - [Managed Stacks](#stacks)
 
-[![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/X-10r-zji9E/0.jpg)](https://www.youtube.com/watch?v=X-10r-zji9E)
+[![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
 The latest stable release is v2.0.4.
