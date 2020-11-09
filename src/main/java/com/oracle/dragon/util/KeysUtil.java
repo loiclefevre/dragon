@@ -1,27 +1,29 @@
 package com.oracle.dragon.util;
 
 import com.oracle.dragon.model.Keys;
+import com.oracle.svm.core.annotate.AutomaticFeature;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcePEMEncryptorBuilder;
+import org.graalvm.nativeimage.hosted.Feature;
+import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 
-import javax.crypto.*;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.Base64;
-import java.util.Random;
 
-public final class KeysUtil {
-    public static Keys createKeys(final String passPhrase) throws Exception {
+@AutomaticFeature
+public final class KeysUtil implements Feature {
+    @Override
+    public void afterRegistration(AfterRegistrationAccess access) {
+        RuntimeClassInitialization.initializeAtBuildTime("org.bouncycastle");
         // see https://www.bouncycastle.org/fips-java/BCFipsIn100.pdf
         Security.addProvider(new BouncyCastleProvider());
+    }
 
+    public Keys createKeys(final String passPhrase) throws Exception {
         final KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", "BC");
         kpg.initialize(new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4));
         final KeyPair kp = kpg.generateKeyPair();
@@ -94,37 +96,4 @@ public final class KeysUtil {
 
         return s.toString();
     }
-
-    private static byte[] encryptWithPassPhrase(byte[] encodedprivkey, String passPhrase) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidParameterSpecException, IOException {
-        // We must use a PasswordBasedEncryption algorithm in order to encrypt the private key, you may use any common algorithm supported by openssl, you can check them in the openssl documentation http://www.openssl.org/docs/apps/pkcs8.html
-        String MYPBEALG = "PBEWithSHA1AndDESede";
-
-        final int count = 10000 + new Random().nextInt(1000);// hash iteration count
-        final SecureRandom random = new SecureRandom();
-        final byte[] salt = new byte[8];
-        random.nextBytes(salt);
-
-        // Create PBE parameter set
-        final PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, count);
-        final PBEKeySpec pbeKeySpec = new PBEKeySpec(passPhrase.toCharArray());
-        final SecretKeyFactory keyFac = SecretKeyFactory.getInstance(MYPBEALG);
-        final SecretKey pbeKey = keyFac.generateSecret(pbeKeySpec);
-
-        final Cipher pbeCipher = Cipher.getInstance(MYPBEALG);
-
-        // Initialize PBE Cipher with key and parameters
-        pbeCipher.init(Cipher.ENCRYPT_MODE, pbeKey, pbeParamSpec);
-
-        // Encrypt the encoded Private Key with the PBE key
-        byte[] ciphertext = pbeCipher.doFinal(encodedprivkey);
-
-        // Now construct  PKCS #8 EncryptedPrivateKeyInfo object
-        AlgorithmParameters algparms = AlgorithmParameters.getInstance(MYPBEALG);
-        algparms.init(pbeParamSpec);
-        EncryptedPrivateKeyInfo encinfo = new EncryptedPrivateKeyInfo(algparms, ciphertext);
-
-        // and here we have it! a DER encoded PKCS#8 encrypted key!
-        return encinfo.getEncoded();
-    }
-
 }

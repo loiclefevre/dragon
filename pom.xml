@@ -70,6 +70,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>${graalvm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>ST4</artifactId>
             <version>4.3</version>
@@ -150,48 +156,16 @@
                     <buildArgs>
                         --no-fallback
                         -H:+ReportExceptionStackTraces
+                        -H:+TraceClassInitialization
                         --allow-incomplete-classpath
                         --report-unsupported-elements-at-runtime
                         --enable-all-security-services
                         -H:EnableURLProtocols=https
                         -H:ConfigurationFileDirectories=../src/main/resources/META-INF/native-image
-                        -H:+TraceClassInitialization
                         --initialize-at-build-time=sun.instrument.InstrumentationImpl
                     </buildArgs>
                 </configuration>
             </plugin>
-<!--
-            <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.8-1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/main/javagen</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
--->
         </plugins>
     </build>
 </project>

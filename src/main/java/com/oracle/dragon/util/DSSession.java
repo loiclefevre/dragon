@@ -37,7 +37,6 @@ import com.oracle.dragon.stacks.CodeGenerator;
 import com.oracle.dragon.stacks.StackType;
 import com.oracle.dragon.util.exception.*;
 
-import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.net.http.HttpClient;
@@ -243,7 +242,7 @@ public class DSSession {
 
     private static void banner() {
         if (ENABLE_COLORS && platform == Platform.Windows && !vscode) {
-            printGradient(new Color(199,52,46), Color.yellow, String.format("DRAGON Stack manager v%s", VERSION), true, true);
+            printGradient(new Console.Color(199,52,46), new Console.Color(255,255,0), String.format("DRAGON Stack manager v%s", VERSION), true, true);
         } else {
             print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_TITLE, VERSION));
         }
@@ -423,7 +422,7 @@ public class DSSession {
             section.print("pending");
 
             try {
-                keys = KeysUtil.createKeys(passPhrase);
+                keys = new KeysUtil().createKeys(passPhrase);
                 section.printlnOK("Upload the Public Key");
                 println("Please upload this " + ANSI_YELLOW + "public" + ANSI_RESET + " key to your Oracle Cloud Infrastructure user's API Keys:");
                 println();

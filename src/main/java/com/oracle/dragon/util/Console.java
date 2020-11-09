@@ -1,6 +1,5 @@
 package com.oracle.dragon.util;
 
-import java.awt.*;
 import java.time.Duration;
 
 /**
@@ -13,6 +12,16 @@ public class Console {
     public static boolean ENABLE_COLORS = true;
 
     public final static int MAX_COLUMNS = 80;
+
+    public static class Color {
+        public final int r,g,b;
+
+        public Color(int r, int g, int b) {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+        }
+    }
 
     // https://docs.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#screen-colors
     public enum Style {
@@ -129,21 +138,21 @@ public class Console {
 
         final int length = msg.length();
 
-        int r = from.getRed();
-        int g = from.getGreen();
-        int b = from.getBlue();
+        int r = from.r;
+        int g = from.g;
+        int b = from.b;
 
         double rd = r;
         double gd = g;
         double bd = b;
 
-        final double rInc = (to.getRed() - from.getRed()) / (double)length;
-        final double gInc = (to.getGreen() - from.getGreen()) / (double)length;
-        final double bInc = (to.getBlue() - from.getBlue()) / (double)length;
+        final double rInc = (to.r - from.r) / (double)length;
+        final double gInc = (to.g - from.g) / (double)length;
+        final double bInc = (to.b - from.b) / (double)length;
 
         for (int i = 0; i < length; i++) {
             if (i == length - 1) {
-                s.append(String.format("\u001B[38;2;%d;%d;%dm", to.getRed(), to.getGreen(), to.getBlue()));
+                s.append(String.format("\u001B[38;2;%d;%d;%dm", to.r, to.g, to.b));
             } else {
                 s.append(String.format("\u001B[38;2;%d;%d;%dm", r, g, b));
                 rd += rInc;

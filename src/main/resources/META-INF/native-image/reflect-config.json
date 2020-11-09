@@ -892,10 +892,10 @@
 {
   "name":"org.glassfish.jersey.internal.util.collection.ConcurrentHashMapV8",
   "fields":[
-    {"name":"baseCount", "allowUnsafeAccess":true}, 
-    {"name":"cellsBusy", "allowUnsafeAccess":true}, 
-    {"name":"sizeCtl", "allowUnsafeAccess":true}, 
-    {"name":"transferIndex", "allowUnsafeAccess":true}, 
+    {"name":"baseCount", "allowUnsafeAccess":true},
+    {"name":"cellsBusy", "allowUnsafeAccess":true},
+    {"name":"sizeCtl", "allowUnsafeAccess":true},
+    {"name":"transferIndex", "allowUnsafeAccess":true},
     {"name":"transferOrigin", "allowUnsafeAccess":true}
   ]
 },

@@ -7,7 +7,7 @@
 
 __... in 5 minutes.__
 
-![](./www/react-logo.png) ![](./www/spring-boot-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/ords-logo.png) ![](./www/nodejs-logo.png) ![](./www/maven-logo.png)
+![](./www/react-logo.png) ![](./www/spring-boot-logo.png) ![](./www/adb-logo.png) ![](./www/graalvm-logo.png) ![](./www/ords-logo.png) ![](./www/nodejs-logo.png)
 
 # 30 seconds installation steps
 
@@ -20,21 +20,21 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/X-10r-zji9E/0.jpg)](https://www.youtube.com/watch?v=X-10r-zji9E)
 
 ## Download
-The latest stable release is v2.0.3.
+The latest stable release is v2.0.4.
 
 ### Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
 ```
-rm -f ./dragon-linux-x86_64-2.0.3
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.3/dragon-linux-x86_64-2.0.3
+rm -f ./dragon-linux-x86_64-2.0.4
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-linux-x86_64-2.0.4
 chmod +x dragon-linux-*
 ```
 ### Windows:
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.3/dragon-windows-x86_64-2.0.3.exe -OutFile dragon-windows-x86_64-2.0.3.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-windows-x86_64-2.0.4.exe -OutFile dragon-windows-x86_64-2.0.4.exe
 ```
 ### MAC OS:
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.3/dragon-osx-x86_64-2.0.3
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-osx-x86_64-2.0.4
 chmod +x dragon-osx-*
 ```
 
@@ -125,32 +125,32 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.3
+$ ./dragon-linux-x86_64-2.0.4
 ```
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.3 -loadjson
+$ ./dragon-linux-x86_64-2.0.4 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.3 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.4 -loadjson -create-react-app myfrontend
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.3.exe
+> dragon-windows-x86_64-2.0.4.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.3
+$ ./dragon-osx-x86_64-2.0.4
 ```
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.3 -destroy
+$ ./dragon-linux-x86_64-2.0.4 -destroy
 ```
 
 ## Stacks
