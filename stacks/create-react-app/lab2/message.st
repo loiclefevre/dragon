@@ -1,4 +1,4 @@
-Success! Overrided <name> at <path>
+Success! Overrided <name> with <override> at <path>
 Inside that directory, you can run several commands:
 
   npm install
