@@ -7,6 +7,8 @@ import com.oracle.dragon.util.exception.ConfigurationLoadException;
 import com.oracle.dragon.util.exception.DSException;
 
 import static com.oracle.dragon.util.Console.*;
+import static com.oracle.dragon.util.Console.Style.ANSI_RESET;
+import static com.oracle.dragon.util.Console.Style.ANSI_UNDERLINE;
 
 /**
  * DRAGON Stack Manager - Main entry point.
@@ -30,9 +32,10 @@ public class DragonStack {
 
             session.loadLocalConfiguration(true);
 
+            // may override dbName
             session.analyzeCommandLineParameters(args);
 
-            session.loadConfiguration();
+            session.loadConfigurationFile();
 
             session.displayInformation();
 
@@ -42,7 +45,8 @@ public class DragonStack {
         } catch (BmcException e) {
             if (e.isClientSide()) {
                 System.err.println("A problem occurred on your side that prevented the operation to succeed!");
-                e.printStackTrace();
+                e.printStackTrace(System.err);
+                displayHowToReportIssue();
                 System.exit(-1000);
             } else {
                 println("Status     : " + e.getStatusCode());
@@ -55,6 +59,7 @@ public class DragonStack {
                 println(Style.ANSI_RED + "Unhandled exception:");
                 e.printStackTrace(System.err);
             }
+            displayHowToReportIssue();
         } catch( ConfigurationFileNotFoundException | ConfigurationLoadException ce ) {
             ce.displayMessageAndExit(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET, true);
         }
@@ -64,8 +69,16 @@ public class DragonStack {
             println(Style.ANSI_RED + "\n================================================================================");
             println(Style.ANSI_RED + "Unhandled exception:");
             e.printStackTrace(System.err);
+            displayHowToReportIssue();
         } finally {
             println(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration));
         }
+    }
+
+    public static void displayHowToReportIssue() {
+        System.err.flush();
+        println();
+        println(ANSI_UNDERLINE + "Reporting issues:");
+        println("Please report any issue (bug, enhancement request, documentation needs...) at " + ANSI_UNDERLINE + "http://bit.ly/DragonStack" + ANSI_RESET + " in the \"Issues\" tab.");
     }
 }

@@ -50,6 +50,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
 import java.util.*;
 
+import static com.oracle.dragon.DragonStack.displayHowToReportIssue;
 import static com.oracle.dragon.util.Console.*;
 import static com.oracle.dragon.util.Console.Style.*;
 
@@ -61,7 +62,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.0.4";
+    public static final String VERSION = "2.0.5";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -86,6 +87,7 @@ public class DSSession {
     private boolean createStack;
     private StackType stackType;
     private String stackName = "frontend";
+    private String stackOverride = null;
 
     private LocalDragonConfiguration localConfiguration;
 
@@ -181,13 +183,24 @@ public class DSSession {
     private Operation operation = Operation.CreateDatabase;
 
     enum DatabaseType {
-        AlwaysFreeATP,
-        AJD,
-        ATP,
-        ADW
+        ATPFree(true),
+        ADWFree(true),
+        AJD(false),
+        ATP(false),
+        ADW(false);
+
+        private final boolean free;
+
+        DatabaseType(boolean free) {
+            this.free = free;
+        }
+
+        public boolean isFree() {
+            return free;
+        }
     }
 
-    private DatabaseType databaseType = DatabaseType.AlwaysFreeATP;
+    private DatabaseType databaseType = DatabaseType.ATPFree;
 
     enum LicenseType {
         LicenseIncluded,
@@ -242,7 +255,7 @@ public class DSSession {
 
     private static void banner() {
         if (ENABLE_COLORS && platform == Platform.Windows && !vscode) {
-            printGradient(new Console.Color(199,52,46), new Console.Color(255,255,0), String.format("DRAGON Stack manager v%s", VERSION), true, true);
+            printGradient(new Console.Color(199, 52, 46), new Console.Color(255, 255, 0), String.format("DRAGON Stack manager v%s", VERSION), true, true);
         } else {
             print(String.format("%sDRAGON Stack manager v%s", Style.ANSI_TITLE, VERSION));
         }
@@ -258,11 +271,21 @@ public class DSSession {
         }
     }
 
-    public void analyzeCommandLineParameters(String[] args) throws MissingDatabaseNameParameterException, MissingProfileNameParameterException {
+    public void analyzeCommandLineParameters(String[] args) throws DSException {
         section = Section.CommandLineParameters;
         section.print("analyzing");
         for (int i = 0; i < args.length; i++) {
-            final String arg = args[i].toLowerCase();
+            String arg = args[i].toLowerCase();
+
+            boolean hasAnchor = false;
+            String anchor = null;
+
+            if (arg.startsWith("-") && arg.contains("#")) {
+                hasAnchor = true;
+                anchor = arg.substring(arg.indexOf('#') + 1);
+                arg = arg.substring(0, arg.indexOf('#'));
+            }
+
             switch (arg) {
                 case "-db":
                     if (i + 1 < args.length) {
@@ -332,6 +355,10 @@ public class DSSession {
                 case "--create-react-app":
                     createStack = true;
                     stackType = StackType.REACT;
+                    if (hasAnchor) {
+                        stackOverride = anchor;
+                    }
+
                     if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
                         i++;
                         stackName = args[i];
@@ -399,9 +426,7 @@ public class DSSession {
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "spring" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "boot" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "petclinic" + ANSI_RESET + " [name]\tcreates the " + ANSI_BRIGHT_GREEN + "Spring Boot" + ANSI_RESET + " Petclinic (default name: petclinic)");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "destroy" + ANSI_RESET + "                            \tto destroy the database");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... (if available)");
-        println();
-        println(ANSI_UNDERLINE + "Reporting issues:");
-        println("Please report any issue (bug, enhancement request, documentation needs...) at " + ANSI_UNDERLINE + "http://bit.ly/DragonStack" + ANSI_RESET + " in the \"Issues\" tab.");
+        displayHowToReportIssue();
     }
 
     public static void printlnConfigurationTemplate(final boolean hasToCreateKeys, final Section section) {
@@ -488,9 +513,13 @@ public class DSSession {
         println(" # https://docs.cloud.oracle.com/en-us/iaas/Content/Registry/Tasks/registrygettingauthtoken.htm?Highlight=user%20auth%20tokens");
         println("auth_token=<authentication token>");
         println();
-        println(" # Autonomous Database Type: ajd (for Autonomous JSON Database), atp (for Autonomous Transaction Processing), adw (for Autonomous Data Warehouse)");
-        println(" # Empty value means Always Free Autonomous Transaction Processing.");
-        println("# database_type=");
+        println(" # Autonomous Database Type:");
+        println(" # - atpfree: Always Free Autonomous Transaction Processing (default)");
+        println(" # - adwfree: Always Free Autonomous Data Warehouse");
+        println(" # - ajd: Autonomous JSON Database");
+        println(" # - atp: Autonomous Transaction Processing");
+        println(" # - adw: Autonomous Data Warehouse");
+        println("# database_type=atpfree");
         println();
         println(" # Uncomment to specify another database user name than dragon (default)");
         println("# database_user_name=<your database user name>");
@@ -536,7 +565,7 @@ public class DSSession {
         }
     }
 
-    public void loadConfiguration() throws DSException {
+    public void loadConfigurationFile() throws DSException {
         section = Section.OCIConfiguration;
         section.print("parsing");
 
@@ -650,6 +679,10 @@ public class DSSession {
                     databaseType = DatabaseType.ATP;
                 } else if (DatabaseType.ADW.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_TYPE))) {
                     databaseType = DatabaseType.ADW;
+                } else if (DatabaseType.ATPFree.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_TYPE))) {
+                    databaseType = DatabaseType.ATPFree;
+                } else if (DatabaseType.ADWFree.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_TYPE))) {
+                    databaseType = DatabaseType.ADWFree;
                 } else {
                     section.printlnKO();
                     throw new ConfigurationWrongDatabaseTypeException(this.configFile.get(CONFIG_DATABASE_TYPE));
@@ -718,16 +751,27 @@ public class DSSession {
     public void work() throws DSException {
         switch (operation) {
             case CreateDatabase:
+                // prevent creating a new database if already one exists!
+                // TODO: check if the one inside the local config do really exists...
                 if (localConfiguration == null) {
                     initializeClients();
                     createADB();
+                } else {
+                    throw new DatabaseAlreadyDeployedException(localConfiguration.getDbName());
                 }
                 break;
 
             case DestroyDatabase:
+                // prevent to destroy any database that weren't created using DRAGON
                 if (localConfiguration != null && localConfiguration.getDbName().equals(dbName)) {
                     initializeClients();
                     destroyDatabase();
+                } else {
+                    if(localConfiguration == null) {
+                        throw new UnmanagedDatabaseCantBeDestroyedException();
+                    } else {
+                        throw new UnmanagedDatabaseCantBeDestroyedException(dbName);
+                    }
                 }
                 break;
 
@@ -744,7 +788,7 @@ public class DSSession {
         }
 
         if (operation == Operation.CreateDatabase && createStack) {
-            final CodeGenerator c = new CodeGenerator(stackType, stackName, localConfiguration);
+            final CodeGenerator c = new CodeGenerator(stackType, stackName, stackOverride, localConfiguration);
             c.work();
         }
     }
@@ -758,6 +802,7 @@ public class DSSession {
                     .timeout(Duration.ofSeconds(10L))
                     .uri(new URI("https://github.com/loiclefevre/dragon/releases/latest"))
                     .setHeader("Pragma", "no-cache")
+                    .setHeader("Cache-Control", "no-store")
                     .GET()
                     .build();
 
@@ -767,23 +812,7 @@ public class DSSession {
             final HttpResponse<String> response = HttpClient
                     .newBuilder()
                     .version(HttpClient.Version.HTTP_1_1)
-                    .proxy(ProxySelector.getDefault()) // TODO: look to make that work with Oracle VPN...
-                    // Upgrade failed because of network communication error!
-                    //java.net.http.HttpConnectTimeoutException: HTTP connect timed out
-                    //        at jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:555)
-                    //        at jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:119)
-                    //        at com.oracle.dragon.util.DSSession.checkForUpgrade(DSSession.java:682)
-                    //        at com.oracle.dragon.util.DSSession.work(DSSession.java:650)
-                    //        at com.oracle.dragon.DragonStack.main(DragonStack.java:34)
-                    //Caused by: java.net.http.HttpConnectTimeoutException: HTTP connect timed out
-                    //        at jdk.internal.net.http.ResponseTimerEvent.handle(ResponseTimerEvent.java:68)
-                    //        at jdk.internal.net.http.HttpClientImpl.purgeTimeoutsAndReturnNextDeadline(HttpClientImpl.java:1248)
-                    //        at jdk.internal.net.http.HttpClientImpl$SelectorManager.run(HttpClientImpl.java:877)
-                    //        at com.oracle.svm.core.thread.JavaThreads.threadStartRoutine(JavaThreads.java:517)
-                    //        at com.oracle.svm.core.windows.WindowsJavaThreads.osThreadStartRoutine(WindowsJavaThreads.java:138)
-                    //Caused by: java.net.ConnectException: HTTP connect timed out
-                    //        at jdk.internal.net.http.ResponseTimerEvent.handle(ResponseTimerEvent.java:69)
-                    //        ... 4 more
+                    .proxy(ProxySelector.getDefault())
                     .followRedirects(HttpClient.Redirect.NORMAL)
                     .cookieHandler(CookieHandler.getDefault())
                     .build()
@@ -887,6 +916,7 @@ public class DSSession {
         final HttpRequest requestDownload = HttpRequest.newBuilder()
                 .uri(new URI("https://github.com" + link))
                 .setHeader("Pragma", "no-cache")
+                .setHeader("Cache-Control", "no-store")
                 .GET()
                 .build();
 
@@ -986,7 +1016,7 @@ public class DSSession {
             }
         }
 
-        if (databaseType == DatabaseType.AlwaysFreeATP && existingFreeADB.size() == OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT) {
+        if (databaseType.isFree() && existingFreeADB.size() == OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT) {
             section.printlnKO("limit reached");
             throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
         }
@@ -1004,13 +1034,13 @@ public class DSSession {
                 .adminPassword(configFile.get(CONFIG_DATABASE_PASSWORD))
                 .dbName(dbName)
                 .compartmentId(configFile.get(CONFIG_COMPARTMENT_ID))
-                .dbWorkload(databaseType == DatabaseType.AlwaysFreeATP || databaseType == DatabaseType.ATP ? CreateAutonomousDatabaseBase.DbWorkload.Oltp :
+                .dbWorkload(databaseType == DatabaseType.ATPFree || databaseType == DatabaseType.ATP ? CreateAutonomousDatabaseBase.DbWorkload.Oltp :
                         (databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.DbWorkload.Ajd : CreateAutonomousDatabaseBase.DbWorkload.Dw))
                 .isAutoScalingEnabled(Boolean.FALSE)
-                .licenseModel(databaseType == DatabaseType.AlwaysFreeATP || databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded : (licenseType == LicenseType.LicenseIncluded ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded :
-                        CreateAutonomousDatabaseBase.LicenseModel.BringYourOwnLicense))
+                .licenseModel(databaseType.isFree() || databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded :
+                        (licenseType == LicenseType.LicenseIncluded ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded : CreateAutonomousDatabaseBase.LicenseModel.BringYourOwnLicense))
                 .isPreviewVersionWithServiceTermsAccepted(Boolean.FALSE)
-                .isFreeTier(databaseType == DatabaseType.AlwaysFreeATP ? Boolean.TRUE : Boolean.FALSE)
+                .isFreeTier(databaseType.isFree() ? Boolean.TRUE : Boolean.FALSE)
                 .build();
 
         String workRequestId = null;
@@ -1197,7 +1227,7 @@ public class DSSession {
             throw new ObjectStorageConfigurationFailedException();
         }
 
-        if (databaseType != DatabaseType.AlwaysFreeATP) {
+        if (!databaseType.isFree()) {
             if (!backupBucketExist) {
                 section.print("creating manual backup bucket");
                 createManualBucket(namespaceName, backupBucketName, false);
@@ -1451,7 +1481,7 @@ public class DSSession {
 
             if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
                 if (adb.getDbName().equals(dbName)) {
-                    if (databaseType == DatabaseType.AlwaysFreeATP && !adb.getIsFreeTier()) continue;
+                    if (databaseType.isFree() && !adb.getIsFreeTier()) continue;
                     dbNameExists = true;
                     adbId = adb.getId();
                     break;
@@ -1461,6 +1491,12 @@ public class DSSession {
 
         if (!dbNameExists) {
             section.printlnOK("nothing to do");
+
+            // deleting local configuration!
+            final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
+            if (toDelete.exists()) {
+                toDelete.delete();
+            }
         } else {
             section.print("pending");
 
@@ -1517,12 +1553,6 @@ public class DSSession {
                     toDelete.delete();
                 }
             }
-        }
-
-        // deleting local configuration!
-        final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
-        if (toDelete.exists()) {
-            toDelete.delete();
         }
     }
 

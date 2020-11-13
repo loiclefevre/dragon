@@ -40,7 +40,9 @@ public enum ErrorCode {
     ConfigurationMissingKeyFile(-37),
     ConfigurationKeyFileNotAFile(-38),
     UpgradeFailed(-39), UpgradeTimeout(-40),
-    StackFileDownload(-41);
+    StackFileDownload(-41),
+    DatabaseAlreadyDeployed(-42),
+    UnmanagedDatabaseCantBeDestroyed(-43);
 
     public final int internalErrorCode;
 
