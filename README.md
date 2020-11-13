@@ -213,7 +213,7 @@ Converged, it means, you get the consistency of a _relational_ database, the _fl
 
  
 Autonomous Database can be:
- - __[Always Free](https://signup.oraclecloud.com/?language=en&intcmp=:ow:o:p:feb:0916FreePageBannerButton&sourceType=:ow:o:h:po:OHPPanel1nav0625%2B:ow:o:p:feb:0916FreePageBannerButton)__ Autonomous Transaction Processing (ATP, aka Converged Database)
+ - __[Always Free](https://signup.oraclecloud.com/?language=en&intcmp=\:ow\:o\:p\:feb\:0916FreePageBannerButton&sourceType=\:ow\:o\:h\:po\:OHPPanel1nav0625%2B\:ow\:o\:p\:feb\:0916FreePageBannerButton)__ Autonomous Transaction Processing (ATP, aka Converged Database)
  - Autonomous JSON Database (AJD)
  - Autonomous Transaction Processing (ATP)
  - Autonomous Data Warehouse (ADW)
