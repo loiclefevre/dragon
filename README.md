@@ -11,7 +11,7 @@ __... in 5 minutes.__
 
 # 30 seconds installation steps
 
-- Download [Linux](#linux-and-oracle-cloud-infrastructure-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
+- Download [Linux](#linux-and-oci-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
   - Upgrade using the __-upgrade__ command (since v2.0.2)
 - [Configure](#configure)
 - [Run](#run)
@@ -22,7 +22,7 @@ __... in 5 minutes.__
 ## Download
 The latest stable release is v2.0.4.
 
-### Linux and Oracle Cloud Infrastructure Cloud Shell
+### Linux and OCI Cloud Shell
 ```
 rm -f ./dragon-linux-x86_64-2.0.4
 wget https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-linux-x86_64-2.0.4
