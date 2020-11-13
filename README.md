@@ -167,6 +167,8 @@ $ ./dragon-linux-x86_64-2.0.4 -destroy
 
 As of v2.0.1, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
 
+![](./www/react-frontend.png)
+
 #### Accessing ports on OCI Cloud Shell
 
 For OCI Cloud Shell, you may use NGROK (free version) to allow access to your website deployed locally.
@@ -187,6 +189,8 @@ For [React](https://reactjs.org/) frontend:
 ### Spring-Boot petclinic webapp
 
 As of v2.0.3, DRAGON can now generate a [Spring-Boot](https://spring.io/projects/spring-boot) based stack including the well know petclinic web application.
+
+![](https://cloud.githubusercontent.com/assets/838318/19727082/2aee6d6c-9b8e-11e6-81fe-e889a5ddfded.png)
 
 #### Accessing ports on OCI Cloud Shell
 
