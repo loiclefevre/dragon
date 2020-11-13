@@ -42,7 +42,7 @@ chmod +x dragon-osx-*
 
 ## Configure
 
-The DRAGON Stack manager is driven by the command line arguments and the configuration file named *dragon.config* present in your current directory:
+The DRAGON Stack manager is driven by the command line arguments and the configuration file named *dragon.config* present in your __current directory__:
 
 ### CLI arguments
 
@@ -50,7 +50,9 @@ The DRAGON Stack manager is driven by the command line arguments and the configu
 
 ### Configuration file
 
-If no *dragon.config* exist in the current directory, then by running the dragon stack CLI, you get a default configuration template to complete and write into the *dragon.config*. It includes various links to Oracle Cloud Infrastructure documentation to get you started.
+If no *dragon.config* exist in the __current directory__, then by running the dragon stack CLI, you get a default configuration template to complete and write into the file *dragon.config*. It includes various links to Oracle Cloud Infrastructure documentation to get you started.
+
+__REMARK__: Please notice that (as of now) only __one database__ can be provisioned for a given dragon.config file and hence for a given directory.
 
 _New with v2.0.4_, using the __-create-keys__ parameter along the __-config-template__ command makes the whole process of generating API Keys pair a non-event!  
 
