@@ -2,7 +2,7 @@
 # From Zero to WOW in 5 minutes
 ![](./www/command-line-example.png)
 - Generates the source code for a _pre-configured_ [REACT](https://reactjs.org/) frontend or for the [Spring-Boot](https://spring.io/projects/spring-boot) Petclinic web application 
-- Provisions an autonomous backend ([Always Free autonomous database](#why-oracle-autonomous-database-for-developers) + REST Data Services)
+- Provisions an autonomous backend ([Always Free autonomous database](#why-autonomous-database-for-developers) + REST Data Services)
 - (optional) Loads your JSON data into your collection(s)
 
 __... in 5 minutes.__
@@ -22,17 +22,19 @@ __... in 5 minutes.__
 ## Download
 The latest stable release is v2.0.4.
 
-### Linux and [Oracle Cloud Infrastructure Cloud Shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm):
+### Linux and Oracle Cloud Infrastructure Cloud Shell
 ```
 rm -f ./dragon-linux-x86_64-2.0.4
 wget https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-linux-x86_64-2.0.4
 chmod +x dragon-linux-*
 ```
-### Windows:
+Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
+
+### Windows
 ```
 powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-windows-x86_64-2.0.4.exe -OutFile dragon-windows-x86_64-2.0.4.exe
 ```
-### MAC OS:
+### MAC OS
 ```
 curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.4/dragon-osx-x86_64-2.0.4
 chmod +x dragon-osx-*
@@ -163,7 +165,7 @@ $ ./dragon-linux-x86_64-2.0.4 -destroy
 
 As of v2.0.1, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
 
-### OCI Cloud Shell (Linux)
+### Accessing ports on OCI Cloud Shell
 
 For OCI Cloud Shell, you may use NGROK (free version) to allow access to your website deployed locally.
 
@@ -185,14 +187,14 @@ For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
 ./ngrok http 8080
 ``` 
 
-## Why Oracle Autonomous Database* for Developers?
+## Why Autonomous Database for Developers?
 
 Simple to use, it works, it is optimized already, __no__ administrative burdens, develop right away!
 
 Converged, it means, you get the consistency of a _relational_ database, the _flexibility_ of a JSON database, the simplicity of _Machine Learning_ in the database, the location capabilities of a _spatial_ database, the power of a property _graph_ database, the indexing capabilities of a _full-text_ database, the _automatic elasticity_ as well as the costing model (always free version, pay by the second...) of a cloud native database, the _performance_ of the underlying infrastructure Exadata, the strongest _security_ of the database market, and the vast developer friendly ecosystem brought by Oracle Cloud Infrastructure.
 
  
- \* Autonomous Database can be:
+Autonomous Database can be:
  - __[Always Free](https://signup.oraclecloud.com/?language=en&intcmp=:ow:o:p:feb:0916FreePageBannerButton&sourceType=:ow:o:h:po:OHPPanel1nav0625%2B:ow:o:p:feb:0916FreePageBannerButton)__ Autonomous Transaction Processing (ATP, aka Converged Database)
  - Autonomous JSON Database (AJD)
  - Autonomous Transaction Processing (ATP)
