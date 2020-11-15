@@ -93,9 +93,13 @@ compartment_id=ocid1.compartment.oc1..<unique_ID>
  # https://docs.cloud.oracle.com/en-us/iaas/Content/Registry/Tasks/registrygettingauthtoken.htm?Highlight=user%20auth%20tokens
 auth_token=<authentication token>
 
- # Autonomous Database Type: ajd (for Autonomous JSON Database), atp (for Autonomous Transaction Processing), adw (for Autonomous Data Warehouse)
- # Empty value means Always Free Autonomous Transaction Processing.
-# database_type=
+ # Autonomous Database Type:
+ # - atpfree: Always Free Autonomous Transaction Processing (default)
+ # - adwfree: Always Free Autonomous Data Warehouse
+ # - ajd: Autonomous JSON Database
+ # - atp: Autonomous Transaction Processing
+ # - adw: Autonomous Data Warehouse
+# database_type=atpfree
 
  # Uncomment to specify another database user name than dragon (default)
 # database_user_name=<your database user name>
