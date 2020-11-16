@@ -40,6 +40,9 @@ curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.5/dragon
 chmod +x dragon-osx-*
 ```
 
+### Changelog
+See the changelog [here](./CHANGELOG.md).
+
 ## Configure
 
 The DRAGON Stack manager is driven by the command line arguments and the configuration file named *dragon.config* present in your __current directory__:
