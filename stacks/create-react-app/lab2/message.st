@@ -19,6 +19,7 @@ Inside that directory, you can run several commands:
 
 We suggest that you begin by typing:
 
+  [1m<executable> -loadjson[0m
   [1mcd <name>[0m
   [1mnpm install[0m
   [1mnpm start[0m
