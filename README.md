@@ -176,6 +176,10 @@ $ ./dragon-linux-x86_64-2.0.6 -destroy
 
 As of v2.0.1, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
 
+![](./www/VSCode.png)
+
+Giving this result in your browser:
+
 ![](./www/react-frontend.png)
 
 #### Accessing ports on OCI Cloud Shell
