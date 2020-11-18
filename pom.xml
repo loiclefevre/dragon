@@ -162,6 +162,8 @@
                         -H:EnableURLProtocols=https
                         -H:ConfigurationFileDirectories=../src/main/resources/META-INF/native-image
                         --initialize-at-build-time=sun.instrument.InstrumentationImpl
+                        --rerun-class-initialization-at-runtime=org.bouncycastle.jcajce.provider.drbg.DRBG$Default
+                        --rerun-class-initialization-at-runtime=org.bouncycastle.jcajce.provider.drbg.DRBG$NonceAndIV
                     </buildArgs>
                     <!--
                                             -H:+TraceClassInitialization

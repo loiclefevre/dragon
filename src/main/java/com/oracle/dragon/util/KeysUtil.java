@@ -2,11 +2,9 @@ package com.oracle.dragon.util;
 
 import com.oracle.dragon.model.Keys;
 import com.oracle.svm.core.annotate.AutomaticFeature;
-import com.oracle.svm.core.option.HostedOptionKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcePEMEncryptorBuilder;
-import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 
@@ -15,39 +13,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.Base64;
-import org.graalvm.nativeimage.impl.RuntimeClassInitializationSupport;
 
 @AutomaticFeature
 public final class KeysUtil implements Feature {
     @Override
-    public boolean isInConfiguration(IsInConfigurationAccess access) {
-        return true;
-    }
-
-    @Override
-    public void duringSetup(DuringSetupAccess access) {
-        RuntimeClassInitializationSupport rci = ImageSingletons.lookup(RuntimeClassInitializationSupport.class);
-        /*
-         * The SecureRandom implementations open the /dev/random and /dev/urandom files which are
-         * used as sources for entropy. These files are opened in the static initializers. That's
-         * why we rerun the static initializers at runtime. We cannot completely delay the static
-         * initializers execution to runtime because the SecureRandom classes are needed by the
-         * native image generator too, e.g., by Files.createTempDirectory().
-         */
-        rci.rerunInitialization(org.bouncycastle.jcajce.provider.drbg.DRBG.Default.class, "for substitutions");
-        rci.rerunInitialization(org.bouncycastle.jcajce.provider.drbg.DRBG.NonceAndIV.class, "for substitutions");
-
-    }
-
-/*    @Override
     public void afterRegistration(AfterRegistrationAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime("org.bouncycastle");
         // see https://www.bouncycastle.org/fips-java/BCFipsIn100.pdf
         Security.addProvider(new BouncyCastleProvider());
     }
-*/
+
     public Keys createKeys(final String passPhrase) throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
         final KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", "BC");
         kpg.initialize(new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4));
         final KeyPair kp = kpg.generateKeyPair();
