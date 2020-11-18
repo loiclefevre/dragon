@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.oracle.dragon.util.DSSession.EXECUTABLE_NAME;
+
 public class CodeGenerator {
     private final StackType type;
     private final String name;
@@ -90,6 +92,7 @@ public class CodeGenerator {
                     st.add("name", name);
                     st.add("path", dest.getAbsolutePath());
                     st.add("override", override);
+                    st.add("executable", EXECUTABLE_NAME);
 
                     System.out.println(st.render());
 
@@ -143,6 +146,7 @@ public class CodeGenerator {
                             .collect(Collectors.joining("\n")), '<', '>');
             st.add("name", name);
             st.add("path", dest.getAbsolutePath());
+            st.add("executable", EXECUTABLE_NAME);
 
             for (String key : patchParameters.keySet()) {
                 st.add(key, patchParameters.get(key));

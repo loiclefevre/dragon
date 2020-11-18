@@ -1,3 +1,11 @@
+# v2.0.6 - 2020.11.18
+## Fixes
+- creating stacks or loading JSON data is possible after the database has been provisioned
+
+## New features
+- stop and start the database
+- using GraalVM 20.3.0 CE LTS (allowing for compression of Linux executable)
+
 # v2.0.5 - 2020.11.13
 ## Fixes
 - better error messaging for creation and termination of databases

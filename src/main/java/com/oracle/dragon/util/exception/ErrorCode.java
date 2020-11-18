@@ -42,7 +42,11 @@ public enum ErrorCode {
     UpgradeFailed(-39), UpgradeTimeout(-40),
     StackFileDownload(-41),
     DatabaseAlreadyDeployed(-42),
-    UnmanagedDatabaseCantBeDestroyed(-43);
+    UnmanagedDatabaseCantBeDestroyed(-43),
+    OCIDatabaseWaitForShutdownFailed(-44),
+    OCIDatabaseShutdownFailed(-45),
+    OCIDatabaseWaitForStartFailed(-46),
+    OCIDatabaseStartFailed(-47);
 
     public final int internalErrorCode;
 

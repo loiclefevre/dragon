@@ -20,23 +20,23 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
-The latest stable release is v2.0.5.
+The latest stable release is v2.0.6.
 
 ### Linux and OCI Cloud Shell
 ```
-rm -f ./dragon-linux-x86_64-2.0.5
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.5/dragon-linux-x86_64-2.0.5
+rm -f ./dragon-linux-x86_64-2.0.6
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.6/dragon-linux-x86_64-2.0.6
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
 
 ### Windows
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.5/dragon-windows-x86_64-2.0.5.exe -OutFile dragon-windows-x86_64-2.0.5.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.6/dragon-windows-x86_64-2.0.6.exe -OutFile dragon-windows-x86_64-2.0.6.exe
 ```
 ### MAC OS
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.5/dragon-osx-x86_64-2.0.5
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.6/dragon-osx-x86_64-2.0.6
 chmod +x dragon-osx-*
 ```
 
@@ -136,17 +136,17 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.5
+$ ./dragon-linux-x86_64-2.0.6
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.5.exe
+> dragon-windows-x86_64-2.0.6.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.5
+$ ./dragon-osx-x86_64-2.0.6
 ```
 
 ### Loading JSON data
@@ -155,19 +155,19 @@ If you need to create JSON collections during the provisioning process, you may 
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.5 -loadjson
+$ ./dragon-linux-x86_64-2.0.6 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.5 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.6 -loadjson -create-react-app myfrontend
 ```
 
 ### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.5 -destroy
+$ ./dragon-linux-x86_64-2.0.6 -destroy
 ```
 
 ## Stacks
@@ -222,7 +222,7 @@ For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
 
 Simple to use, it works, it is optimized already, __no__ administrative burdens, develop right away!
 
-Converged, it means, you get the consistency of a _relational_ database, the _flexibility_ of a JSON database, the simplicity of _Machine Learning_ in the database, the location capabilities of a _spatial_ database, the power of a property _graph_ database, the indexing capabilities of a _full-text_ database, the _automatic elasticity_ as well as the costing model (always free version, pay by the second...) of a cloud native database, the _performance_ of the underlying infrastructure Exadata, the strongest _security_ of the database market, and the vast developer friendly ecosystem brought by Oracle Cloud Infrastructure.
+__[Converged](https://www.youtube.com/watch?v=yBWgb_oh39U)__, it means, you get the consistency of a _relational_ database, the _flexibility_ of a JSON database, the simplicity of _Machine Learning_ in the database, the location capabilities of a _spatial_ database, the power of a property _graph_ database, the indexing capabilities of a _full-text_ database, the _automatic elasticity_ as well as the costing model (always free version, pay by the second...) of a cloud native database, the _performance_ of the underlying infrastructure Exadata, the strongest _security_ of the database market, and the vast developer friendly ecosystem brought by Oracle Cloud Infrastructure.
 
  
 Autonomous Database can be:

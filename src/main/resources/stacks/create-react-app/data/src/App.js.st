@@ -101,7 +101,7 @@ function App() {
               target="_blank"
               rel="noopener noreferrer"
 			  >
-			  Iñigo Quilez
+			  I&ntilde;igo Quilez
 			</a>
 		</p>
       </footer>
