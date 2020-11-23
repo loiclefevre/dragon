@@ -16,11 +16,11 @@ Inside that directory, you can run several commands:
   npm run eject
     Removes this tool and copies build dependencies, configuration files
     and scripts into the app directory. If you do this, you can’t go back!
-
+<envRequirement>
 We suggest that you begin by typing:
 
-  [1m<executable> -loadjson[0m
   [1mcd <name>[0m
+  [1m<executable> -loadjson[0m
   [1mnpm install[0m
   [1mnpm start[0m
 

@@ -32,7 +32,7 @@ public class DragonStack {
 
             session.loadLocalConfiguration(true);
 
-            // may override dbName
+            // may override dbName...
             session.analyzeCommandLineParameters(args);
 
             session.loadConfigurationFile();

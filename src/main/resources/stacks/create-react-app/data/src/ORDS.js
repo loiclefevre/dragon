@@ -3,6 +3,12 @@ import axios from 'axios';
 function ORDS() {
 }
 
+// SODA for REST documentation:
+// ============================
+// - https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/rest/adrst/index.html
+// - list of examples:
+//   . https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/rest/adrst/using-soda-rest.html
+//   . https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/rest/adrst/loe.html
 ORDS.prototype.getCollections = async function() {
         return await axios.get(process.env.REACT_APP_SODA_API, {
             auth: {
@@ -14,6 +20,11 @@ ORDS.prototype.getCollections = async function() {
           .catch(err => err);
     }
 
+// SQL Service over ORDS documentation:
+// ====================================
+// - https://docs.oracle.com/en/database/oracle/oracle-rest-data-services/20.3/aelig/rest-enabled-sql-service.html
+//
+// The example underneath uses a technic to avoid SQL injection by checking the actual existence of the collectionName.
 ORDS.prototype.getNumberOfDocumentsInCollection = async function(collectionName) {
       return await axios.post(process.env.REACT_APP_SQL_API,
 		`{
@@ -24,7 +35,9 @@ ORDS.prototype.getNumberOfDocumentsInCollection = async function(collectionName)
 				 valid_table_name DBMS_QUOTED_ID;
 				 BEGIN
 					table_name := :table_name_input;
+					-- checking table_name / collection name really exists...
 					valid_table_name := SYS.DBMS_ASSERT.simple_sql_name(table_name);
+					-- run query to count the number of JSON documents
 					execute immediate 'select count(*) from '|| valid_table_name into table_count;
 					:numberOfDocuments := table_count;
 				END;",
@@ -55,4 +68,3 @@ ORDS.prototype.getNumberOfDocumentsInCollection = async function(collectionName)
   }
 
 export default new ORDS();
-

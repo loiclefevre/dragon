@@ -1,4 +1,5 @@
 {
+  "requires": ["jdk11"],
   "url": "https://github.com/spring-projects/spring-petclinic/archive/main.zip",
   "skipDirectoryLevel": 1,
   "files": [

@@ -1,4 +1,5 @@
 {
+  "requires": ["node14"],
   "files": [
     "public/",
     "src/",

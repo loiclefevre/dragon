@@ -2,6 +2,7 @@ package com.oracle.dragon.util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
 import com.oracle.bmc.database.DatabaseClient;
@@ -33,6 +34,7 @@ import com.oracle.bmc.workrequests.responses.GetWorkRequestResponse;
 import com.oracle.bmc.workrequests.responses.ListWorkRequestErrorsResponse;
 import com.oracle.dragon.model.Keys;
 import com.oracle.dragon.model.LocalDragonConfiguration;
+import com.oracle.dragon.model.Version;
 import com.oracle.dragon.stacks.CodeGenerator;
 import com.oracle.dragon.stacks.StackType;
 import com.oracle.dragon.util.exception.*;
@@ -62,7 +64,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.0.6";
+    public static final String VERSION = "2.0.7";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -124,7 +126,7 @@ public class DSSession {
         CreateKeys("Keys creation"),
         DatabaseShutdown("Database shutdown"),
         DatabaseStart("Database startup"),
-        ;
+        StackEnvironmentValidation("Stack environment validation");
 
         private final String name;
 
@@ -225,6 +227,8 @@ public class DSSession {
     private boolean info = false;
 
     private File dataPath = new File(".");
+
+    private File workingDirectory = new File(".");
 
     public static final String EXECUTABLE_NAME;
 
@@ -460,10 +464,23 @@ public class DSSession {
         println("                                    \t . JSON file names must match <collection name>[_[0-9]+].json");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "react" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]            \tcreates a " + ANSI_VSC_BLUE + "React" + ANSI_RESET + " frontend (default name: frontend)");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "spring" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "boot" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "petclinic" + ANSI_RESET + " [name]\tcreates the " + ANSI_BRIGHT_GREEN + "Spring Boot" + ANSI_RESET + " Petclinic (default name: petclinic)");
-        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "stop" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                            \t"+ANSI_RED+"stops"+ANSI_RESET+" the database");
-        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "start" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                           \t"+ANSI_BRIGHT_GREEN+"starts"+ANSI_RESET+" the database");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "stop" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                            \t" + ANSI_RED + "stops" + ANSI_RESET + " the database");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "start" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                           \t" + ANSI_BRIGHT_GREEN + "starts" + ANSI_RESET + " the database");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "destroy" + ANSI_RESET + "                            \tto destroy the database");
-        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... (if available)");
+
+        try {
+            final String latestVersion = upgradeOrGetLastVersion(false);
+            if(!VERSION.equals(latestVersion) && Version.isAboveVersion(latestVersion, VERSION)) {
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform: v"+latestVersion);
+            } else {
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... but you're already up to date :)");
+            }
+        }
+        catch(DSException dse) {
+            dse.printStackTrace();
+            println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... (if available)");
+        }
+
         displayHowToReportIssue();
     }
 
@@ -582,7 +599,7 @@ public class DSSession {
     }
 
     public void loadLocalConfiguration(boolean displaySection) throws DSException {
-        final File localConfigurationFile = new File(LOCAL_CONFIGURATION_FILENAME);
+        File localConfigurationFile = new File(LOCAL_CONFIGURATION_FILENAME);
 
         if (localConfigurationFile.exists() && localConfigurationFile.isFile()) {
             if (displaySection) {
@@ -597,6 +614,20 @@ public class DSSession {
                 throw new LoadLocalConfigurationException(LOCAL_CONFIGURATION_FILENAME, e);
             }
 
+            if (!Strings.isNullOrEmpty(localConfiguration.getRedirect())) {
+                workingDirectory = new File(localConfiguration.getRedirect());
+
+                localConfigurationFile = new File(localConfiguration.getRedirect(), LOCAL_CONFIGURATION_FILENAME);
+
+                if (localConfigurationFile.exists() && localConfigurationFile.isFile()) {
+                    try {
+                        localConfiguration = mapper.readValue(localConfigurationFile, LocalDragonConfiguration.class);
+                    } catch (IOException e) {
+                        throw new LoadLocalConfigurationException(LOCAL_CONFIGURATION_FILENAME, e);
+                    }
+                }
+            }
+
             if (displaySection) {
                 section.printlnOK();
             }
@@ -608,7 +639,7 @@ public class DSSession {
         section.print("parsing");
 
         try {
-            this.configFile = DRAGONConfigFile.parse(CONFIGURATION_FILENAME, profileName);
+            this.configFile = DRAGONConfigFile.parse(workingDirectory, CONFIGURATION_FILENAME, profileName);
 
             for (String key : this.configFile.getAllKeys()) {
                 switch (key) {
@@ -794,7 +825,7 @@ public class DSSession {
                 if (localConfiguration == null) {
                     initializeClients();
                     createADB();
-                } else if(!createStack) {
+                } else if (!createStack) {
                     throw new DatabaseAlreadyDeployedException(localConfiguration.getDbName());
                 }
                 break;
@@ -805,7 +836,7 @@ public class DSSession {
                     initializeClients();
                     destroyDatabase();
                 } else {
-                    if(localConfiguration == null) {
+                    if (localConfiguration == null) {
                         throw new UnmanagedDatabaseCantBeDestroyedException();
                     } else {
                         throw new UnmanagedDatabaseCantBeDestroyedException(dbName);
@@ -821,7 +852,7 @@ public class DSSession {
                 break;
 
             case UpgradeDragon:
-                checkForUpgrade();
+                upgradeOrGetLastVersion(true);
                 break;
 
             case StopDatabase:
@@ -845,13 +876,13 @@ public class DSSession {
         }
     }
 
-    private void checkForUpgrade() throws DSException {
+    private String upgradeOrGetLastVersion(boolean proceedUpgrade) throws DSException {
         section = Section.Upgrade;
-        section.print("gathering metadata");
+        if(proceedUpgrade) section.print("gathering metadata");
 
         try {
             final HttpRequest request = HttpRequest.newBuilder()
-                    .timeout(Duration.ofSeconds(10L))
+                    .timeout(Duration.ofSeconds(proceedUpgrade ? 10L : 2L))
                     .uri(new URI("https://github.com/loiclefevre/dragon/releases/latest"))
                     .setHeader("Pragma", "no-cache")
                     .setHeader("Cache-Control", "no-store")
@@ -871,7 +902,7 @@ public class DSSession {
                     .send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                section.printlnKO();
+                if(proceedUpgrade) section.printlnKO();
                 throw new UpgradeFailedException(response.statusCode());
             }
 
@@ -887,8 +918,10 @@ public class DSSession {
                     latestVersion = latestVersion.substring(1);
                 }
 
+                if(!proceedUpgrade) return latestVersion;
+
                 // a newer version available?
-                if (!VERSION.equals(latestVersion) && isAboveVersion(latestVersion)) {
+                if (!VERSION.equals(latestVersion) && Version.isAboveVersion(latestVersion, VERSION)) {
                     section.print("downloading v" + latestVersion + " ...");
 
                     int searchFromPos = tagStart;
@@ -941,25 +974,27 @@ public class DSSession {
                             Files.setPosixFilePermissions(release.toPath(), perms);
                         }
 
-                        section.printlnOK(fileName);
+                        if(proceedUpgrade) section.printlnOK(fileName);
                     } else {
-                        section.printlnKO("no new release for your platform");
+                        if(proceedUpgrade) section.printlnKO("no new release for your platform");
                     }
                 } else {
-                    section.printlnOK("you are up to date :)");
+                    if(proceedUpgrade) section.printlnOK("you are up to date :)");
                 }
+
+                return latestVersion;
             } else {
-                section.printlnKO();
+                if(proceedUpgrade) section.printlnKO();
                 throw new UpgradeFailedException("metadata integrity");
             }
         } catch (InterruptedException e) {
-            section.printlnKO();
+            if(proceedUpgrade) section.printlnKO();
             throw new UpgradeTimeoutException(10);
         } catch (URISyntaxException e) {
-            section.printlnKO();
+            if(proceedUpgrade) section.printlnKO();
             throw new UpgradeFailedException(e);
         } catch (IOException e) {
-            section.printlnKO();
+            if(proceedUpgrade) section.printlnKO();
             throw new UpgradeFailedException(e);
         }
     }
@@ -989,64 +1024,6 @@ public class DSSession {
         return true;
     }
 
-    private class Version implements Comparable<Version> {
-        private int major;
-        private int middle;
-        private int minor;
-
-        public Version(String version) {
-            int dot = version.indexOf('.');
-            major = Integer.parseInt(version.substring(0, dot));
-            int firstDot = dot;
-            dot = version.indexOf('.', dot + 1);
-            middle = Integer.parseInt(version.substring(firstDot + 1, dot));
-            minor = Integer.parseInt(version.substring(version.lastIndexOf('.') + 1, version.length()));
-        }
-
-        public Version(int major, int middle, int minor) {
-            this.major = major;
-            this.middle = middle;
-            this.minor = minor;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Version version = (Version) o;
-
-            if (major != version.major) return false;
-            if (middle != version.middle) return false;
-            return minor == version.minor;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = major;
-            result = 31 * result + middle;
-            result = 31 * result + minor;
-            return result;
-        }
-
-        private int getLongVersion() {
-            return 1000000 * major + 1000 * middle + minor;
-        }
-
-        @Override
-        public int compareTo(Version o) {
-            if (getLongVersion() < o.getLongVersion()) return -1;
-            else if (getLongVersion() > o.getLongVersion()) return 1;
-            else return 0;
-        }
-    }
-
-    private boolean isAboveVersion(String latestVersion) {
-        Version current = new Version(VERSION);
-        Version maybeNewVersion = new Version(latestVersion);
-
-        return current.compareTo(maybeNewVersion) < 0;
-    }
 
     private void stopDatabase() throws DSException {
         section = Section.DatabaseShutdown;
@@ -1077,7 +1054,7 @@ public class DSSession {
         } else {
             section.print("pending");
 
-            if(currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Stopped) {
+            if (currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Stopped) {
                 section.printlnOK("already stopped");
                 return;
             }
@@ -1162,7 +1139,7 @@ public class DSSession {
         } else {
             section.print("pending");
 
-            if(currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Available ) {
+            if (currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Available) {
                 section.printlnOK("already started");
                 return;
             }

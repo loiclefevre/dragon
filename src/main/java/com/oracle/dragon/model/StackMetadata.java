@@ -1,9 +1,12 @@
 package com.oracle.dragon.model;
 
+import com.oracle.dragon.stacks.EnvironmentRequirement;
+
 public class StackMetadata {
     private String url;
     private String[] files;
     private int skipDirectoryLevel;
+    private EnvironmentRequirement[] requires;
 
     public StackMetadata() {
     }
@@ -34,5 +37,13 @@ public class StackMetadata {
 
     public void setSkipDirectoryLevel(int skipDirectoryLevel) {
         this.skipDirectoryLevel = skipDirectoryLevel;
+    }
+
+    public EnvironmentRequirement[] getRequires() {
+        return requires;
+    }
+
+    public void setRequires(EnvironmentRequirement[] requires) {
+        this.requires = requires;
     }
 }

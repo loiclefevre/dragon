@@ -2,14 +2,13 @@ package com.oracle.dragon.stacks;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.oracle.dragon.model.LocalDragonConfiguration;
 import com.oracle.dragon.model.StackMetadata;
+import com.oracle.dragon.stacks.requirements.EnvironmentRequirementDeserializer;
 import com.oracle.dragon.util.DSSession;
 import com.oracle.dragon.util.ZipUtil;
-import com.oracle.dragon.util.exception.DSException;
-import com.oracle.dragon.util.exception.LoadStackMetadataException;
-import com.oracle.dragon.util.exception.StackFileDownloadException;
-import com.oracle.dragon.util.exception.StackFileNotFoundException;
+import com.oracle.dragon.util.exception.*;
 import org.stringtemplate.v4.ST;
 
 import java.io.*;
@@ -25,7 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.oracle.dragon.util.DSSession.EXECUTABLE_NAME;
+import static com.oracle.dragon.util.Console.Style.ANSI_BRIGHT;
+import static com.oracle.dragon.util.Console.Style.ANSI_RESET;
+import static com.oracle.dragon.util.DSSession.*;
 
 public class CodeGenerator {
     private final StackType type;
@@ -55,9 +56,14 @@ public class CodeGenerator {
 
         String rootResourcesDir = "stacks/";
         final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        final SimpleModule indexKeyModule = new SimpleModule();
+        indexKeyModule.addDeserializer(EnvironmentRequirement.class, new EnvironmentRequirementDeserializer());
+        mapper.registerModule(indexKeyModule);
+
 
         if (override != null) {
             switch (type) {
+
                 case REACT:
                     section.print("overriding");
                     try {
@@ -78,11 +84,18 @@ public class CodeGenerator {
                                 extractFileContent(path, new File(dest, subDir), inputStream);
                             }
                         }
+                    } catch( com.fasterxml.jackson.databind.JsonMappingException me ){
+                        section.printlnKO();
+                        throw new UnknownEnvironmentRequirementForStackException(me.getMessage());
                     } catch (IOException e) {
+                        section.printlnKO();
                         throw new LoadStackMetadataException(type.humanName, e);
                     }
+
                     section.printlnOK(type.humanName + ": " + name+"#"+override);
 
+                    // environment requirements checking...
+                    String envRequirement = processEnvironmentRequirements(platform,OCICloudShell);
 
                     final ST st = new ST(
                             new BufferedReader(
@@ -93,8 +106,11 @@ public class CodeGenerator {
                     st.add("path", dest.getAbsolutePath());
                     st.add("override", override);
                     st.add("executable", EXECUTABLE_NAME);
+                    st.add("envRequirement", envRequirement);
 
                     System.out.println(st.render());
+
+                    generateStackLocalConfigFile(dest);
 
                     break;
             }
@@ -124,9 +140,14 @@ public class CodeGenerator {
                     }
                 }
 
+            } catch( com.fasterxml.jackson.databind.JsonMappingException me ){
+                section.printlnKO();
+                throw new UnknownEnvironmentRequirementForStackException(me.getMessage());
             } catch (IOException e) {
+                section.printlnKO();
                 throw new LoadStackMetadataException(type.humanName, e);
             }
+
 
             section.printlnOK(type.humanName + ": " + name);
 
@@ -139,6 +160,9 @@ public class CodeGenerator {
                 section.printlnOK();
             }
 
+            // environment requirements checking...
+            String envRequirement = processEnvironmentRequirements(platform,OCICloudShell);
+
             final ST st = new ST(
                     new BufferedReader(
                             new InputStreamReader(Thread.currentThread().getContextClassLoader().getResourceAsStream(rootResourcesDir + type.resourceDir + "/message.st"), StandardCharsets.UTF_8))
@@ -147,13 +171,50 @@ public class CodeGenerator {
             st.add("name", name);
             st.add("path", dest.getAbsolutePath());
             st.add("executable", EXECUTABLE_NAME);
+            st.add("envRequirement", envRequirement);
 
             for (String key : patchParameters.keySet()) {
                 st.add(key, patchParameters.get(key));
             }
 
             System.out.println(st.render());
+
+            generateStackLocalConfigFile(dest);
         }
+    }
+
+    private void generateStackLocalConfigFile(File dest) {
+        try (PrintWriter out = new PrintWriter(new File(dest,DSSession.LOCAL_CONFIGURATION_FILENAME))) {
+            out.println("{\"redirect\": \"..\"}");
+        } catch (FileNotFoundException ignored) {
+        }
+    }
+
+    private String processEnvironmentRequirements(DSSession.Platform platform, boolean OCICloudShell) {
+        section = DSSession.Section.StackEnvironmentValidation;
+        for(EnvironmentRequirement er:stackMetadata.getRequires()) {
+            section.print("requires "+er.name()+" for "+platform.name());
+            if(er.isPresent(platform)) {
+                section.printlnOK();
+            } else {
+                final StringBuilder help = new StringBuilder("\n");
+
+                help.append(er.getDescription());
+                help.append('\n');
+
+                for(String c:er.getCommands(platform,OCICloudShell)) {
+                    help.append("  ").append(ANSI_BRIGHT).append(c).append(ANSI_RESET).append('\n');
+                }
+
+                help.append("\nAnd then...\n");
+
+                section.printlnOK();
+
+                return help.toString();
+            }
+        }
+
+        return " ";
     }
 
     private InputStream downloadFile(String url) throws DSException {
@@ -211,6 +272,7 @@ public class CodeGenerator {
             }
 
         } catch (Exception e) {
+            section.printlnKO();
             throw new StackFileDownloadException(url, e);
         }
     }

@@ -9,7 +9,7 @@ Inside that directory, you can run several commands:
 
   java -jar <applicationPath>
     To run the Spring Boot <name> application.
-
+<envRequirement>
 We suggest that you begin by typing:
 
   [1mcd <name>[0m

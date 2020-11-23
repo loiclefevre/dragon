@@ -9,7 +9,7 @@
     "axios": "^0.21.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-scripts": "4.0.0",
+    "react-scripts": "4.0.1",
     "web-vitals": "^0.2.4"
   },
   "scripts": {

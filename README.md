@@ -20,23 +20,23 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
-The latest stable release is v2.0.6.
+The latest stable release is v2.0.7.
 
 ### Linux and OCI Cloud Shell
 ```
-rm -f ./dragon-linux-x86_64-2.0.6
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.6/dragon-linux-x86_64-2.0.6
+rm -f ./dragon-linux-x86_64-2.0.7
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-linux-x86_64-2.0.7
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
 
 ### Windows
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.6/dragon-windows-x86_64-2.0.6.exe -OutFile dragon-windows-x86_64-2.0.6.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-windows-x86_64-2.0.7.exe -OutFile dragon-windows-x86_64-2.0.7.exe
 ```
 ### MAC OS
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.6/dragon-osx-x86_64-2.0.6
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-osx-x86_64-2.0.7
 chmod +x dragon-osx-*
 ```
 
@@ -136,17 +136,17 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.6
+$ ./dragon-linux-x86_64-2.0.7
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.6.exe
+> dragon-windows-x86_64-2.0.7.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.6
+$ ./dragon-osx-x86_64-2.0.7
 ```
 
 ### Loading JSON data
@@ -155,19 +155,19 @@ If you need to create JSON collections during the provisioning process, you may 
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.6 -loadjson
+$ ./dragon-linux-x86_64-2.0.7 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.6 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.7 -loadjson -create-react-app myfrontend
 ```
 
 ### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.6 -destroy
+$ ./dragon-linux-x86_64-2.0.7 -destroy
 ```
 
 ## Stacks

@@ -1,3 +1,13 @@
+# v2.0.7 - 2020.11.23
+## New features
+- upgraded React based stacks to use react-scripts v4.0.1
+- added links to documentation in ORDS.js
+- display information about the possible upgrade version in the help
+- allows to run DRAGON commands inside a stack folder using a specific redirect operator
+- added stack environment requirements infrastructure
+  - added JDK v11 requirements including manual installation steps
+  - added Node.js v14.15.1 requirements including manual installation steps
+
 # v2.0.6 - 2020.11.18
 ## Fixes
 - creating stacks or loading JSON data is possible after the database has been provisioned

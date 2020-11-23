@@ -1,6 +1,8 @@
 package com.oracle.dragon.model;
 
 public class LocalDragonConfiguration {
+    private String redirect;
+
     private String databaseServiceURL;
     private String sqlDevWebAdmin;
     private String sqlDevWeb;
@@ -120,5 +122,13 @@ public class LocalDragonConfiguration {
 
     public void setExtractedWallet(String extractedWallet) {
         this.extractedWallet = extractedWallet;
+    }
+
+    public String getRedirect() {
+        return redirect;
+    }
+
+    public void setRedirect(String redirect) {
+        this.redirect = redirect;
     }
 }

@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.oracle.bmc.util.internal.FileUtils.expandUserHome;
-
 /**
  * Simple implementation to read OCI configuration files.
  * <p>
@@ -21,11 +19,12 @@ import static com.oracle.bmc.util.internal.FileUtils.expandUserHome;
 public final class DRAGONConfigFile {
     private static final String DEFAULT_PROFILE_NAME = "DEFAULT";
 
-    public static ConfigFile parse(String configurationFilePath, @Nullable String profile) throws IOException {
-        return parse(configurationFilePath,new FileInputStream(new File(expandUserHome(configurationFilePath))), profile, StandardCharsets.UTF_8);
+    public static ConfigFile parse(File workingDirectory, String configurationFilePath, @Nullable String profile) throws IOException {
+        final File configFile = new File(workingDirectory, configurationFilePath);
+        return parse(configFile.getAbsolutePath(), new FileInputStream(configFile), profile, StandardCharsets.UTF_8);
     }
 
-    public static ConfigFile parse(String configurationFilePath, InputStream configurationStream, @Nullable String profile, @Nonnull Charset charset) throws IOException {
+    private static ConfigFile parse(String configurationFilePath, InputStream configurationStream, @Nullable String profile, @Nonnull Charset charset) throws IOException {
         final ConfigAccumulator accumulator = new ConfigAccumulator();
         try (final BufferedReader reader = new BufferedReader(new InputStreamReader(configurationStream, charset))) {
             String line;
@@ -36,8 +35,7 @@ public final class DRAGONConfigFile {
         if (!accumulator.foundDefaultProfile) {
         }
         if (profile != null && !accumulator.configurationsByProfile.containsKey(profile)) {
-            throw new IllegalArgumentException(
-                    "No profile named " + profile + " exists in the configuration file");
+            throw new IllegalArgumentException("No profile named " + profile + " exists in the configuration file");
         }
 
         return new ConfigFile(accumulator, profile, configurationFilePath);
