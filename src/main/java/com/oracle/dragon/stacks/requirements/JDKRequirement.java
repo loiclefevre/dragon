@@ -93,14 +93,14 @@ public class JDKRequirement implements Requirement {
 
             case MacOS:
                 return majorVersion >= 11 ? new String[]{
-                        "wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-darwin-amd64-20.3.0.tar.gz",
+                        "curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-darwin-amd64-20.3.0.tar.gz",
                         "tax -xvf graalvm-ce-java11-darwin-amd64-20.3.0.tar.gz",
                         "export JAVA_HOME=\"`pwd`/graalvm-ee-java11-20.3.0\"",
                         "export PATH=${JAVA_HOME}/bin:$PATH"
                 }
                         :
                         new String[]{
-                                "wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java8-darwin-amd64-20.3.0.tar.gz",
+                                "curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java8-darwin-amd64-20.3.0.tar.gz",
                                 "tax -xvf graalvm-ce-java8-darwin-amd64-20.3.0.tar.gz",
                                 "export JAVA_HOME=\"`pwd`/graalvm-ee-java8-20.3.0\"",
                                 "export PATH=${JAVA_HOME}/bin:$PATH"

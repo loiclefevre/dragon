@@ -58,7 +58,7 @@ public class NodeRequirement implements Requirement {
 
             case MacOS:
                 return new String[]{
-                        "wget https://nodejs.org/dist/v14.15.1/node-v14.15.1-darwin-x64.tar.gz",
+                        "curl -L -O https://nodejs.org/dist/v14.15.1/node-v14.15.1-darwin-x64.tar.gz",
                         "tax -xvf node-v14.15.1-darwin-x64.tar.xz",
                         "export PATH=\"`pwd`\"/node-v14.15.1-darwin-x64/bin:$PATH"
                 };
