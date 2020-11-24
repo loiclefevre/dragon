@@ -477,7 +477,6 @@ public class DSSession {
             }
         }
         catch(DSException dse) {
-            dse.printStackTrace();
             println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... (if available)");
         }
 
