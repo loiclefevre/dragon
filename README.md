@@ -35,9 +35,11 @@ Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/A
 powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-windows-x86_64-2.0.7.exe -OutFile dragon-windows-x86_64-2.0.7.exe
 ```
 ### MAC OS
+*You'd need to [notarize](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution) the application once downloaded*
 ```
 curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-osx-x86_64-2.0.7
 chmod +x dragon-osx-*
+sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.0.7
 ```
 
 ### Changelog
