@@ -64,6 +64,8 @@ _New with v2.0.4_, using the __-create-keys__ parameter along the __-config-temp
 ```
  # DEFAULT profile (case sensitive), you can define others: ASHBURN_REGION or TEST_ENVIRONMENT
  # You can choose a profile using the -profile command line argument
+ # WARNING: any property not defined inside the selected profile will use the one from the DEFAULT profile 
+ #          if found, hence the name of the profile: DEFAULT :) 
 [DEFAULT]
 
  # OCID of the user connecting to Oracle Cloud Infrastructure APIs. To get the value, see:
@@ -150,6 +152,19 @@ MAC OS:
 ```
 $ ./dragon-osx-x86_64-2.0.7
 ```
+
+### Oracle Cloud Infrastructure Policy
+
+In order for the DRAGON Stack manager to be able to do its job, an OCI Policy must be set if you are __not__ the administrator of the cloud tenant. If you are using an OCI user who has admin privileges (belongs to group _OCI Administrators_), then no additional configuration is required. If you don't belong to the _OCI Administrators_ group, then ask your admin to create the following policy (for the compartment /demos/json) and make you belong to the associated group:
+
+```
+Allow group DRAGON_Stack_Developers to manage buckets in compartment demos:json
+Allow group DRAGON_Stack_Developers to manage objects in compartment demos:json
+Allow group DRAGON_Stack_Developers to manage autonomous-database-family in compartment demos:json
+Allow group DRAGON_Stack_Developers to read resource-availability in compartment demos:json
+```
+
+Eventually, you may ask for some quota to be set on your compartment as well.
 
 ### Loading JSON data
 
