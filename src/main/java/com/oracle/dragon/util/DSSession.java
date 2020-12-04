@@ -1419,7 +1419,7 @@ public class DSSession {
                             "    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
                             "    COMMIT;\n" +
                             "END;\n" +
-                            "/", userResponse.getUser().getEmail(), configFile.get(CONFIG_AUTH_TOKEN)));
+                            "/", userResponse.getUser().getName(), configFile.get(CONFIG_AUTH_TOKEN)));
         } catch (RuntimeException re) {
             section.printlnKO();
             throw new ObjectStorageConfigurationFailedException();
@@ -1443,7 +1443,7 @@ public class DSSession {
                                 "    COMMIT;\n" +
                                 "END;\n" +
                                 "/\n" +
-                                "ALTER DATABASE PROPERTY SET default_credential='ADMIN.BACKUP_CREDENTIAL_NAME'", userResponse.getUser().getEmail(), configFile.get(CONFIG_AUTH_TOKEN)));
+                                "ALTER DATABASE PROPERTY SET default_credential='ADMIN.BACKUP_CREDENTIAL_NAME'", userResponse.getUser().getName(), configFile.get(CONFIG_AUTH_TOKEN)));
             } catch (RuntimeException re) {
                 section.printlnKO();
                 throw new ObjectStorageConfigurationFailedException();
