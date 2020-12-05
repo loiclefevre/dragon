@@ -47,7 +47,8 @@ public enum ErrorCode {
     OCIDatabaseShutdownFailed(-45),
     OCIDatabaseWaitForStartFailed(-46),
     OCIDatabaseStartFailed(-47),
-    UnknownEnvironmentRequirementForStack(-48);
+    UnknownEnvironmentRequirementForStack(-48),
+    TableNotLoaded(-49);
 
     public final int internalErrorCode;
 

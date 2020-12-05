@@ -1,4 +1,4 @@
-package com.oracle.dragon.util;
+package com.oracle.dragon.util.io;
 
 import java.io.*;
 import java.util.Arrays;
@@ -29,8 +29,8 @@ public class JSONFlattenerInputStream extends FilterInputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         int result = super.read(b, off, len);
-        if(result == -1) {
-            if(strippedBytes >= len) {
+        if(result == -1) { return -1;
+/*            if(strippedBytes >= len) {
                 strippedBytes -= len;
                 Arrays.fill(b,off,off+len-1,(byte)'\n');
                 return len;
@@ -40,7 +40,7 @@ public class JSONFlattenerInputStream extends FilterInputStream {
                 result = strippedBytes;
                 strippedBytes = 0;
                 return result;
-            }
+            } */
         }
 
         final int length = result;
@@ -48,6 +48,7 @@ public class JSONFlattenerInputStream extends FilterInputStream {
 
         final byte[] t = new byte[length*2]; // worst case!
 
+        int lastAntiSlash = -1;
         for(int i = off, j = 0; i < length; i++, j++) {
             switch(b[i]) {
                 case ' ':
@@ -81,9 +82,18 @@ public class JSONFlattenerInputStream extends FilterInputStream {
                     }
                     break;
 
-                case '"':
-                    string = !string;
+                case '\\':
+                    lastAntiSlash = i;
                     t[j] = b[i];
+                    break;
+
+                case '"':
+                    if(string && lastAntiSlash >= 0 && lastAntiSlash == i - 1) {
+                        t[j] = b[i];
+                    } else {
+                        string = !string;
+                        t[j] = b[i];
+                    }
                     break;
 
                 case '{':
@@ -114,7 +124,8 @@ public class JSONFlattenerInputStream extends FilterInputStream {
 
     public static void main(String[] args) throws Throwable {
         JSONFlattenerInputStream j;
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(j=new JSONFlattenerInputStream(new FileInputStream(new File("purchase_orders.json")))))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(j=
+                new JSONFlattenerInputStream(new FileInputStream(new File("test.json")))))) {
 
             String line;
             PrintWriter printWriter = new PrintWriter(new File("out.json"));
