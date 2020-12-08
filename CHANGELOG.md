@@ -1,3 +1,11 @@
+# v2.0.8 - 2020.12.08
+## New features
+- added OCI group and policies information in case you encounter related issue
+- added -loadcsv capability: loads a CSV file into a table, if the table doesn't exist, the table DDL is deduced from the actual CSV content; note that the header is mandatory
+- added database_tables parameter for dragon.config file to list CSV files to be loaded in
+- improved error message in case of OCI authentication problem
+
+
 # v2.0.7 - 2020.11.23
 ## New features
 - upgraded React based stacks to use react-scripts v4.0.1
