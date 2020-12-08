@@ -65,26 +65,27 @@ public class DSSession {
 	/**
 	 * Current version.
 	 */
-	public static final String VERSION = "2.0.7";
+	public static final String VERSION = "2.0.8";
 
 	public static final String CONFIGURATION_FILENAME = "dragon.config";
 	public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
 
 	private static final int OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT = 2;
-	private static final String CONFIG_REGION = "region";
-	private static final String CONFIG_FINGERPRINT = "fingerprint";
+	public static final String CONFIG_REGION = "region";
+	public static final String CONFIG_FINGERPRINT = "fingerprint";
 	private static final String CONFIG_DATABASE_TYPE = "database_type";
+	private static final String CONFIG_DATABASE_VERSION = "database_version";
 	private static final String CONFIG_DATABASE_USER_NAME = "database_user_name";
 	private static final String CONFIG_DATABASE_PASSWORD = "database_password";
 	private static final String CONFIG_DATABASE_LICENSE_TYPE = "database_license_type";
 	private static final String CONFIG_COLLECTIONS = "database_collections";
 	private static final String CONFIG_TABLES = "database_tables";
-	private static final String CONFIG_COMPARTMENT_ID = "compartment_id";
-	private static final String CONFIG_TENANCY_ID = "tenancy";
+	public static final String CONFIG_COMPARTMENT_ID = "compartment_id";
+	public static final String CONFIG_TENANCY_ID = "tenancy";
 	public static final String CONFIG_KEY_FILE = "key_file";
-	private static final String CONFIG_PASS_PHRASE = "pass_phrase";
-	private static final String CONFIG_USER = "user";
-	private static final String CONFIG_AUTH_TOKEN = "auth_token";
+	public static final String CONFIG_PASS_PHRASE = "pass_phrase";
+	public static final String CONFIG_USER = "user";
+	public static final String CONFIG_AUTH_TOKEN = "auth_token";
 	private static final String CONFIG_DATA_PATH = "data_path";
 
 	// Code generation
@@ -94,6 +95,10 @@ public class DSSession {
 	private String stackOverride = null;
 
 	private LocalDragonConfiguration localConfiguration;
+
+	public String getCompartmentId() {
+		return this.configFile.get(CONFIG_COMPARTMENT_ID);
+	}
 
 	public enum Platform {
 		Windows,
@@ -183,6 +188,8 @@ public class DSSession {
 	 * The database name to create.
 	 */
 	private String dbName = "DRAGON";
+
+	private String dbVersion = "19c";
 
 	private String profileName = "DEFAULT";
 
@@ -297,6 +304,10 @@ public class DSSession {
 		if (platform == Platform.Unsupported) {
 			throw new UnsupportedPlatformException(System.getProperty("os.name"));
 		}
+	}
+
+	public String getProfileName() {
+		return profileName;
 	}
 
 	public void analyzeCommandLineParameters(String[] args) throws DSException {
@@ -500,6 +511,10 @@ public class DSSession {
 		println("                                    \t . use with configuration parameters database_collections and data_path");
 		println("                                    \t . loading JSON data can be done during and/or after database provisioning");
 		println("                                    \t . JSON file names must match <collection name>[_[0-9]+].json");
+		println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "loadcsv" + ANSI_RESET + "                            \tloads " + ANSI_BRIGHT + "CSV" + ANSI_RESET + " data corresponding to tables (default: no data loaded)");
+		println("                                    \t . use with configuration parameters database_tables and data_path");
+		println("                                    \t . loading CSV data can be done during and/or after database provisioning");
+		println("                                    \t . CSV file names must match <table name>[_[0-9]+].csv");
 		println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "react" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]            \tcreates a " + ANSI_VSC_BLUE + "React" + ANSI_RESET + " frontend (default name: frontend)");
 		println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "spring" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "boot" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "petclinic" + ANSI_RESET + " [name]\tcreates the " + ANSI_BRIGHT_GREEN + "Spring Boot" + ANSI_RESET + " Petclinic (default name: petclinic)");
 		println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "stop" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                            \t" + ANSI_RED + "stops" + ANSI_RESET + " the database");
@@ -632,11 +647,16 @@ public class DSSession {
 		println(" # Uncomment to ask for Bring Your Own Licenses model (doesn't work for Always Free and AJD)");
 		println("# database_license_type=byol");
 		println();
+		println(" # Path to a folder where data to load into collections can be found (default to current directory)");
+		println("data_path=.");
+		println();
 		println(" # A list of coma separated JSON collection name(s) that you wish to get right after database creation");
 		println("# database_collections=");
 		println();
-		println(" # Path to a folder where data to load into collections can be found (default to current directory)");
-		println("data_path=.");
+		println(" # A list of coma separated table name(s) that you wish to get right after database creation");
+		println(" # These table must have corresponding CSV file(s) so that table structure (DDL) is deduced from the files");
+		println("# database_tables=");
+		println();
 		println();
 	}
 
@@ -705,6 +725,7 @@ public class DSSession {
 					case CONFIG_COLLECTIONS:
 					case CONFIG_TABLES:
 					case CONFIG_PASS_PHRASE:
+					case CONFIG_DATABASE_VERSION:
 						break;
 
 					default:
@@ -779,6 +800,21 @@ public class DSSession {
 			if (!Strings.isNullOrEmpty(this.configFile.get(CONFIG_DATABASE_USER_NAME))) {
 				databaseUserName = this.configFile.get(CONFIG_DATABASE_USER_NAME);
 			}
+
+			if (!Strings.isNullOrEmpty(this.configFile.get(CONFIG_DATABASE_VERSION))) {
+				final String wantedVersion = this.configFile.get(CONFIG_DATABASE_VERSION);
+				switch(wantedVersion) {
+					case "19c":
+					//case "21c":
+						dbVersion = this.configFile.get(CONFIG_DATABASE_VERSION);
+						break;
+
+					default:
+						section.printlnKO();
+						throw new ConfigurationWrongDatabaseVersionException(this.configFile.get(CONFIG_DATABASE_VERSION));
+				}
+			}
+
 
 			if (!Strings.isNullOrEmpty(this.configFile.get(CONFIG_DATABASE_LICENSE_TYPE))) {
 				if (LicenseType.BYOL.toString().equalsIgnoreCase(this.configFile.get(CONFIG_DATABASE_LICENSE_TYPE))) {
@@ -1121,146 +1157,294 @@ public class DSSession {
 		section = Section.DatabaseShutdown;
 		section.print("checking existing databases");
 
-		final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
-		final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
+		try {
+			final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
+			final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
 
-		boolean dbNameExists = false;
-		String adbId = null;
-		AutonomousDatabaseSummary.LifecycleState currentLifecycleState = null;
-		for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
-			//System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
+			boolean dbNameExists = false;
+			String adbId = null;
+			AutonomousDatabaseSummary.LifecycleState currentLifecycleState = null;
+			for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
+				//System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
 
-			if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
-				if (adb.getDbName().equals(dbName)) {
-					if (databaseType.isFree() && !adb.getIsFreeTier()) {
-						continue;
-					}
-					dbNameExists = true;
-					adbId = adb.getId();
-					currentLifecycleState = adb.getLifecycleState();
-					break;
-				}
-			}
-		}
-
-		if (!dbNameExists) {
-			section.printlnOK("nothing to do");
-		}
-		else {
-			section.print("pending");
-
-			if (currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Stopped) {
-				section.printlnOK("already stopped");
-				return;
-			}
-
-			workRequestClient = new WorkRequestClient(provider);
-			StopAutonomousDatabaseResponse responseTerminate = dbClient.stopAutonomousDatabase(StopAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build());
-			String workRequestId = responseTerminate.getOpcWorkRequestId();
-
-			GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
-			boolean exit = false;
-			long startTime = System.currentTimeMillis();
-			float pendingProgressMove = 0f;
-			do {
-				GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
-				switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
-					case Succeeded:
-						section.printlnOK(getDurationSince(startTime));
-						exit = true;
-						break;
-					case Failed:
-						section.printlnKO();
-						final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
-						final StringBuilder errors = new StringBuilder();
-						int i = 0;
-						for (WorkRequestError e : response.getItems()) {
-							if (i > 0) {
-								errors.append("\n");
-							}
-							errors.append(e.getMessage());
-							i++;
+				if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
+					if (adb.getDbName().equals(dbName)) {
+						if (databaseType.isFree() && !adb.getIsFreeTier()) {
+							continue;
 						}
-						throw new OCIDatabaseShutdownFailedException(dbName, errors.toString());
-					case Accepted:
-						section.print(String.format("accepted [%s]", getDurationSince(startTime)));
+						dbNameExists = true;
+						adbId = adb.getId();
+						currentLifecycleState = adb.getLifecycleState();
 						break;
-					case InProgress:
-						section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 99f), getDurationSince(startTime)));
-						pendingProgressMove += Math.random() * 2f;
-						break;
+					}
+				}
+			}
+
+			if (!dbNameExists) {
+				section.printlnOK("nothing to do");
+			}
+			else {
+				section.print("pending");
+
+				if (currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Stopped) {
+					section.printlnOK("already stopped");
+					return;
 				}
 
-				sleep(1000L);
+				workRequestClient = new WorkRequestClient(provider);
+				StopAutonomousDatabaseResponse responseTerminate = dbClient.stopAutonomousDatabase(StopAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build());
+				String workRequestId = responseTerminate.getOpcWorkRequestId();
 
-			} while (!exit);
+				GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
+				boolean exit = false;
+				long startTime = System.currentTimeMillis();
+				float pendingProgressMove = 0f;
+				do {
+					GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
+					switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
+						case Succeeded:
+							section.printlnOK(getDurationSince(startTime));
+							exit = true;
+							break;
+						case Failed:
+							section.printlnKO();
+							final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
+							final StringBuilder errors = new StringBuilder();
+							int i = 0;
+							for (WorkRequestError e : response.getItems()) {
+								if (i > 0) {
+									errors.append("\n");
+								}
+								errors.append(e.getMessage());
+								i++;
+							}
+							throw new OCIDatabaseShutdownFailedException(dbName, errors.toString());
+						case Accepted:
+							section.print(String.format("accepted [%s]", getDurationSince(startTime)));
+							break;
+						case InProgress:
+							section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 99f), getDurationSince(startTime)));
+							pendingProgressMove += Math.random() * 2f;
+							break;
+					}
 
-			DatabaseWaiters waiter = dbClient.getWaiters();
-			try {
-				final GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build(),
-						new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Stopped}).execute();
-			} catch (Exception e) {
-				section.printlnKO();
-				throw new OCIDatabaseWaitForShutdownFailedException(e);
+					sleep(1000L);
+
+				} while (!exit);
+
+				DatabaseWaiters waiter = dbClient.getWaiters();
+				try {
+					final GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build(),
+							new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Stopped}).execute();
+				} catch (Exception e) {
+					section.printlnKO();
+					throw new OCIDatabaseWaitForShutdownFailedException(e);
+				}
 			}
 		}
-
+		catch(BmcException be) {
+			section.printlnKO();
+			throw be;
+		}
 	}
 
 	private void startDatabase() throws DSException {
 		section = Section.DatabaseStart;
 		section.print("checking existing databases");
 
-		final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
-		final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
+		try {
+			final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
+			final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
 
-		boolean dbNameExists = false;
-		String adbId = null;
-		AutonomousDatabaseSummary.LifecycleState currentLifecycleState = null;
-		for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
-			//System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
+			boolean dbNameExists = false;
+			String adbId = null;
+			AutonomousDatabaseSummary.LifecycleState currentLifecycleState = null;
+			for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
+				//System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
 
-			if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
-				if (adb.getDbName().equals(dbName)) {
-					if (databaseType.isFree() && !adb.getIsFreeTier()) {
-						continue;
+				if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
+					if (adb.getDbName().equals(dbName)) {
+						if (databaseType.isFree() && !adb.getIsFreeTier()) {
+							continue;
+						}
+						dbNameExists = true;
+						adbId = adb.getId();
+						currentLifecycleState = adb.getLifecycleState();
+						break;
 					}
-					dbNameExists = true;
-					adbId = adb.getId();
-					currentLifecycleState = adb.getLifecycleState();
-					break;
+				}
+			}
+
+			if (!dbNameExists) {
+				section.printlnOK("nothing to do");
+			}
+			else {
+				section.print("pending");
+
+				if (currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Available) {
+					section.printlnOK("already started");
+					return;
+				}
+
+				workRequestClient = new WorkRequestClient(provider);
+				StartAutonomousDatabaseResponse responseTerminate = dbClient.startAutonomousDatabase(StartAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build());
+				String workRequestId = responseTerminate.getOpcWorkRequestId();
+
+				GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
+				boolean exit = false;
+				long startTime = System.currentTimeMillis();
+				float pendingProgressMove = 0f;
+				do {
+					GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
+					switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
+						case Succeeded:
+							section.printlnOK(getDurationSince(startTime));
+							exit = true;
+							break;
+						case Failed:
+							section.printlnKO();
+							final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
+							final StringBuilder errors = new StringBuilder();
+							int i = 0;
+							for (WorkRequestError e : response.getItems()) {
+								if (i > 0) {
+									errors.append("\n");
+								}
+								errors.append(e.getMessage());
+								i++;
+							}
+							throw new OCIDatabaseStartFailedException(dbName, errors.toString());
+						case Accepted:
+							section.print(String.format("accepted [%s]", getDurationSince(startTime)));
+							break;
+						case InProgress:
+							section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 99f), getDurationSince(startTime)));
+							pendingProgressMove += Math.random() * 2f;
+							break;
+					}
+
+					sleep(1000L);
+
+				} while (!exit);
+
+				DatabaseWaiters waiter = dbClient.getWaiters();
+				try {
+					final GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build(),
+							new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Available}).execute();
+				} catch (Exception e) {
+					section.printlnKO();
+					throw new OCIDatabaseWaitForStartFailedException(e);
 				}
 			}
 		}
-
-		if (!dbNameExists) {
-			section.printlnOK("nothing to do");
+		catch (BmcException be) {
+			section.printlnKO();
+			throw be;
 		}
-		else {
-			section.print("pending");
+	}
 
-			if (currentLifecycleState == AutonomousDatabaseSummary.LifecycleState.Available) {
-				section.printlnOK("already started");
-				return;
+	private void createADB() throws DSException {
+		section = Section.DatabaseCreation;
+		section.print("checking existing databases");
+
+		try {
+			final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
+			final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
+			final Set<String> existingFreeADB = new TreeSet<>();
+			boolean dbNameAlreadyExists = false;
+
+			for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
+				if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
+					if (adb.getDbName().equals(dbName)) {
+						dbNameAlreadyExists = true;
+					}
+					if (adb.getIsFreeTier()) {
+						existingFreeADB.add(adb.getDbName());
+					}
+				}
 			}
 
+			if (databaseType.isFree() && existingFreeADB.size() == OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT) {
+				section.printlnKO("limit reached");
+				throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
+			}
+
+			if (dbNameAlreadyExists) {
+				section.printlnKO("duplicate name");
+				throw new DatabaseNameAlreadyExistsException(dbName);
+			}
+
+			section.print("pending");
+			CreateAutonomousDatabaseDetails createFreeRequest = CreateAutonomousDatabaseDetails.builder()
+					.dbVersion(dbVersion)
+					.cpuCoreCount(1)
+					.dataStorageSizeInTBs(1)
+					.displayName(dbName + " Database")
+					.adminPassword(configFile.get(CONFIG_DATABASE_PASSWORD))
+					.dbName(dbName)
+					.compartmentId(configFile.get(CONFIG_COMPARTMENT_ID))
+					.dbWorkload(databaseType == DatabaseType.ATPFree || databaseType == DatabaseType.ATP ? CreateAutonomousDatabaseBase.DbWorkload.Oltp :
+							(databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.DbWorkload.Ajd : CreateAutonomousDatabaseBase.DbWorkload.Dw))
+					.isAutoScalingEnabled(Boolean.FALSE)
+					.licenseModel(databaseType.isFree() || databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded :
+							(licenseType == LicenseType.LicenseIncluded ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded : CreateAutonomousDatabaseBase.LicenseModel.BringYourOwnLicense))
+					.isPreviewVersionWithServiceTermsAccepted(Boolean.FALSE)
+					.isFreeTier(databaseType.isFree() ? Boolean.TRUE : Boolean.FALSE)
+					.build();
+
+			String workRequestId = null;
+			AutonomousDatabase autonomousDatabase = null;
 			workRequestClient = new WorkRequestClient(provider);
-			StartAutonomousDatabaseResponse responseTerminate = dbClient.startAutonomousDatabase(StartAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build());
-			String workRequestId = responseTerminate.getOpcWorkRequestId();
+
+			BmcException creationException = null;
+
+			try {
+				CreateAutonomousDatabaseResponse responseCreate = dbClient.createAutonomousDatabase(CreateAutonomousDatabaseRequest.builder().createAutonomousDatabaseDetails(createFreeRequest).build());
+				autonomousDatabase = responseCreate.getAutonomousDatabase();
+				workRequestId = responseCreate.getOpcWorkRequestId();
+			} catch (BmcException e) {
+				//e.printStackTrace();
+				if (e.getStatusCode() == 400 && e.getServiceCode().equals("LimitExceeded")) {
+					section.printlnKO("limit reached");
+					if (e.getMessage().startsWith("Tenancy has reached maximum limit for Free Tier Autonomous Database")) {
+						throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
+					}
+					else {
+						throw new AutonomousDatabaseLimitReachedException(e.getMessage());
+					}
+				}
+				else if (e.getStatusCode() == 400 && e.getServiceCode().equals("InvalidParameter") &&
+						e.getMessage().contains(dbName) && e.getMessage().contains("already exists")) {
+					section.printlnKO("duplicate name");
+					throw new DatabaseNameAlreadyExistsException(dbName);
+				}
+
+				creationException = e;
+			}
+
+			if (autonomousDatabase == null) {
+				section.printlnKO();
+				throw new OCIDatabaseCreationCantProceedFurtherException(creationException);
+			}
 
 			GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
 			boolean exit = false;
 			long startTime = System.currentTimeMillis();
 			float pendingProgressMove = 0f;
+			boolean probe = true;
+			GetWorkRequestResponse getWorkRequestResponse = null;
 			do {
-				GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
+				if (probe) {
+					getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
+				}
 				switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
 					case Succeeded:
-						section.printlnOK(getDurationSince(startTime));
+						section.printlnOK(dbName+" " +dbVersion+": "+getDurationSince(startTime));
 						exit = true;
 						break;
 					case Failed:
 						section.printlnKO();
+
 						final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
 						final StringBuilder errors = new StringBuilder();
 						int i = 0;
@@ -1271,323 +1455,192 @@ public class DSSession {
 							errors.append(e.getMessage());
 							i++;
 						}
-						throw new OCIDatabaseStartFailedException(dbName, errors.toString());
+
+						throw new OCIDatabaseCreationFaileDException(dbName, errors.toString());
 					case Accepted:
 						section.print(String.format("accepted [%s]", getDurationSince(startTime)));
 						break;
 					case InProgress:
-						section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 99f), getDurationSince(startTime)));
-						pendingProgressMove += Math.random() * 2f;
+						section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 90f), getDurationSince(startTime)));
+						pendingProgressMove += Math.random() * 1.5f;
 						break;
 				}
 
-				sleep(1000L);
-
+				sleep(500L);
+				probe = !probe;
 			} while (!exit);
 
 			DatabaseWaiters waiter = dbClient.getWaiters();
 			try {
-				final GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build(),
+				GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(autonomousDatabase.getId()).build(),
 						new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Available}).execute();
+				autonomousDatabase = responseGet.getAutonomousDatabase();
 			} catch (Exception e) {
 				section.printlnKO();
-				throw new OCIDatabaseWaitForStartFailedException(e);
-			}
-		}
-
-	}
-
-	private void createADB() throws DSException {
-		section = Section.DatabaseCreation;
-		section.print("checking existing databases");
-
-		final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
-		final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
-		final Set<String> existingFreeADB = new TreeSet<>();
-		boolean dbNameAlreadyExists = false;
-
-		for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
-			if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
-				if (adb.getDbName().equals(dbName)) {
-					dbNameAlreadyExists = true;
-				}
-				if (adb.getIsFreeTier()) {
-					existingFreeADB.add(adb.getDbName());
-				}
-			}
-		}
-
-		if (databaseType.isFree() && existingFreeADB.size() == OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT) {
-			section.printlnKO("limit reached");
-			throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
-		}
-
-		if (dbNameAlreadyExists) {
-			section.printlnKO("duplicate name");
-			throw new DatabaseNameAlreadyExistsException(dbName);
-		}
-
-		section.print("pending");
-		CreateAutonomousDatabaseDetails createFreeRequest = CreateAutonomousDatabaseDetails.builder()
-				.cpuCoreCount(1)
-				.dataStorageSizeInTBs(1)
-				.displayName(dbName + " Database")
-				.adminPassword(configFile.get(CONFIG_DATABASE_PASSWORD))
-				.dbName(dbName)
-				.compartmentId(configFile.get(CONFIG_COMPARTMENT_ID))
-				.dbWorkload(databaseType == DatabaseType.ATPFree || databaseType == DatabaseType.ATP ? CreateAutonomousDatabaseBase.DbWorkload.Oltp :
-						(databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.DbWorkload.Ajd : CreateAutonomousDatabaseBase.DbWorkload.Dw))
-				.isAutoScalingEnabled(Boolean.FALSE)
-				.licenseModel(databaseType.isFree() || databaseType == DatabaseType.AJD ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded :
-						(licenseType == LicenseType.LicenseIncluded ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded : CreateAutonomousDatabaseBase.LicenseModel.BringYourOwnLicense))
-				.isPreviewVersionWithServiceTermsAccepted(Boolean.FALSE)
-				.isFreeTier(databaseType.isFree() ? Boolean.TRUE : Boolean.FALSE)
-				.build();
-
-		String workRequestId = null;
-		AutonomousDatabase autonomousDatabase = null;
-		workRequestClient = new WorkRequestClient(provider);
-
-		BmcException creationException = null;
-
-		try {
-			CreateAutonomousDatabaseResponse responseCreate = dbClient.createAutonomousDatabase(CreateAutonomousDatabaseRequest.builder().createAutonomousDatabaseDetails(createFreeRequest).build());
-			autonomousDatabase = responseCreate.getAutonomousDatabase();
-			workRequestId = responseCreate.getOpcWorkRequestId();
-		} catch (BmcException e) {
-			//e.printStackTrace();
-			if (e.getStatusCode() == 400 && e.getServiceCode().equals("LimitExceeded")) {
-				section.printlnKO("limit reached");
-				if (e.getMessage().startsWith("Tenancy has reached maximum limit for Free Tier Autonomous Database")) {
-					throw new AlwaysFreeDatabaseLimitReachedException(OCI_ALWAYS_FREE_DATABASE_NUMBER_LIMIT);
-				}
-				else {
-					throw new AutonomousDatabaseLimitReachedException(e.getMessage());
-				}
-			}
-			else if (e.getStatusCode() == 400 && e.getServiceCode().equals("InvalidParameter") &&
-					e.getMessage().contains(dbName) && e.getMessage().contains("already exists")) {
-				section.printlnKO("duplicate name");
-				throw new DatabaseNameAlreadyExistsException(dbName);
+				throw new OCIDatabaseWaitForTerminationFailedException(e);
 			}
 
-			creationException = e;
-		}
+			// The free ATP should now be available!
 
-		if (autonomousDatabase == null) {
-			section.printlnKO();
-			throw new OCIDatabaseCreationCantProceedFurtherException(creationException);
-		}
+			section = Section.DatabaseWalletDownload;
+			section.print("pending");
+			GenerateAutonomousDatabaseWalletDetails atpWalletDetails = GenerateAutonomousDatabaseWalletDetails.builder().password(configFile.get(CONFIG_DATABASE_PASSWORD)).generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single).build();
+			GenerateAutonomousDatabaseWalletResponse atpWalletResponse =
+					dbClient.generateAutonomousDatabaseWallet(
+							GenerateAutonomousDatabaseWalletRequest.builder()
+									.generateAutonomousDatabaseWalletDetails(atpWalletDetails)
+									.autonomousDatabaseId(autonomousDatabase.getId())
+									.build());
+			section.print("saving");
 
-		GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
-		boolean exit = false;
-		long startTime = System.currentTimeMillis();
-		float pendingProgressMove = 0f;
-		boolean probe = true;
-		GetWorkRequestResponse getWorkRequestResponse = null;
-		do {
-			if (probe) {
-				getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
+			final String walletFileName = dbName.toLowerCase() + ".zip";
+			final File walletFile = new File(walletFileName);
+			try {
+				Files.copy(atpWalletResponse.getInputStream(), walletFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			} catch (IOException ioe) {
+				throw new DatabaseWalletSavingException(walletFile.getAbsolutePath());
 			}
-			switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
-				case Succeeded:
-					section.printlnOK(getDurationSince(startTime));
-					exit = true;
-					break;
-				case Failed:
-					section.printlnKO();
 
-					final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
-					final StringBuilder errors = new StringBuilder();
-					int i = 0;
-					for (WorkRequestError e : response.getItems()) {
-						if (i > 0) {
-							errors.append("\n");
-						}
-						errors.append(e.getMessage());
-						i++;
+			if (!ZipUtil.isValid(walletFile)) {
+				section.printlnKO(String.format("%s is corrupted", walletFileName));
+				throw new DatabaseWalletCorruptedException(walletFile.getAbsolutePath());
+			}
+
+			ZipUtil.unzipFile(walletFile, new File(".", "wallet_" + dbName.toLowerCase()));
+
+			section.printlnOK(walletFileName);
+
+			final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
+
+			// Save the local config file as early as possible in case of problems afterward so that one can destroy it
+			section = Section.LocalConfiguration;
+			try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
+				out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true, walletFile));
+			} catch (IOException e) {
+				throw new LocalConfigurationNotSavedException(e);
+			}
+			section.printlnOK();
+
+			section = Section.DatabaseConfiguration;
+
+			section.print(String.format("creating %s user", databaseUserName));
+			createSchema(autonomousDatabase);
+
+			if (configFile.get(CONFIG_COLLECTIONS) != null) {
+				createCollections(rSQLS, autonomousDatabase, walletFile);
+			}
+
+			section.printlnOK();
+
+			// download Oracle Instant Client? (https://www.oracle.com/database/technologies/instant-client/downloads.html)
+			//
+			// Not for Always Free Tiers
+			// Create backup bucket
+			// - configure backup bucket
+
+			section = Section.ObjectStorageConfiguration;
+			section.print("pending");
+			objectStorageClient = new ObjectStorageClient(provider);
+			objectStorageClient.setRegion(region);
+
+			section.print("checking existing buckets");
+			final GetNamespaceResponse namespaceResponse = objectStorageClient.getNamespace(GetNamespaceRequest.builder().build());
+			final String namespaceName = namespaceResponse.getValue();
+
+			final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName).compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
+
+			String nextToken = null;
+			boolean backupBucketExist = false;
+			boolean dragonBucketExist = false;
+			final String backupBucketName = "backup_" + dbName.toLowerCase();
+			final String dragonBucketName = "dragon";
+			do {
+				listBucketsBuilder.page(nextToken);
+				ListBucketsResponse listBucketsResponse = objectStorageClient.listBuckets(listBucketsBuilder.build());
+				for (BucketSummary bucket : listBucketsResponse.getItems()) {
+					if (!backupBucketExist && backupBucketName.equals(bucket.getName())) {
+						backupBucketExist = true;
 					}
-
-					throw new OCIDatabaseCreationFaileDException(dbName, errors.toString());
-				case Accepted:
-					section.print(String.format("accepted [%s]", getDurationSince(startTime)));
-					break;
-				case InProgress:
-					section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 90f), getDurationSince(startTime)));
-					pendingProgressMove += Math.random() * 1.5f;
-					break;
-			}
-
-			sleep(500L);
-			probe = !probe;
-		} while (!exit);
-
-		DatabaseWaiters waiter = dbClient.getWaiters();
-		try {
-			GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(autonomousDatabase.getId()).build(),
-					new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Available}).execute();
-			autonomousDatabase = responseGet.getAutonomousDatabase();
-		} catch (Exception e) {
-			section.printlnKO();
-			throw new OCIDatabaseWaitForTerminationFailedException(e);
-		}
-
-		// The free ATP should now be available!
-
-		section = Section.DatabaseWalletDownload;
-		section.print("pending");
-		GenerateAutonomousDatabaseWalletDetails atpWalletDetails = GenerateAutonomousDatabaseWalletDetails.builder().password(configFile.get(CONFIG_DATABASE_PASSWORD)).generateType(GenerateAutonomousDatabaseWalletDetails.GenerateType.Single).build();
-		GenerateAutonomousDatabaseWalletResponse atpWalletResponse =
-				dbClient.generateAutonomousDatabaseWallet(
-						GenerateAutonomousDatabaseWalletRequest.builder()
-								.generateAutonomousDatabaseWalletDetails(atpWalletDetails)
-								.autonomousDatabaseId(autonomousDatabase.getId())
-								.build());
-		section.print("saving");
-
-		final String walletFileName = dbName.toLowerCase() + ".zip";
-		final File walletFile = new File(walletFileName);
-		try {
-			Files.copy(atpWalletResponse.getInputStream(), walletFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException ioe) {
-			throw new DatabaseWalletSavingException(walletFile.getAbsolutePath());
-		}
-
-		if (!ZipUtil.isValid(walletFile)) {
-			section.printlnKO(String.format("%s is corrupted", walletFileName));
-			throw new DatabaseWalletCorruptedException(walletFile.getAbsolutePath());
-		}
-
-		ZipUtil.unzipFile(walletFile, new File(".", "wallet_" + dbName.toLowerCase()));
-
-		section.printlnOK(walletFileName);
-
-		final ADBRESTService rSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
-
-		// Save the local config file as early as possible in case of problems afterward so that one can destroy it
-		section = Section.LocalConfiguration;
-		try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
-			out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true, walletFile));
-		} catch (IOException e) {
-			throw new LocalConfigurationNotSavedException(e);
-		}
-		section.printlnOK();
-
-		section = Section.DatabaseConfiguration;
-
-		section.print(String.format("creating %s user", databaseUserName));
-		createSchema(autonomousDatabase);
-
-		if (configFile.get(CONFIG_COLLECTIONS) != null) {
-			createCollections(rSQLS, autonomousDatabase, walletFile);
-		}
-
-		section.printlnOK();
-
-		// download Oracle Instant Client? (https://www.oracle.com/database/technologies/instant-client/downloads.html)
-		//
-		// Not for Always Free Tiers
-		// Create backup bucket
-		// - configure backup bucket
-
-		section = Section.ObjectStorageConfiguration;
-		section.print("pending");
-		objectStorageClient = new ObjectStorageClient(provider);
-		objectStorageClient.setRegion(region);
-
-		section.print("checking existing buckets");
-		final GetNamespaceResponse namespaceResponse = objectStorageClient.getNamespace(GetNamespaceRequest.builder().build());
-		final String namespaceName = namespaceResponse.getValue();
-
-		final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName).compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
-
-		String nextToken = null;
-		boolean backupBucketExist = false;
-		boolean dragonBucketExist = false;
-		final String backupBucketName = "backup_" + dbName.toLowerCase();
-		final String dragonBucketName = "dragon";
-		do {
-			listBucketsBuilder.page(nextToken);
-			ListBucketsResponse listBucketsResponse = objectStorageClient.listBuckets(listBucketsBuilder.build());
-			for (BucketSummary bucket : listBucketsResponse.getItems()) {
-				if (!backupBucketExist && backupBucketName.equals(bucket.getName())) {
-					backupBucketExist = true;
+					if (!dragonBucketExist && dragonBucketName.equals(bucket.getName())) {
+						dragonBucketExist = true;
+					}
 				}
-				if (!dragonBucketExist && dragonBucketName.equals(bucket.getName())) {
-					dragonBucketExist = true;
-				}
-			}
-			nextToken = listBucketsResponse.getOpcNextPage();
-		} while (nextToken != null);
+				nextToken = listBucketsResponse.getOpcNextPage();
+			} while (nextToken != null);
 
-		if (!dragonBucketExist) {
-			section.print("creating dragon bucket");
-			createManualBucket(namespaceName, dragonBucketName, true);
-		}
-
-		identityClient = new IdentityClient(provider);
-		GetUserResponse userResponse = identityClient.getUser(GetUserRequest.builder().userId(configFile.get(CONFIG_USER)).build());
-
-		section.print("database setup");
-
-		try {
-			rSQLS.execute(String.format(
-					"BEGIN\n" +
-							"    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
-							"    COMMIT;\n" +
-							"END;\n" +
-							"/", userResponse.getUser().getName(), configFile.get(CONFIG_AUTH_TOKEN)));
-		} catch (RuntimeException re) {
-			section.printlnKO();
-			throw new ObjectStorageConfigurationFailedException();
-		}
-
-		if (!databaseType.isFree()) {
-			if (!backupBucketExist) {
-				section.print("creating manual backup bucket");
-				createManualBucket(namespaceName, backupBucketName, false);
+			if (!dragonBucketExist) {
+				section.print("creating dragon bucket");
+				createManualBucket(namespaceName, dragonBucketName, true);
 			}
 
-			section.print("database backup setup");
+			identityClient = new IdentityClient(provider);
+			GetUserResponse userResponse = identityClient.getUser(GetUserRequest.builder().userId(configFile.get(CONFIG_USER)).build());
 
-			final ADBRESTService adminRSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", configFile.get(CONFIG_DATABASE_PASSWORD));
+			section.print("database setup");
 
 			try {
-				adminRSQLS.execute(String.format(
-						"ALTER DATABASE PROPERTY SET default_bucket='https://swiftobjectstorage." + getRegionForURL() + ".oraclecloud.com/v1/" + namespaceName + "';\n" +
-								"BEGIN\n" +
-								"    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'BACKUP_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
+				rSQLS.execute(String.format(
+						"BEGIN\n" +
+								"    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'DRAGON_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
 								"    COMMIT;\n" +
 								"END;\n" +
-								"/\n" +
-								"ALTER DATABASE PROPERTY SET default_credential='ADMIN.BACKUP_CREDENTIAL_NAME'", userResponse.getUser().getName(), configFile.get(CONFIG_AUTH_TOKEN)));
+								"/", userResponse.getUser().getName(), configFile.get(CONFIG_AUTH_TOKEN)));
 			} catch (RuntimeException re) {
 				section.printlnKO();
 				throw new ObjectStorageConfigurationFailedException();
 			}
-		}
 
-		section.printlnOK();
+			if (!databaseType.isFree()) {
+				if (!backupBucketExist) {
+					section.print("creating manual backup bucket");
+					createManualBucket(namespaceName, backupBucketName, false);
+				}
 
-		if (loadJSON) {
-			section = Section.LoadDataIntoCollections;
-			loadDataIntoCollections(namespaceName, rSQLS);
+				section.print("database backup setup");
+
+				final ADBRESTService adminRSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", configFile.get(CONFIG_DATABASE_PASSWORD));
+
+				try {
+					adminRSQLS.execute(String.format(
+							"ALTER DATABASE PROPERTY SET default_bucket='https://swiftobjectstorage." + getRegionForURL() + ".oraclecloud.com/v1/" + namespaceName + "';\n" +
+									"BEGIN\n" +
+									"    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'BACKUP_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
+									"    COMMIT;\n" +
+									"END;\n" +
+									"/\n" +
+									"ALTER DATABASE PROPERTY SET default_credential='ADMIN.BACKUP_CREDENTIAL_NAME'", userResponse.getUser().getName(), configFile.get(CONFIG_AUTH_TOKEN)));
+				} catch (RuntimeException re) {
+					section.printlnKO();
+					throw new ObjectStorageConfigurationFailedException();
+				}
+			}
+
 			section.printlnOK();
+
+			if (loadJSON) {
+				section = Section.LoadDataIntoCollections;
+				loadDataIntoCollections(namespaceName, rSQLS);
+				section.printlnOK();
+			}
+
+			if (loadCSV) {
+				section = Section.LoadDataIntoTables;
+				loadDataIntoTables(namespaceName, rSQLS);
+				section.printlnOK();
+			}
+
+			// reload just saved JSON local configuration as POJO for further processing (create stack...)
+			loadLocalConfiguration(false);
+
+			Console.println("You can connect to your database using SQL Developer Web:");
+			final String url = rSQLS.getUrlPrefix() + "sign-in/?username=" + databaseUserName.toUpperCase() + "&r=_sdw%2F";
+			Console.println("- URL  : " + ANSI_UNDERLINE + url);
+			Console.println("- login: " + ANSI_BRIGHT + databaseUserName.toLowerCase());
 		}
-
-		if (loadCSV) {
-			section = Section.LoadDataIntoTables;
-			loadDataIntoTables(namespaceName, rSQLS);
-			section.printlnOK();
+		catch(BmcException be) {
+			section.printlnKO();
+			throw be;
 		}
-
-		// reload just saved JSON local configuration as POJO for further processing (create stack...)
-		loadLocalConfiguration(false);
-
-		Console.println("You can connect to your database using SQL Developer Web:");
-		final String url = rSQLS.getUrlPrefix() + "sign-in/?username=" + databaseUserName.toUpperCase() + "&r=_sdw%2F";
-		Console.println("- URL  : " + ANSI_UNDERLINE + url);
-		Console.println("- login: " + ANSI_BRIGHT + databaseUserName.toLowerCase());
 	}
 
 	private void loadDataIntoCollections() throws DSException {
@@ -1690,20 +1743,29 @@ public class DSSession {
 				final String sql = String.format(
 						"DECLARE\n" +
 								"l_tableExist number;\n" +
+								"l_externalColumns varchar2(32000);\n" +
+								"i number;\n" +
 								"BEGIN\n" +
 								"    select COUNT(*) into l_tableExist from user_tables where table_name = '%s';\n" +
 								"    IF l_tableExist = 0 THEN\n" +
 								"    	execute immediate '%s';\n" +
-								"    END IF;\n" + // else list columns to call properly the DBMS_CLOUD.COPY_DATA...
-/*								"    DBMS_CLOUD.COPY_COLLECTION(\n" +
-								"        collection_name => '%s',\n" +
-								"        credential_name => 'DRAGON_CREDENTIAL_NAME',\n" +
-								"        file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*',\n" +
-								"        format => JSON_OBJECT('recorddelimiter' value '''\\n''', 'ignoreblanklines' value 'true') );\n" + */
+								"    END IF;\n\n" +
+								"    l_externalColumns := '';\n" +
+								"    i := 0;\n" +
+								"    for cur in (select column_name||' '||data_type||case when data_scale is not null and data_scale > 0 then (case when data_type like 'TIMESTAMP%%' then '' else '('||data_precision||', '||data_scale||')' end) when data_scale is null then decode(data_type,'DATE','','(' || data_length || ')') else '' end DB_COL, \n" +
+								"                       column_name||' CHAR'|| decode(case when data_type like 'TIMESTAMP%%' then 'TIMESTAMP' else data_type end,'DATE',' date_format DATE mask \\\"yyyy-mm-dd\\\"','TIMESTAMP',' timestamp_format TIMESTAMP mask \\\"yyyy-mm-dd hh-mi-ss\\\"','') EXT_TAB_COL \n" +
+								"                  from user_tab_cols where table_name='%s' and virtual_column='NO' order by column_id)\n" +
+								"    loop\n" +
+								"        l_externalColumns := l_externalColumns || case i when 0 then '' else ',' end || cur.EXT_TAB_COL;\n" +
+								"        i := i + 1;\n" +
+								"    end loop;\n" +
+								"        \n" +
+								"    DBMS_CLOUD.COPY_DATA (table_name => '%s', credential_name => 'DRAGON_CREDENTIAL_NAME', file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*', schema_name => null, field_list => l_externalColumns, format => json_object('delimiter' value '%s', 'rejectlimit' value 'unlimited', 'skipheaders' value '1', 'dateformat' value 'yyyy-mm-dd', 'timestampformat' value 'yyyy-mm-dd hh:mi:ss', 'blankasnull' value 'true', 'ignoreblanklines' value 'true', 'removequotes' value 'true', 'recorddelimiter' value '''%s''' ) );\n" +
+								"    COMMIT;\n" +
 								"END;\n" +
-								"/", tableName.toUpperCase(), tableDDL /*, tableName, getRegionForURL(), namespaceName, dbName, tableName*/);
+								"/", tableName.toUpperCase(), tableDDL, tableName.toUpperCase(), tableName.toUpperCase(),  getRegionForURL(), namespaceName, dbName, tableName, csvAnalyzerInputStream.getFieldSeparator(), csvAnalyzerInputStream.getRecordDelimiter());
 
-				System.out.println(sql);
+				//System.out.println(sql);
 
 				rSQLS.execute(sql);
 			} catch (RuntimeException re) {
@@ -1793,15 +1855,15 @@ public class DSSession {
 	}
 
 	private String getConfigurationAsJSON(AutonomousDatabase adb, ADBRESTService rSQLS, boolean local, File walletFile) {
-		return String.format("{\"databaseServiceURL\": \"%s\", " +
-						"\"sqlDevWebAdmin\": \"%s\", " +
-						"\"sqlDevWeb\": \"%s\", " +
-						"\"apexURL\": \"%s\", " +
-						"\"omlURL\": \"%s\", " +
-						"\"sqlAPI\": \"%s\", " +
-						"\"sodaAPI\": \"%s\", " +
+		return String.format("{\"databaseServiceURL\": \"%s\",\n" +
+						"\"sqlDevWebAdmin\": \"%s\",\n" +
+						"\"sqlDevWeb\": \"%s\",\n" +
+						"\"apexURL\": \"%s\",\n" +
+						"\"omlURL\": \"%s\",\n" +
+						"\"sqlAPI\": \"%s\",\n" +
+						"\"sodaAPI\": \"%s\",\n" +
 						"\"version\": \"%s\"" +
-						(local ? ", \"dbName\": \"%s\", \"dbUserName\": \"%s\", \"dbUserPassword\": \"%s\", \"walletFile\": \"%s\", \"extractedWallet\":  \"%s\""
+						(local ? ",\n\"dbName\": \"%s\",\n\"dbUserName\": \"%s\",\n\"dbUserPassword\": \"%s\",\n\"walletFile\": \"%s\",\n\"extractedWallet\": \"%s\""
 								: "") +
 						"}",
 				adb.getServiceConsoleUrl(),
@@ -1933,93 +1995,99 @@ public class DSSession {
 		section = Section.DatabaseTermination;
 		section.print("checking existing databases");
 
-		final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
-		final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
+		try {
+			final ListAutonomousDatabasesRequest listADB = ListAutonomousDatabasesRequest.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).build();
+			final ListAutonomousDatabasesResponse listADBResponse = dbClient.listAutonomousDatabases(listADB);
 
-		boolean dbNameExists = false;
-		String adbId = null;
-		for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
-			//System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
+			boolean dbNameExists = false;
+			String adbId = null;
+			for (AutonomousDatabaseSummary adb : listADBResponse.getItems()) {
+				//System.out.println(adb.getLifecycleState()+", "+adb.getIsFreeTier()+", "+dbName);
 
-			if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
-				if (adb.getDbName().equals(dbName)) {
-					if (databaseType.isFree() && !adb.getIsFreeTier()) {
-						continue;
-					}
-					dbNameExists = true;
-					adbId = adb.getId();
-					break;
-				}
-			}
-		}
-
-		if (!dbNameExists) {
-			section.printlnOK("nothing to do");
-
-			// deleting local configuration!
-			final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
-			if (toDelete.exists()) {
-				toDelete.delete();
-			}
-		}
-		else {
-			section.print("pending");
-
-			workRequestClient = new WorkRequestClient(provider);
-			DeleteAutonomousDatabaseResponse responseTerminate = dbClient.deleteAutonomousDatabase(DeleteAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build());
-			String workRequestId = responseTerminate.getOpcWorkRequestId();
-
-			GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
-			boolean exit = false;
-			long startTime = System.currentTimeMillis();
-			float pendingProgressMove = 0f;
-			do {
-				GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
-				switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
-					case Succeeded:
-						section.printlnOK(getDurationSince(startTime));
-						exit = true;
-						break;
-					case Failed:
-						section.printlnKO();
-						final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
-						final StringBuilder errors = new StringBuilder();
-						int i = 0;
-						for (WorkRequestError e : response.getItems()) {
-							if (i > 0) {
-								errors.append("\n");
-							}
-							errors.append(e.getMessage());
-							i++;
+				if (adb.getLifecycleState() != AutonomousDatabaseSummary.LifecycleState.Terminated) {
+					if (adb.getDbName().equals(dbName)) {
+						if (databaseType.isFree() && !adb.getIsFreeTier()) {
+							continue;
 						}
-						throw new OCIDatabaseTerminationFailedException(dbName, errors.toString());
-					case Accepted:
-						section.print(String.format("accepted [%s]", getDurationSince(startTime)));
+						dbNameExists = true;
+						adbId = adb.getId();
 						break;
-					case InProgress:
-						section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 99f), getDurationSince(startTime)));
-						pendingProgressMove += Math.random() * 2f;
-						break;
+					}
 				}
+			}
 
-				sleep(1000L);
+			if (!dbNameExists) {
+				section.printlnOK("nothing to do");
 
-			} while (!exit);
-
-			DatabaseWaiters waiter = dbClient.getWaiters();
-			try {
-				final GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build(),
-						new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Terminated}).execute();
-			} catch (Exception e) {
-				section.printlnKO();
-				throw new OCIDatabaseWaitForTerminationFailedException(e);
-			} finally {
 				// deleting local configuration!
 				final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
 				if (toDelete.exists()) {
 					toDelete.delete();
 				}
 			}
+			else {
+				section.print("pending");
+
+				workRequestClient = new WorkRequestClient(provider);
+				DeleteAutonomousDatabaseResponse responseTerminate = dbClient.deleteAutonomousDatabase(DeleteAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build());
+				String workRequestId = responseTerminate.getOpcWorkRequestId();
+
+				GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
+				boolean exit = false;
+				long startTime = System.currentTimeMillis();
+				float pendingProgressMove = 0f;
+				do {
+					GetWorkRequestResponse getWorkRequestResponse = workRequestClient.getWorkRequest(getWorkRequestRequest);
+					switch (getWorkRequestResponse.getWorkRequest().getStatus()) {
+						case Succeeded:
+							section.printlnOK(getDurationSince(startTime));
+							exit = true;
+							break;
+						case Failed:
+							section.printlnKO();
+							final ListWorkRequestErrorsResponse response = workRequestClient.listWorkRequestErrors(ListWorkRequestErrorsRequest.builder().workRequestId(workRequestId).opcRequestId(getWorkRequestResponse.getOpcRequestId()).build());
+							final StringBuilder errors = new StringBuilder();
+							int i = 0;
+							for (WorkRequestError e : response.getItems()) {
+								if (i > 0) {
+									errors.append("\n");
+								}
+								errors.append(e.getMessage());
+								i++;
+							}
+							throw new OCIDatabaseTerminationFailedException(dbName, errors.toString());
+						case Accepted:
+							section.print(String.format("accepted [%s]", getDurationSince(startTime)));
+							break;
+						case InProgress:
+							section.print(String.format("in progress %.0f%% [%s]", Math.min(getWorkRequestResponse.getWorkRequest().getPercentComplete() + pendingProgressMove, 99f), getDurationSince(startTime)));
+							pendingProgressMove += Math.random() * 2f;
+							break;
+					}
+
+					sleep(1000L);
+
+				} while (!exit);
+
+				DatabaseWaiters waiter = dbClient.getWaiters();
+				try {
+					final GetAutonomousDatabaseResponse responseGet = waiter.forAutonomousDatabase(GetAutonomousDatabaseRequest.builder().autonomousDatabaseId(adbId).build(),
+							new AutonomousDatabase.LifecycleState[]{AutonomousDatabase.LifecycleState.Terminated}).execute();
+				} catch (Exception e) {
+					section.printlnKO();
+					throw new OCIDatabaseWaitForTerminationFailedException(e);
+				} finally {
+					// deleting local configuration!
+					final File toDelete = new File(LOCAL_CONFIGURATION_FILENAME);
+					if (toDelete.exists()) {
+						toDelete.delete();
+					}
+				}
+			}
+		}
+		catch(BmcException be) {
+			section.printlnKO();
+			throw be;
 		}
 	}
 

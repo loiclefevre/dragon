@@ -28,6 +28,11 @@ public class DSException extends Exception {
             DSSession.printlnConfigurationTemplate(false, null);
         }
 
+        try {
+            Thread.sleep(50L );
+        } catch (InterruptedException ignored) {
+        }
+
         System.out.println(lastMessage);
         System.exit(errorCode.internalErrorCode);
     }

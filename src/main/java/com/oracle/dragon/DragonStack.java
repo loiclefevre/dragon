@@ -2,9 +2,7 @@ package com.oracle.dragon;
 
 import com.oracle.bmc.model.BmcException;
 import com.oracle.dragon.util.DSSession;
-import com.oracle.dragon.util.exception.ConfigurationFileNotFoundException;
-import com.oracle.dragon.util.exception.ConfigurationLoadException;
-import com.oracle.dragon.util.exception.DSException;
+import com.oracle.dragon.util.exception.*;
 
 import static com.oracle.dragon.util.Console.*;
 import static com.oracle.dragon.util.Console.Style.ANSI_RESET;
@@ -23,12 +21,15 @@ public class DragonStack {
     }
 
     public static void main(final String[] args) {
+        // will run only on Windows OS
         Kernel32.init();
 
         final long totalDuration = System.currentTimeMillis();
 
+        DSSession session = null;
+
         try {
-            final DSSession session = new DSSession();
+            session = new DSSession();
 
             session.loadLocalConfiguration(true);
 
@@ -49,17 +50,25 @@ public class DragonStack {
                 displayHowToReportIssue();
                 System.exit(-1000);
             } else {
-                println("Status     : " + e.getStatusCode());
-                println("Service    : " + e.getServiceCode());
-                println("RequestId  : " + e.getOpcRequestId());
-                println("Timeout    : " + e.isTimeout());
-                println("Client Side: " + e.isClientSide());
-                System.err.printf("ERROR: %s\n", e.getLocalizedMessage());
-                println(Style.ANSI_RED + "\n================================================================================");
-                println(Style.ANSI_RED + "Unhandled exception:");
-                e.printStackTrace(System.err);
+                if(e.getStatusCode() == 401 && e.getServiceCode().equals("NotAuthenticated") ) {
+                    new NotAuthenticatedException(session != null ? session.getProfileName() : null).displayMessageAndExit(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET);
+                }
+                else if(e.getStatusCode() == 404 && e.getServiceCode().equals("NotAuthorizedOrNotFound") ) {
+                    new NotAuthorizedOrNotFoundException(session != null ? session.getProfileName() : null, session != null ? session.getCompartmentId() : null).displayMessageAndExit(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET);
+                } else {
+                    println("Status     : " + e.getStatusCode());
+                    println("Service    : " + e.getServiceCode());
+                    println("RequestId  : " + e.getOpcRequestId());
+                    println("Timeout    : " + e.isTimeout());
+                    println("Client Side: " + e.isClientSide());
+                    System.err.printf("ERROR: %s\n", e.getLocalizedMessage());
+                    println(Style.ANSI_RED + "\n================================================================================");
+                    println(Style.ANSI_RED + "Unhandled exception:");
+                    e.printStackTrace(System.err);
+                    System.err.flush();
+                    displayHowToReportIssue();
+                }
             }
-            displayHowToReportIssue();
         } catch( ConfigurationFileNotFoundException | ConfigurationLoadException ce ) {
             ce.displayMessageAndExit(Style.ANSI_BRIGHT_CYAN + "duration: " + getDurationSince(totalDuration) + Style.ANSI_RESET, true);
         }

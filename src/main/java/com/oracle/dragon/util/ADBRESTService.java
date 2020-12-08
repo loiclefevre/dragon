@@ -140,7 +140,7 @@ public class ADBRESTService {
         try {
             final HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(urlSODAService + collectionName))
-                    .headers("Authorization", basicAuth(user, password))
+                    .headers( "Content-Type", "application/json", "Authorization", basicAuth(user, password))
                     .PUT(HttpRequest.BodyPublishers.ofString("{}"))
                     .build();
 

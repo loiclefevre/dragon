@@ -116,6 +116,27 @@ public class CSVAnalyzerInputStream extends FilterReader {
 		CRLF // \r\n
 	}
 
+	public String getRecordDelimiter() {
+		switch(endOfLineSequence) {
+			case LF: return "\\n";
+			case CR: return "\\r";
+			case CRLF: return "\\r\\n";
+		}
+
+		return "\\n";
+	}
+
+
+	public String getFieldSeparator() {
+		switch(fieldSeparator) {
+			case COMMA: return ",";
+			case PIPE: return "|";
+			case SEMICOLON: return ";";
+		}
+
+		return ";";
+	}
+
 	private boolean endOfRowSequenceAndFieldSeparatorNotDetected = true;
 	private EndOfRow endOfLineSequence = EndOfRow.LF;
 
@@ -249,6 +270,9 @@ public class CSVAnalyzerInputStream extends FilterReader {
 			final char c = cbuf[i];
 
 			switch (c) {
+				case '\ufeff':
+					// utf-16 mark
+					break;
 				case '\r':
 				case '\n':
 					if ((c == '\r' && endOfLineSequence == EndOfRow.CRLF) || (c == '\n' && endOfLineSequence == EndOfRow.CR)) {
