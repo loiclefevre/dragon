@@ -20,26 +20,26 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
-The latest stable release is v2.0.7.
+The latest stable release is v2.0.8.
 
 ### Linux and OCI Cloud Shell
 ```
-rm -f ./dragon-linux-x86_64-2.0.7
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-linux-x86_64-2.0.7
+rm -f ./dragon-linux-x86_64-2.0.8
+wget https://github.com/loiclefevre/dragon/releases/download/v2.0.8/dragon-linux-x86_64-2.0.8
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
 
 ### Windows
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-windows-x86_64-2.0.7.exe -OutFile dragon-windows-x86_64-2.0.7.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.8/dragon-windows-x86_64-2.0.8.exe -OutFile dragon-windows-x86_64-2.0.8.exe
 ```
 ### MAC OS
 *You'd need to [notarize](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution) the application once downloaded*
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.7/dragon-osx-x86_64-2.0.7
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.8/dragon-osx-x86_64-2.0.8
 chmod +x dragon-osx-*
-sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.0.7
+sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.0.8
 ```
 
 ### Changelog
@@ -122,11 +122,15 @@ database_password=<database password>
  # Uncomment to ask for Bring Your Own Licenses model (doesn't work for Always Free and AJD)
 # database_license_type=byol
 
+ # Path to a folder where data to load into collections can be found (default to current directory)
+data_path=.
+
  # A list of coma separated JSON collection name(s) that you wish to get right after database creation
 # database_collections=
 
- # Path to a folder where data to load into collections can be found (default to current directory)
-data_path=.
+ # A list of coma separated table name(s) that you wish to get right after database creation
+ # These table must have corresponding CSV file(s) so that table structure (DDL) is deduced from the files
+# database_tables=
 ```
 
 
@@ -140,17 +144,17 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.7
+$ ./dragon-linux-x86_64-2.0.8
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.7.exe
+> dragon-windows-x86_64-2.0.8.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.7
+$ ./dragon-osx-x86_64-2.0.8
 ```
 
 ### Oracle Cloud Infrastructure Policy
@@ -172,19 +176,33 @@ If you need to create JSON collections during the provisioning process, you may 
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.7 -loadjson
+$ ./dragon-linux-x86_64-2.0.8 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.7 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.0.8 -loadjson -create-react-app myfrontend
+```
+
+### Loading CSV data
+
+If you need to load CSV data into tables during the provisioning process (or even after), you can use the configuration file parameter __database_tables__ (see hereunder). You'll list the names (without file extension, separated by a comma) of CSV files present in the data_path directory (current directory by default). These files __must__ have a header! __Your CSV files will be loaded only if you ask for it using the -loadcsv CLI argument__. In the targeted table doesn't exist, it will be created and its structure will be deduced from the CSV data automatically.  
+
+To load CSV data as well as provisioning (Linux and OCI Cloud Shell):
+```
+$ ./dragon-linux-x86_64-2.0.8 -loadcsv
+```
+
+To load CSV data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
+```
+$ ./dragon-linux-x86_64-2.0.8 -loadcsv -create-react-app myfrontend
 ```
 
 ### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.7 -destroy
+$ ./dragon-linux-x86_64-2.0.8 -destroy
 ```
 
 ## Stacks
@@ -248,9 +266,10 @@ __[Converged](https://www.youtube.com/watch?v=yBWgb_oh39U)__, it means, you get 
  
 Autonomous Database can be:
  - __[Always Free](https://signup.oraclecloud.com/?language=en)__ Autonomous Transaction Processing (ATP, aka Converged Database)
+ - __[Always Free](https://signup.oraclecloud.com/?language=en)__ Autonomous Data Warehouse (ADW)
  - Autonomous JSON Database (AJD)
  - Autonomous Transaction Processing (ATP)
- - Autonomous Data Warehouse (ADW)
+ - Autonomous Data Warehouse
 
 
 ### Thanks
