@@ -166,6 +166,7 @@ Allow group DRAGON_Stack_Developers to manage buckets in compartment demos:json
 Allow group DRAGON_Stack_Developers to manage objects in compartment demos:json
 Allow group DRAGON_Stack_Developers to manage autonomous-database-family in compartment demos:json
 Allow group DRAGON_Stack_Developers to read resource-availability in compartment demos:json
+Allow group DRAGON_Stack_Developers to use cloud-shell in tenancy
 ```
 
 Eventually, you may ask for some quota to be set on your compartment as well.
