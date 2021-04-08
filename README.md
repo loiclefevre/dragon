@@ -42,6 +42,10 @@ chmod +x dragon-osx-*
 sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.0.8
 ```
 
+### GraalVM Native Image Compression
+You can get more information in my [post on the GraalVM blog](https://medium.com/graalvm/compressed-graalvm-native-images-4d233766a214):
+![](https://miro.medium.com/max/2400/1*c7_AtDmmZ9tG5OG23EeLDw.png)
+
 ### Changelog
 See the changelog [here](./CHANGELOG.md).
 
