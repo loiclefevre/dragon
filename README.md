@@ -241,7 +241,7 @@ For [React](https://reactjs.org/) frontend:
 
 ### Spring-Boot petclinic webapp
 
-As of v2.0.3, DRAGON can now generate a [Spring-Boot](https://spring.io/projects/spring-boot) based stack including the well know petclinic web application.
+As of v2.0.3, DRAGON can now generate a [Spring-Boot](https://spring.io/projects/spring-boot) based stack including the well known petclinic web application.
 
 ![](https://cloud.githubusercontent.com/assets/838318/19727082/2aee6d6c-9b8e-11e6-81fe-e889a5ddfded.png)
 
