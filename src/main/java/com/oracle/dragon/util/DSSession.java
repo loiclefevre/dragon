@@ -1555,6 +1555,22 @@ public class DSSession {
 
             if (configFile.get(CONFIG_COLLECTIONS) != null) {
                 createCollections(rSQLS, autonomousDatabase, walletFile);
+
+                if (!databaseType.isFree()) {
+                    section.print("search index setup");
+
+                    final ADBRESTService adminRSQLS = new ADBRESTService(autonomousDatabase.getConnectionUrls().getSqlDevWebUrl(), "ADMIN", configFile.get(CONFIG_DATABASE_PASSWORD));
+
+                    try {
+                        adminRSQLS.execute("BEGIN\n" +
+                                "    CTXSYS.CTX_ADM.SET_PARAMETER('default_index_memory','2147483648');\n" +
+                                "END;\n" +
+                                "/");
+                    } catch (RuntimeException re) {
+                        section.printlnKO();
+                        throw new SearchIndexConfigurationFailedException("default_index_memory");
+                    }
+                }
             }
 
             section.printlnOK();
@@ -1639,18 +1655,6 @@ public class DSSession {
                 } catch (RuntimeException re) {
                     section.printlnKO();
                     throw new ObjectStorageConfigurationFailedException();
-                }
-
-                section.print("search index setup");
-
-                try {
-                    adminRSQLS.execute("BEGIN\n" +
-                            "    CTXSYS.CTX_ADM.SET_PARAMETER('default_index_memory','2147483648')\n" +
-                            "END;\n" +
-                            "/");
-                } catch (RuntimeException re) {
-                    section.printlnKO();
-                    throw new SearchIndexConfigurationFailedException("default_index_memory");
                 }
             }
 
