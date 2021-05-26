@@ -1,5 +1,6 @@
 {
-  "resources":[
+  "resources":{
+  "includes":[
     {"pattern":"\\QMETA-INF/services/org.glassfish.hk2.extension.ServiceLocatorGenerator\\E"}, 
     {"pattern":"\\QMETA-INF/services/org.glassfish.jersey.internal.inject.InjectionManagerFactory\\E"}, 
     {"pattern":"\\QMETA-INF/services/org.glassfish.jersey.internal.spi.AutoDiscoverable\\E"}, 
@@ -52,7 +53,7 @@
     {"pattern":"\\Qstacks/create-spring-boot-petclinic/data/src/main/resources/static/resources/images/favicon.png\\E"}, 
     {"pattern":"\\Qstacks/create-spring-boot-petclinic/message.st\\E"}, 
     {"pattern":"\\Qstacks/create-spring-boot-petclinic/metadata.json\\E"}
-  ],
+  ]},
   "bundles":[
     {"name":"org.glassfish.jersey.client.internal.localization"}, 
     {"name":"org.glassfish.jersey.internal.localization"}

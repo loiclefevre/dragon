@@ -1,0 +1,222 @@
+/*
+    Document   : override
+    Description:
+        This is where any of your application specific styles should be included
+*/
+
+.demo-panel-customizations {
+  width: 500px;
+  height: 500px;
+}
+
+img.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.center {
+  text-align: center;
+}
+
+/****** panel container*********/
+.demo-center-panels {
+  /* margin auto is centering magic */
+  margin: auto;
+}
+
+/* In order to get the panels to flow to the next line 
+     but center as a group the max-width needs to be 
+     restricted to a multiple of the overall panel width 
+     (the actual panel width plus the margins). */
+@media (min-width: 240px) {
+  .demo-center-panels {
+    max-width: 220px;
+  }
+}
+
+@media (min-width: 460px) {
+  .demo-center-panels {
+    max-width: 440px;
+  }
+}
+
+@media (min-width: 680px) {
+  .demo-center-panels {
+    max-width: 660px;
+  }
+}
+
+@media (min-width: 900px) {
+  .demo-center-panels {
+    max-width: 880px;
+  }
+}
+
+@media (min-width: 1120px) {
+  .demo-center-panels {
+    max-width: 1100px;
+  }
+}
+
+@media (min-width: 1340px) {
+  .demo-center-panels {
+    max-width: 1320px;
+  }
+}
+
+@media (min-width: 1560px) {
+  .demo-center-panels {
+    max-width: 1540px;
+  }
+}
+
+@media (min-width: 1780px) {
+  .demo-center-panels {
+    max-width: 1760px;
+  }
+}
+
+@media (min-width: 2000px) {
+  .demo-center-panels {
+    max-width: 1980px;
+  }
+}
+
+@media (min-width: 2220px) {
+  .demo-center-panels {
+    max-width: 2200px;
+  }
+}
+
+@media (min-width: 2440px) {
+  .demo-center-panels {
+    max-width: 2420px;
+  }
+}
+
+.img-flash-effect figure img {
+  height: 10vmin;
+  opacity: 0.3;
+  filter: drop-shadow(0 0 0.75rem black);
+}
+
+.img-flash-effect img:hover {
+  opacity: 1;
+  -webkit-animation: flash 0.5s;
+  animation: flash 0.5s;
+}
+@keyframes flash {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.tiers-bar {
+  background-color: rgba(0,0,0,0);
+  min-height: 90vh;
+  min-width: 30vw;
+  width:40%;
+  align-items: center;
+  justify-content: center;
+  padding-top: 10vh;
+}
+
+.tools-bar {
+  min-width: 10vw;
+  min-height: 20vh;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-link {
+  color: #61dafb;
+}
+
+.app-logo {
+  height: 36vmin;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-logo {
+    animation: app-logo-spin infinite 20s linear;
+  }
+}
+
+@keyframes app-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ADB-logo {
+  height: 36vmin;
+}
+
+p, figure {
+  margin: 1vmin 1vmin 1vmin 1vmin;
+}
+
+.Dragon-logo {
+  position: absolute;
+  height: 15vh;
+  left: 0;
+  bottom: 0;
+}
+
+.app-footer {
+  background-color: rgba(0,0,0,0);
+  min-height: 0vh;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(5px + 2vmin);
+  color: white;
+  position: absolute;
+  bottom: 0vh;
+  z-index: 3;
+  width: 100%;
+}
+
+.credits {
+  font-size: calc(2px + 1vmin);
+  position: absolute;
+  bottom: 0vh;
+  right: 0vh;
+}
+
+.app-background {
+  background-color:  black;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  position: absolute;
+  z-index: 1;
+  user-select: none;
+  -moz-user-select: -moz-none;
+  -webkit-user-select: none;
+}
+
+.small-text {
+  font-size: calc(2px + 2vmin);
+  color: greenyellow;
+  font-weight: bold;
+}
+
+#globalBody {
+  position: relative;
+  z-index: 3;
+  color: white;
+  font-size: calc(10px + 2vmin);
+}

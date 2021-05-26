@@ -8,9 +8,12 @@ public class LocalDragonConfiguration {
     private String sqlDevWeb;
     private String apexURL;
     private String omlURL;
+    private String graphStudioURL;
     private String sqlAPI;
     private String sodaAPI;
     private String version;
+    private String apexVersion;
+    private String ordsVersion;
     private String dbName;
     private String dbUserName;
     private String dbUserPassword;
@@ -60,12 +63,36 @@ public class LocalDragonConfiguration {
         this.omlURL = omlURL;
     }
 
+    public String getGraphStudioURL() {
+        return graphStudioURL;
+    }
+
+    public void setGraphStudioURL(String graphStudioURL) {
+        this.graphStudioURL = graphStudioURL;
+    }
+
     public String getVersion() {
         return version;
     }
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getApexVersion() {
+        return apexVersion;
+    }
+
+    public void setApexVersion(String apexVersion) {
+        this.apexVersion = apexVersion;
+    }
+
+    public String getOrdsVersion() {
+        return ordsVersion;
+    }
+
+    public void setOrdsVersion(String ordsVersion) {
+        this.ordsVersion = ordsVersion;
     }
 
     public String getDbName() {

@@ -51,7 +51,8 @@ public enum ErrorCode {
     TableNotLoaded(-49),
     NotAuthenticated(-50),
     ConfigurationWrongDatabaseVersion(-51),
-    NotAuthorizedOrNotFound(-52);
+    NotAuthorizedOrNotFound(-52),
+    SearchIndexConfigurationFailed(-53);
 
     public final int internalErrorCode;
 

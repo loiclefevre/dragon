@@ -282,8 +282,9 @@ public class CodeGenerator {
             final String realFilename = path.substring(0, path.length() - 3);
             section.print(realFilename);
             // replace tokens!
-            final char startDelim = realFilename.endsWith(".js") ? '%' : '<';
-            final char stopDelim = realFilename.endsWith(".js") ? '%' : '>';
+            final boolean taggedFile = realFilename.endsWith(".js") || realFilename.endsWith(".html") || realFilename.endsWith(".htm") || realFilename.endsWith(".xml");
+            final char startDelim = taggedFile ? '%' : '<';
+            final char stopDelim = taggedFile ? '%' : '>';
 
             try (final InputStream content = inputStream) {
                 final ST st = new ST(

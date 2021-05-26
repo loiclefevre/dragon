@@ -1,3 +1,27 @@
+# v2.1.0 - 2021.05.26
+## New features
+- added support for Oracle JavaScript Extension Toolkit with the -create-jet-app command line option - huge thanks to Paolo Bellardone!
+- added support for Autonomous Database 21c
+- added support for Autonomous JSON Database Always Free
+- added support for Autonomous Application Express (APEX) Always Free
+- added support for Autonomous JSON Database
+- added support for Autonomous Application Express (APEX)
+- added support for Oracle Cloud Infrastructure Limits
+  - helps checking the remaining number of Always Free Database available for a given tenant
+- upgraded development infrastructure to GraalVM 21.1.0
+- upgraded Node.js v14 version for React based frontend
+- upgraded React Scripts to v4.0.3
+- upgraded Axios to v0.21.1
+- improved local configuration with Graph Studio URL, APEX and ORDS version
+
+## Fixes
+- fixed stack environment requirements
+  - GraalVM and Node.js versions
+  - tar command
+  - Node.js path for Windows
+- fixed SODA collection creation using SODA for REST
+
+
 # v2.0.8 - 2020.12.08
 ## New features
 - added OCI group and policies information in case you encounter related issue

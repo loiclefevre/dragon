@@ -29,8 +29,8 @@ public class JSONFlattenerInputStream extends FilterInputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         int result = super.read(b, off, len);
-        if(result == -1) { return -1;
-/*            if(strippedBytes >= len) {
+        if(result == -1) { //return -1;
+            if(strippedBytes >= len) {
                 strippedBytes -= len;
                 Arrays.fill(b,off,off+len-1,(byte)'\n');
                 return len;
@@ -40,7 +40,7 @@ public class JSONFlattenerInputStream extends FilterInputStream {
                 result = strippedBytes;
                 strippedBytes = 0;
                 return result;
-            } */
+            }
         }
 
         final int length = result;

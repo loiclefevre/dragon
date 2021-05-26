@@ -141,7 +141,11 @@ public class ADBRESTService {
             final HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(urlSODAService + collectionName))
                     .headers( "Content-Type", "application/json", "Authorization", basicAuth(user, password))
-                    .PUT(HttpRequest.BodyPublishers.ofString("{}"))
+                    // To support 21c
+                    .PUT(HttpRequest.BodyPublishers.ofString("{\"contentColumn\":{\"name\":\"JSON_DOCUMENT\"}," + // ,"sqlType":"BLOB"
+                            "\"versionColumn\":{\"name\":\"VERSION\", \"method\" : \"UUID\"}," +
+                            "\"lastModifiedColumn\":{\"name\":\"LAST_MODIFIED\"}," +
+                            "\"creationTimeColumn\":{\"name\":\"CREATED_ON\"}}"))
                     .build();
 
             final HttpResponse<String> response = HttpClient

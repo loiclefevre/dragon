@@ -9,120 +9,124 @@ import java.util.Properties;
 
 public class JDKRequirement implements Requirement {
 
-    private final int majorVersion;
+	private final int majorVersion;
 
-    public JDKRequirement(int majorVersion) {
-        this.majorVersion = majorVersion;
-    }
+	public JDKRequirement(int majorVersion) {
+		this.majorVersion = majorVersion;
+	}
 
-    @Override
-    public boolean isPresent(DSSession.Platform platform) {
-        // Check JAVA_HOME/release file
-        File javaHome = new File(System.getenv("JAVA_HOME"));
+	@Override
+	public boolean isPresent(DSSession.Platform platform) {
+		// Check JAVA_HOME/release file
+		final String javaHome = System.getenv("JAVA_HOME");
 
-        if (javaHome.exists() && javaHome.isDirectory()) {
-            try {
-                Properties properties = new Properties();
-                properties.load(new FileInputStream(new File(javaHome, "release")));
+		if (!Strings.isNullOrEmpty(javaHome)) {
+			File javaHomeFile = new File(javaHome);
 
-                String javaVersion = (String) properties.get("JAVA_VERSION");
-                if (!Strings.isNullOrEmpty(javaVersion)) {
-                    javaVersion = javaVersion.replaceAll("\"", "");
-                }
+			if (javaHomeFile.exists() && javaHomeFile.isDirectory()) {
+				try {
+					Properties properties = new Properties();
+					properties.load(new FileInputStream(new File(javaHomeFile, "release")));
 
-                Version version = new Version(javaVersion);
+					String javaVersion = (String) properties.get("JAVA_VERSION");
+					if (!Strings.isNullOrEmpty(javaVersion)) {
+						javaVersion = javaVersion.replaceAll("\"", "");
+					}
 
-                return version.getMajor() >= majorVersion;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            final ProcessBuilder pb = new ProcessBuilder("java", "-version")
-                    .redirectErrorStream(true);
+					Version version = new Version(javaVersion);
 
-            try {
-                final Process p = pb.start();
-                final StringBuilder sb = getProcessOutput(p.getInputStream());
-                int a = p.waitFor();
-                if (a != 0) {
-                    throw new RuntimeException(pb.toString() + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
-                }
+					return version.getMajor() >= majorVersion;
+				} catch (IOException ignored) {
+				}
+			}
+		}
 
-                return new Version(sb.toString().split("\n")[0].split(" ")[2].replaceAll("\"", "")).getMajor() >= majorVersion;
-            } catch (IOException | InterruptedException ioe) {
-                ioe.printStackTrace();
-            }
-        }
+		final ProcessBuilder pb = new ProcessBuilder("java", "-version")
+				.redirectErrorStream(true);
 
-        return false;
-    }
+		try {
+			final Process p = pb.start();
+			final StringBuilder sb = getProcessOutput(p.getInputStream());
+			int a = p.waitFor();
+			if (a != 0) {
+				throw new RuntimeException(pb.toString() + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
+			}
 
-    @Override
-    public String[] getCommands(DSSession.Platform platform, boolean ociCloudShell) {
-        switch (platform) {
-            case Linux:
-                // TODO: check for EE version on ociCloudShell
-                return majorVersion >= 11 ? new String[]{
-                        "wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-linux-amd64-20.3.0.tar.gz",
-                        "tax -xvf graalvm-ce-java11-linux-amd64-20.3.0.tar.gz",
-                        "export JAVA_HOME=\"`pwd`/graalvm-ee-java11-20.3.0\"",
-                        "export PATH=${JAVA_HOME}/bin:$PATH"
-                        }
-                        :
-                        new String[]{
-                                "wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java8-linux-amd64-20.3.0.tar.gz",
-                                "tax -xvf graalvm-ce-java8-linux-amd64-20.3.0.tar.gz",
-                                "export JAVA_HOME=\"`pwd`/graalvm-ee-java8-20.3.0\"",
-                                "export PATH=${JAVA_HOME}/bin:$PATH"
-                        };
+			return new Version(sb.toString().split("\n")[0].split(" ")[2].replaceAll("\"", "")).getMajor() >= majorVersion;
+		} catch (IOException | InterruptedException ignored) {
+		}
 
-            case Windows:
-                return majorVersion >= 11 ? new String[]{
-                        "powershell wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-windows-amd64-20.3.0.zip -OutFile graalvm-ce-java11-windows-amd64-20.3.0.zip",
-                        "powershell Expand-Archive -Path graalvm-ce-java11-windows-amd64-20.3.0.zip -DestinationPath .\\",
-                        "set JAVA_HOME=%CD%\\graalvm-ce-java11-20.3.0",
-                        "set PATH=%JAVA_HOME%\\bin;%PATH%"
-                        }
-                        :
-                        new String[]{
-                                "powershell wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java8-windows-amd64-20.3.0.zip -OutFile graalvm-ce-java8-windows-amd64-20.3.0.zip",
-                                "powershell Expand-Archive -Path graalvm-ce-java8-windows-amd64-20.3.0.zip -DestinationPath .\\",
-                                "set JAVA_HOME=%CD%\\graalvm-ce-java8-20.3.0",
-                                "set PATH=%JAVA_HOME%\\bin;%PATH%"
-                        };
+		return false;
+	}
 
-            case MacOS:
-                return majorVersion >= 11 ? new String[]{
-                        "curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-darwin-amd64-20.3.0.tar.gz",
-                        "tax -xvf graalvm-ce-java11-darwin-amd64-20.3.0.tar.gz",
-                        "export JAVA_HOME=\"`pwd`/graalvm-ee-java11-20.3.0\"",
-                        "export PATH=${JAVA_HOME}/bin:$PATH"
-                }
-                        :
-                        new String[]{
-                                "curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java8-darwin-amd64-20.3.0.tar.gz",
-                                "tax -xvf graalvm-ce-java8-darwin-amd64-20.3.0.tar.gz",
-                                "export JAVA_HOME=\"`pwd`/graalvm-ee-java8-20.3.0\"",
-                                "export PATH=${JAVA_HOME}/bin:$PATH"
-                        };
-        }
+	@Override
+	public String[] getCommands(DSSession.Platform platform, boolean ociCloudShell) {
+		final String GRAALVM_VERSION = "21.1.0";
 
-        return new String[] {"No command"};
-    }
+		switch (platform) {
+			case Linux:
+				// TODO: check for EE version on ociCloudShell
+				return majorVersion >= 11 ? new String[]{
+						"wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java11-linux-amd64-"+GRAALVM_VERSION+".tar.gz",
+						"tar -xvf graalvm-ce-java11-linux-amd64-"+GRAALVM_VERSION+".tar.gz",
+						"export JAVA_HOME=\"`pwd`/graalvm-ce-java11-"+GRAALVM_VERSION+"\"",
+						"export PATH=${JAVA_HOME}/bin:$PATH"
+				}
+						:
+						new String[]{
+								"wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java8-linux-amd64-"+GRAALVM_VERSION+".tar.gz",
+								"tar -xvf graalvm-ce-java8-linux-amd64-"+GRAALVM_VERSION+".tar.gz",
+								"export JAVA_HOME=\"`pwd`/graalvm-ce-java8-"+GRAALVM_VERSION+"\"",
+								"export PATH=${JAVA_HOME}/bin:$PATH"
+						};
 
-    @Override
-    public String getDescription() {
-        return "To install Java Development Kit version "+majorVersion+", please follow these instructions:";
-    }
+			case Windows:
+				return majorVersion >= 11 ? new String[]{
+						"powershell wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java11-windows-amd64-"+GRAALVM_VERSION+".zip -OutFile graalvm-ce-java11-windows-amd64-"+GRAALVM_VERSION+".zip",
+						"powershell Expand-Archive -Path graalvm-ce-java11-windows-amd64-"+GRAALVM_VERSION+".zip -DestinationPath .\\",
+						"set JAVA_HOME=%CD%\\graalvm-ce-java11-"+GRAALVM_VERSION,
+						"set PATH=%JAVA_HOME%\\bin;%PATH%"
+				}
+						:
+						new String[]{
+								"powershell wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java8-windows-amd64-"+GRAALVM_VERSION+".zip -OutFile graalvm-ce-java8-windows-amd64-"+GRAALVM_VERSION+".zip",
+								"powershell Expand-Archive -Path graalvm-ce-java8-windows-amd64-"+GRAALVM_VERSION+".zip -DestinationPath .\\",
+								"set JAVA_HOME=%CD%\\graalvm-ce-java8-"+GRAALVM_VERSION,
+								"set PATH=%JAVA_HOME%\\bin;%PATH%"
+						};
 
-    public static StringBuilder getProcessOutput(final InputStream in) throws IOException {
-        final Reader r = new BufferedReader(new InputStreamReader(in));
-        final StringBuilder sb = new StringBuilder();
-        char[] chars = new char[4 * 1024];
-        int len;
-        while ((len = r.read(chars)) >= 0) {
-            sb.append(chars, 0, len);
-        }
-        return sb;
-    }
+			case MacOS:
+				return majorVersion >= 11 ? new String[]{
+						"curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java11-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
+						"tar -xvf graalvm-ce-java11-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
+						"export JAVA_HOME=\"`pwd`/graalvm-ce-java11-"+GRAALVM_VERSION+"\"",
+						"export PATH=${JAVA_HOME}/bin:$PATH"
+				}
+						:
+						new String[]{
+								"curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java8-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
+								"tar -xvf graalvm-ce-java8-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
+								"export JAVA_HOME=\"`pwd`/graalvm-ce-java8-"+GRAALVM_VERSION+"\"",
+								"export PATH=${JAVA_HOME}/bin:$PATH"
+						};
+		}
+
+		return new String[]{"No command"};
+	}
+
+	@Override
+	public String getDescription() {
+		return "To install Java Development Kit version " + majorVersion + ", please follow these instructions:";
+	}
+
+	public static StringBuilder getProcessOutput(final InputStream in) throws IOException {
+		final Reader r = new BufferedReader(new InputStreamReader(in));
+		final StringBuilder sb = new StringBuilder();
+		char[] chars = new char[4 * 1024];
+		int len;
+		while ((len = r.read(chars)) >= 0) {
+			sb.append(chars, 0, len);
+		}
+		return sb;
+	}
 }

@@ -3,6 +3,9 @@
   "name":"byte[]"
 },
 {
+  "name":"com.fasterxml.jackson.databind.deser.Deserializers[]"
+},
+{
   "name":"com.fasterxml.jackson.databind.ext.Java7HandlersImpl",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
@@ -68,6 +71,23 @@
 },
 {
   "name":"com.oracle.bmc.database.model.AutonomousDatabase$Role",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
+},
+{
+  "name":"com.oracle.bmc.database.model.AutonomousDatabaseApex$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.database.model.AutonomousDatabaseBackupConfig$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.database.model.AutonomousDatabaseBackupConfig$ManualBackupType",
   "allDeclaredFields":true,
   "allDeclaredMethods":true
 },
@@ -177,6 +197,12 @@
   "allDeclaredConstructors":true
 },
 {
+  "name":"com.oracle.bmc.database.model.CustomerContact$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
   "name":"com.oracle.bmc.database.model.GenerateAutonomousDatabaseWalletDetails",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
@@ -206,6 +232,12 @@
 },
 {
   "name":"com.oracle.bmc.identity.model.UserCapabilities$Builder",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.limits.model.ResourceAvailability$Builder",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true
@@ -332,6 +364,9 @@
   "allDeclaredConstructors":true
 },
 {
+  "name":"com.oracle.dragon.stacks.EnvironmentRequirement[]"
+},
+{
   "name":"com.sun.crypto.provider.AESCipher$General",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
@@ -354,6 +389,9 @@
 {
   "name":"com.sun.crypto.provider.TlsPrfGenerator$V12",
   "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.awt.image.RenderedImage"
 },
 {
   "name":"java.io.Serializable",
@@ -456,6 +494,9 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"javax.activation.DataSource"
+},
+{
   "name":"javax.crypto.spec.GCMParameterSpec"
 },
 {
@@ -477,6 +518,18 @@
   "name":"javax.security.auth.x500.X500Principal",
   "fields":[{"name":"thisX500Name"}],
   "methods":[{"name":"<init>","parameterTypes":["sun.security.x509.X500Name"] }]
+},
+{
+  "name":"javax.xml.transform.Source"
+},
+{
+  "name":"javax.xml.transform.dom.DOMSource"
+},
+{
+  "name":"javax.xml.transform.sax.SAXSource"
+},
+{
+  "name":"javax.xml.transform.stream.StreamSource"
 },
 {
   "name":"org.bouncycastle.jcajce.provider.asymmetric.DH$Mappings",
@@ -889,6 +942,18 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"org.glassfish.jersey.internal.config.ExternalPropertiesAutoDiscoverable",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"org.glassfish.jersey.internal.config.ExternalPropertiesConfigurationFeature",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
   "name":"org.glassfish.jersey.internal.inject.Custom",
   "allDeclaredMethods":true
 },
@@ -948,6 +1013,12 @@
 },
 {
   "name":"org.glassfish.jersey.message.internal.DataSourceProvider",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
+  "name":"org.glassfish.jersey.message.internal.EnumMessageProvider",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true

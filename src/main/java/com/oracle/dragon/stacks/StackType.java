@@ -5,6 +5,7 @@ import com.oracle.dragon.stacks.patch.SpringBootPetclinicCodePatcher;
 
 public enum StackType {
     REACT("React", "create-react-app", null),
+    JET("Jet", "create-jet-app", null),
     SPRINGBOOTPETCLINIC("Spring Boot","create-spring-boot-petclinic", new SpringBootPetclinicCodePatcher());
 
     public final String resourceDir;

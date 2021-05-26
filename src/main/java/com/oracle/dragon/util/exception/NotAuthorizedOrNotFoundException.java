@@ -10,7 +10,8 @@ public class NotAuthorizedOrNotFoundException extends DSException {
 						"Allow group DRAGON_Stack_Developers to manage objects in compartment id %s\n" +
 						"Allow group DRAGON_Stack_Developers to manage autonomous-database-family in compartment id %s\n" +
 						"Allow group DRAGON_Stack_Developers to inspect work-requests in compartment id %s\n" +
-						"Allow group DRAGON_Stack_Developers to read resource-availability in compartment id %s\n",
+						"Allow group DRAGON_Stack_Developers to read resource-availability in compartment id %s\n" +
+						"Allow group DRAGON_Stack_Developers to use cloud-shell in tenancy\n",
 				DSSession.CONFIG_COMPARTMENT_ID, DSSession.CONFIGURATION_FILENAME, profileName == null ? "" : " for profile "+profileName,
 				compartmentId,compartmentId,compartmentId,compartmentId,compartmentId));
 	}
