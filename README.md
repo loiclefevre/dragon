@@ -1,13 +1,14 @@
 ![](./www/dragon_stack.png)
 # From Zero to WOW in 5 minutes
 ![](./www/command-line-example.png)
-- Generates the source code for a _pre-configured_ [REACT](https://reactjs.org/) frontend or for the [Spring-Boot](https://spring.io/projects/spring-boot) Petclinic web application 
+- Generates the source code for a _pre-configured_ [REACT](https://reactjs.org/) frontend, [JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) frontend, or for the [Spring-Boot](https://spring.io/projects/spring-boot) Petclinic web application 
 - Provisions an autonomous backend ([Always Free autonomous database](#why-autonomous-database-for-developers) + REST Data Services)
 - (optional) Loads your JSON data into your collection(s)
+- (optional) Loads your CSV data into your table(s)
 
 __... in 5 minutes.__
 
-![React.js frontend](./www/react-logo.png) ![Spring Boot application](./www/spring-boot-logo.png) ![Autonomous Database](./www/adb-logo.png) ![Polyglot GraalVM](./www/graalvm-logo.png) ![REST Data Services](./www/ords-logo.png) ![Node.js](./www/nodejs-logo.png)
+![React.js frontend](./www/react-logo.png) ![Oracle JavaScript Extension Toolkit](./www/ojet-logo.png) ![Spring Boot application](./www/spring-boot-logo.png) ![Autonomous Database](./www/adb-logo.png) ![Polyglot GraalVM](./www/graalvm-logo.png) ![REST Data Services](./www/ords-logo.png) ![Node.js](./www/nodejs-logo.png)
 
 # 30 seconds installation steps
 
@@ -20,26 +21,26 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
-The latest stable release is v2.0.8.
+The latest stable release is v2.1.0.
 
 ### Linux and OCI Cloud Shell
 ```
-rm -f ./dragon-linux-x86_64-2.0.8
-wget https://github.com/loiclefevre/dragon/releases/download/v2.0.8/dragon-linux-x86_64-2.0.8
+rm -f ./dragon-linux-x86_64-2.1.0
+wget https://github.com/loiclefevre/dragon/releases/download/v2.1.0/dragon-linux-x86_64-2.1.0
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
 
 ### Windows
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.0.8/dragon-windows-x86_64-2.0.8.exe -OutFile dragon-windows-x86_64-2.0.8.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.1.0/dragon-windows-x86_64-2.1.0.exe -OutFile dragon-windows-x86_64-2.1.0.exe
 ```
 ### MAC OS
 *You'd need to [notarize](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution) the application once downloaded*
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.0.8/dragon-osx-x86_64-2.0.8
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.1.0/dragon-osx-x86_64-2.1.0
 chmod +x dragon-osx-*
-sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.0.8
+sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.1.0
 ```
 
 ### GraalVM Native Image Compression
@@ -106,10 +107,13 @@ auth_token=<authentication token>
 
  # Autonomous Database Type:
  # - atpfree: Always Free Autonomous Transaction Processing (default)
+ # - ajdfree : Always Free Autonomous JSON Database
+ # - apexfree: Always Free Autonomous Application Express
  # - adwfree: Always Free Autonomous Data Warehouse
- # - ajd: Autonomous JSON Database
- # - atp: Autonomous Transaction Processing
- # - adw: Autonomous Data Warehouse
+ # - atp     : Autonomous Transaction Processing
+ # - ajd     : Autonomous JSON Database
+ # - apex    : Autonomous Application Express
+ # - adw     : Autonomous Data Warehouse
 # database_type=atpfree
 
  # Uncomment to specify another database user name than dragon (default)
@@ -148,17 +152,17 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.0.8
+$ ./dragon-linux-x86_64-2.1.0
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.0.8.exe
+> dragon-windows-x86_64-2.1.0.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.0.8
+$ ./dragon-osx-x86_64-2.1.0
 ```
 
 ### Oracle Cloud Infrastructure Policy
@@ -181,12 +185,12 @@ If you need to create JSON collections during the provisioning process, you may 
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.8 -loadjson
+$ ./dragon-linux-x86_64-2.1.0 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.8 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.1.0 -loadjson -create-react-app myfrontend
 ```
 
 ### Loading CSV data
@@ -195,19 +199,19 @@ If you need to load CSV data into tables during the provisioning process (or eve
 
 To load CSV data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.8 -loadcsv
+$ ./dragon-linux-x86_64-2.1.0 -loadcsv
 ```
 
 To load CSV data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.8 -loadcsv -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.1.0 -loadcsv -create-react-app myfrontend
 ```
 
 ### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.0.8 -destroy
+$ ./dragon-linux-x86_64-2.1.0 -destroy
 ```
 
 ## Stacks
@@ -237,6 +241,32 @@ npm start &
 For [React](https://reactjs.org/) frontend:
 ```
 ./ngrok http 3000
+``` 
+
+### Oracle JavaScript Extension Toolkit frontend
+
+As of v2.1.0, DRAGON can now generate [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) stacks. 
+Thanks a lot to [Paolo Bellardone](https://github.com/paolobellardone) for doing this integration inside DRAGON!    
+
+Giving this result in your browser:
+
+![](./www/jet-frontend.png)
+
+#### Accessing ports on OCI Cloud Shell
+
+For OCI Cloud Shell, you may use NGROK (free version) to allow access to your website deployed locally.
+
+```
+wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+
+unzip ngrok-stable-linux-amd64.zip
+
+npm start &
+```
+
+For [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) frontend:
+```
+./ngrok http 8000
 ``` 
 
 ### Spring-Boot petclinic webapp
@@ -279,7 +309,7 @@ Autonomous Database can be:
 
 ### Thanks
 I would like to thank the people that contributed to this project:
-- [Paolo Bellardone](https://github.com/paolobellardone): for building the MAC OS native image (and of course testing and reporting bugs)
+- [Paolo Bellardone](https://github.com/paolobellardone): for building the MAC OS native image, for integrating Oracle JET inside DRAGON (and of course testing and reporting bugs)
 - [Manu M.](https://github.com/mmanu-gh), and [Davide Burdese](https://github.com/davideburdese): for testing and reporting bugs
 - [Jon Russel](https://github.com/jon-russell): for creating the DRAGON logo :)
 - [Kay Malcolm](https://github.com/kaymalcolm), [T. McGinn](https://github.com/tmcginn), and [Kamryn V.](https://github.com/kamryn-v): for the energy, the motivation and the Live Labs!!! :)
