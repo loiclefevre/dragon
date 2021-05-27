@@ -11,6 +11,6 @@ We suggest that you begin by typing:
 
   [1mcd <name>[0m
   [1mmvn -Dmaven.test.skip=true verify[0m
-  [1mjava -Xmx2G -Xms2G -jar <applicationPath> <dbNameLower>_low <config.dbUserName> <config.dbUserPassword> <config.extractedWallet> false 100 2 false false 1000[0m
+  [1mjava -Xmx2G -Xms2G -jar <applicationPath> <dbNameLower>_low <config.dbUserName> <config.dbUserPassword> <config.extractedWallet> purchase_orders false 100 2 false false 1000[0m
 
 Happy hacking!
