@@ -1,6 +1,12 @@
 {
   "requires": ["node14","jdk11"],
   "files": [
-    "purchase_orders.json"
+    "public/",
+    "src/",
+    "purchase_orders.json",
+    "package.json.st",
+    "public/index.html",
+    "src/App.js",
+    "src/ORDS.js"
   ]
 }
