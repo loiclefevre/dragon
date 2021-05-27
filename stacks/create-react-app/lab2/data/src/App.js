@@ -223,7 +223,7 @@ const columns = React.useMemo(
         columns: [
           {
             Header: 'Requestor',
-            accessor: 'requestor',
+            accessor: 'Requestor',
           },
           {
             Header: 'Cost Center',
