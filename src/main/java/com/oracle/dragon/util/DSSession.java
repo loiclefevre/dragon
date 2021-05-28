@@ -792,6 +792,8 @@ public class DSSession {
                 keyFilename = keyFilename.replace('\\', '/');
                 if (keyFilename.startsWith("~/")) {
                     keyFilename = System.getProperty("user.home").replace('\\', '/') + keyFilename.substring(1);
+                } else if(!keyFilename.startsWith("/") && !(keyFilename.charAt(1) == ':' && keyFilename.charAt(2) == '/')) {
+                    keyFilename = new File(workingDirectory,keyFilename).getAbsolutePath();
                 }
 
                 final File keyFile = new File(keyFilename);
