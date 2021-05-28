@@ -107,7 +107,7 @@ public class SpringBootPetclinicCodePatcher implements CodePatcher {
 
                 // -4- The wallet from localConfiguration.walletFile is configured later in the CodeGenerator process, extracting and overriding application.properties
 
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
 

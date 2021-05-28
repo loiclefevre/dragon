@@ -7,7 +7,7 @@ import com.oracle.dragon.util.DSSession;
 import java.io.*;
 import java.util.Properties;
 
-public class JDKRequirement implements Requirement {
+public class JDKRequirement extends AbstractRequirement {
 
 	private final int majorVersion;
 
@@ -49,7 +49,7 @@ public class JDKRequirement implements Requirement {
 			final StringBuilder sb = getProcessOutput(p.getInputStream());
 			int a = p.waitFor();
 			if (a != 0) {
-				throw new RuntimeException(pb.toString() + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
+				throw new RuntimeException(pb + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
 			}
 
 			return new Version(sb.toString().split("\n")[0].split(" ")[2].replaceAll("\"", "")).getMajor() >= majorVersion;
@@ -117,16 +117,5 @@ public class JDKRequirement implements Requirement {
 	@Override
 	public String getDescription() {
 		return "To install Java Development Kit version " + majorVersion + ", please follow these instructions:";
-	}
-
-	public static StringBuilder getProcessOutput(final InputStream in) throws IOException {
-		final Reader r = new BufferedReader(new InputStreamReader(in));
-		final StringBuilder sb = new StringBuilder();
-		char[] chars = new char[4 * 1024];
-		int len;
-		while ((len = r.read(chars)) >= 0) {
-			sb.append(chars, 0, len);
-		}
-		return sb;
 	}
 }

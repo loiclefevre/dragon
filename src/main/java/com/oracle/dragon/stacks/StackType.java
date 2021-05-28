@@ -5,8 +5,9 @@ import com.oracle.dragon.stacks.patch.SpringBootPetclinicCodePatcher;
 
 public enum StackType {
     REACT("React", "create-react-app", null),
-    JET("Jet", "create-jet-app", null),
-    SPRINGBOOTPETCLINIC("Spring Boot","create-spring-boot-petclinic", new SpringBootPetclinicCodePatcher());
+    JET("Oracle JavaScript Extension Toolkit", "create-jet-app", null),
+    SPRINGBOOTPETCLINIC("Spring Boot","create-spring-boot-petclinic", new SpringBootPetclinicCodePatcher()),
+    MICRO_SERVICE("Micro Service","create-micro-service", null);
 
     public final String resourceDir;
     public final String humanName;

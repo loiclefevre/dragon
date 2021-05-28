@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.oracle.dragon.model.LocalDragonConfiguration;
 import com.oracle.dragon.model.StackMetadata;
+import com.oracle.dragon.stacks.patch.POMAnalyzer;
 import com.oracle.dragon.stacks.requirements.EnvironmentRequirementDeserializer;
 import com.oracle.dragon.util.DSSession;
 import com.oracle.dragon.util.ZipUtil;
@@ -28,6 +29,12 @@ import static com.oracle.dragon.util.Console.Style.ANSI_BRIGHT;
 import static com.oracle.dragon.util.Console.Style.ANSI_RESET;
 import static com.oracle.dragon.util.DSSession.*;
 
+/**
+ * "Generates" the code for a given stack. By generates, we mean either:
+ * - downloading code
+ * - filtering code (e.g. configure properties using StringTemplate)
+ * - installing components (e.g. dependencies such as React libraries...)
+ */
 public class CodeGenerator {
     private final StackType type;
     private final String name;
@@ -60,8 +67,12 @@ public class CodeGenerator {
         indexKeyModule.addDeserializer(EnvironmentRequirement.class, new EnvironmentRequirementDeserializer());
         mapper.registerModule(indexKeyModule);
 
-
+        // Overrides relies upon existing base stacks (embedded with DRAGON).
+        // Overrides will download the additional resources from GitHub.
         if (override != null) {
+            String envRequirement;
+            ST st;
+
             switch (type) {
 
                 case REACT:
@@ -69,6 +80,10 @@ public class CodeGenerator {
                     try {
                         rootResourcesDir = "https://raw.githubusercontent.com/loiclefevre/dragon/master/stacks/create-react-app/";
                         stackMetadata = mapper.readValue(downloadFile(rootResourcesDir + override + "/metadata.json"), StackMetadata.class);
+
+                        if (stackMetadata.hasURL()) {
+                            downloadFile(stackMetadata.getUrl(), dest, stackMetadata.getSkipDirectoryLevel());
+                        }
 
                         for (String fileName : stackMetadata.getFiles()) {
                             if (fileName.endsWith("/")) {
@@ -95,9 +110,9 @@ public class CodeGenerator {
                     section.printlnOK(type.humanName + ": " + name+"#"+override);
 
                     // environment requirements checking...
-                    String envRequirement = processEnvironmentRequirements(platform,OCICloudShell);
+                    envRequirement = processEnvironmentRequirements(platform,OCICloudShell);
 
-                    final ST st = new ST(
+                    st = new ST(
                             new BufferedReader(
                                     new InputStreamReader(downloadFile(rootResourcesDir + override + "/message.st"), StandardCharsets.UTF_8))
                                     .lines()
@@ -107,6 +122,87 @@ public class CodeGenerator {
                     st.add("override", override);
                     st.add("executable", EXECUTABLE_NAME);
                     st.add("envRequirement", envRequirement);
+
+                    System.out.println(st.render());
+
+                    generateStackLocalConfigFile(dest);
+
+                    break;
+
+
+                case MICRO_SERVICE:
+                    section.print("overriding");
+                    try {
+                        rootResourcesDir = "https://raw.githubusercontent.com/loiclefevre/dragon/master/stacks/create-micro-service/";
+                        stackMetadata = mapper.readValue(downloadFile(rootResourcesDir + override + "/metadata.json"), StackMetadata.class);
+
+                        if (stackMetadata.hasURL()) {
+                            downloadFile(stackMetadata.getUrl(), dest, stackMetadata.getSkipDirectoryLevel());
+                        }
+
+                        for (String fileName : stackMetadata.getFiles()) {
+                            if (fileName.endsWith("/")) {
+                                final File dir = new File(dest, fileName);
+                                if (!dir.exists()) dir.mkdirs();
+                            } else {
+                                final String path = fileName.substring(fileName.lastIndexOf('/') + 1);
+                                final String subDir = fileName.substring(0, fileName.length() - path.length());
+                                final InputStream inputStream = downloadFile(rootResourcesDir + override + "/data/" + fileName);
+                                if (inputStream == null) {
+                                    throw new StackFileNotFoundException(type.humanName, fileName, rootResourcesDir + type.resourceDir + "/data/" + fileName);
+                                }
+                                extractFileContent(path, new File(dest, subDir), inputStream);
+                            }
+                        }
+                    } catch( com.fasterxml.jackson.databind.JsonMappingException me ){
+                        section.printlnKO();
+                        throw new UnknownEnvironmentRequirementForStackException(me.getMessage());
+                    } catch (IOException e) {
+                        section.printlnKO();
+                        throw new LoadStackMetadataException(type.humanName, e);
+                    }
+
+                    section.printlnOK(type.humanName + ": " + name+"#"+override);
+
+                    final Map<String, String> patchParameters = new HashMap<>();
+
+                    if (stackMetadata.getCodePatchers() != null && stackMetadata.getCodePatchers().length > 0) {
+                        section = DSSession.Section.PostProcessingStack;
+                        section.print("patching");
+
+                        for(String codePatcherName:stackMetadata.getCodePatchers()) {
+                            switch(codePatcherName) {
+                                case "POMAnalyzer":
+                                    patchParameters.putAll(new POMAnalyzer().patch(dest, localConfiguration));
+                                    break;
+                            }
+                        }
+
+                        section.printlnOK();
+                    }
+
+
+                    // environment requirements checking...
+                    envRequirement = processEnvironmentRequirements(platform,OCICloudShell);
+
+                    st = new ST(
+                            new BufferedReader(
+                                    new InputStreamReader(downloadFile(rootResourcesDir + override + "/message.st"), StandardCharsets.UTF_8))
+                                    .lines()
+                                    .collect(Collectors.joining("\n")), '<', '>');
+                    st.add("name", name);
+                    st.add("path", dest.getAbsolutePath());
+                    st.add("override", override);
+                    st.add("executable", EXECUTABLE_NAME);
+                    st.add("envRequirement", envRequirement);
+
+                    st.add("stackName", name);
+                    st.add("config", localConfiguration);
+                    st.add("dbNameLower", localConfiguration.getDbName().toLowerCase());
+
+                    for (String key : patchParameters.keySet()) {
+                        st.add(key, patchParameters.get(key));
+                    }
 
                     System.out.println(st.render());
 
@@ -192,12 +288,14 @@ public class CodeGenerator {
 
     private String processEnvironmentRequirements(DSSession.Platform platform, boolean OCICloudShell) {
         section = DSSession.Section.StackEnvironmentValidation;
+
+        final StringBuilder help = new StringBuilder("\n");
+
         for(EnvironmentRequirement er:stackMetadata.getRequires()) {
             section.print("requires "+er.name()+" for "+platform.name());
             if(er.isPresent(platform)) {
                 section.printlnOK();
             } else {
-                final StringBuilder help = new StringBuilder("\n");
 
                 help.append(er.getDescription());
                 help.append('\n');
@@ -205,16 +303,16 @@ public class CodeGenerator {
                 for(String c:er.getCommands(platform,OCICloudShell)) {
                     help.append("  ").append(ANSI_BRIGHT).append(c).append(ANSI_RESET).append('\n');
                 }
-
-                help.append("\nAnd then...\n");
-
-                section.printlnOK();
-
-                return help.toString();
             }
         }
 
-        return " ";
+        if(help.length() > 1) {
+            help.append("\nAnd then...\n");
+        }
+
+        section.printlnOK();
+
+        return help.toString();
     }
 
     private InputStream downloadFile(String url) throws DSException {

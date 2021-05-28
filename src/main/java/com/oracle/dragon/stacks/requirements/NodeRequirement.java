@@ -5,7 +5,7 @@ import com.oracle.dragon.util.DSSession;
 
 import java.io.*;
 
-public class NodeRequirement implements Requirement {
+public class NodeRequirement extends AbstractRequirement {
 	private final int majorVersion;
 
 	public NodeRequirement(int majorVersion) {
@@ -21,7 +21,7 @@ public class NodeRequirement implements Requirement {
 			final StringBuilder sb = getProcessOutput(p.getInputStream());
 			int a = p.waitFor();
 			if (a != 0) {
-				throw new RuntimeException(pb.toString() + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
+				throw new RuntimeException(pb + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
 			}
 
 			return new Version(sb.substring(1).trim()).getMajor() >= majorVersion;
@@ -44,7 +44,7 @@ public class NodeRequirement implements Requirement {
 						:
 						new String[]{
 								"wget https://nodejs.org/dist/v"+NODEJS_VERSION+"/node-v"+NODEJS_VERSION+"-linux-x64.tar.xz",
-								"tax -xvf node-v"+NODEJS_VERSION+"-linux-x64.tar.xz",
+								"tar -xvf node-v"+NODEJS_VERSION+"-linux-x64.tar.xz",
 								"export PATH=\"`pwd`\"/node-v"+NODEJS_VERSION+"-linux-x64/bin:$PATH"
 						};
 
@@ -58,7 +58,7 @@ public class NodeRequirement implements Requirement {
 			case MacOS:
 				return new String[]{
 						"curl -L -O https://nodejs.org/dist/v"+NODEJS_VERSION+"/node-v"+NODEJS_VERSION+"-darwin-x64.tar.gz",
-						"tax -xvf node-v"+NODEJS_VERSION+"-darwin-x64.tar.xz",
+						"tar -xvf node-v"+NODEJS_VERSION+"-darwin-x64.tar.xz",
 						"export PATH=\"`pwd`\"/node-v"+NODEJS_VERSION+"-darwin-x64/bin:$PATH"
 				};
 		}
@@ -69,16 +69,5 @@ public class NodeRequirement implements Requirement {
 	@Override
 	public String getDescription() {
 		return "To install Node version " + majorVersion + ", please follow these instructions:";
-	}
-
-	public static StringBuilder getProcessOutput(final InputStream in) throws IOException {
-		final Reader r = new BufferedReader(new InputStreamReader(in));
-		final StringBuilder sb = new StringBuilder();
-		char[] chars = new char[4 * 1024];
-		int len;
-		while ((len = r.read(chars)) >= 0) {
-			sb.append(chars, 0, len);
-		}
-		return sb;
 	}
 }

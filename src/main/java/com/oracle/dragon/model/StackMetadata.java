@@ -6,6 +6,7 @@ public class StackMetadata {
     private String url;
     private String[] files;
     private int skipDirectoryLevel;
+    private String[] codePatchers;
     private EnvironmentRequirement[] requires;
 
     public StackMetadata() {
@@ -17,6 +18,14 @@ public class StackMetadata {
 
     public void setFiles(String[] files) {
         this.files = files;
+    }
+
+    public String[] getCodePatchers() {
+        return codePatchers;
+    }
+
+    public void setCodePatchers(String[] codePatchers) {
+        this.codePatchers = codePatchers;
     }
 
     public String getUrl() {

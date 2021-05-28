@@ -68,7 +68,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.1.0";
+    public static final String VERSION = "2.1.1";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -422,18 +422,24 @@ public class DSSession {
 
                 case "-create-keys":
                 case "--create-keys":
+                case "-ck":
+                case "--ck":
                     break;
 
                 case "-config-template":
                 case "--config-template":
+                case "-ct":
+                case "--ct":
                     section.printlnOK();
-                    final boolean hasToCreateKeys = checkForArgument(args, new String[]{"-create-keys", "--create-keys"});
+                    final boolean hasToCreateKeys = checkForArgument(args, new String[]{"-create-keys", "--create-keys","-ck","--ck"});
                     printlnConfigurationTemplate(hasToCreateKeys, Section.CreateKeys);
                     System.exit(0);
                     break;
 
                 case "-create-react-app":
                 case "--create-react-app":
+                case "-cra":
+                case "--cra":
                     createStack = true;
                     stackType = StackType.REACT;
                     if (hasAnchor) {
@@ -446,8 +452,28 @@ public class DSSession {
                     }
                     break;
 
+                case "-create-micro-service":
+                case "--create-micro-service":
+                case "-cms":
+                case "--cms":
+                    createStack = true;
+                    stackType = StackType.MICRO_SERVICE;
+                    stackName = "backend";
+
+                    if (hasAnchor) {
+                        stackOverride = anchor;
+                    }
+
+                    if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
+                        i++;
+                        stackName = args[i];
+                    }
+                    break;
+
                 case "-create-jet-app":
                 case "--create-jet-app":
+                case "-cja":
+                case "--cja":
                     createStack = true;
                     stackType = StackType.JET;
                     if (hasAnchor) {
@@ -462,6 +488,8 @@ public class DSSession {
 
                 case "-create-spring-boot-petclinic":
                 case "--create-spring-boot-petclinic":
+                case "-csbp":
+                case "--csbp":
                     createStack = true;
                     stackType = StackType.SPRINGBOOTPETCLINIC;
                     if (i + 1 < args.length && !args[i + 1].startsWith("-")) {
@@ -478,7 +506,9 @@ public class DSSession {
                     break;
 
                 case "-h":
+                case "--h":
                 case "-?":
+                case "--?":
                 case "/?":
                 case "/h":
                 case "-help":
@@ -523,9 +553,13 @@ public class DSSession {
         println("                                    \t . use with configuration parameters database_tables and data_path");
         println("                                    \t . loading CSV data can be done during and/or after database provisioning");
         println("                                    \t . CSV file names must match <table name>[_[0-9]+].csv");
-        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "react" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]            \tcreates a " + ANSI_VSC_BLUE + "React" + ANSI_RESET + " frontend (default name: frontend)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "react" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]            \tcreates a " + ANSI_VSC_BLUE + "React" + ANSI_RESET + " frontend (default name: frontend, overrides supported)");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "jet" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]                \tcreates an " + ANSI_BRIGHT_RED + "Oracle JET" + ANSI_RESET + " frontend (default name: frontend)");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "spring" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "boot" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "petclinic" + ANSI_RESET + " [name]\tcreates the " + ANSI_BRIGHT_GREEN + "Spring Boot" + ANSI_RESET + " Petclinic (default name: petclinic)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "micro" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "service" + ANSI_VSC_DASH  + ANSI_RESET + " [name]        \tcreates a " + ANSI_BRIGHT_WHITE + "Micro Service" + ANSI_RESET + " (default name: backend, overrides supported)");
+        println("                                    \t . If supported, overrides default stack using #<extension name>, examples:");
+        println("                                    \t   . -create-react-app#lab2");
+        println("                                    \t   . -create-micro-service#json-po-generator <name>");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "stop" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                            \t" + ANSI_RED + "stops" + ANSI_RESET + " the database");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "start" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "db" + ANSI_RESET + "                           \t" + ANSI_BRIGHT_GREEN + "starts" + ANSI_RESET + " the database");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "destroy" + ANSI_RESET + "                            \tto destroy the database");
