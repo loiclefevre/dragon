@@ -1,5 +1,6 @@
 package com.oracle.dragon;
 
+import com.oracle.bmc.auth.SimplePrivateKeySupplier;
 import com.oracle.bmc.model.BmcException;
 import com.oracle.dragon.util.DSSession;
 import com.oracle.dragon.util.exception.*;

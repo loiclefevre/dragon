@@ -21,7 +21,9 @@ public final class DRAGONConfigFile {
 
     public static ConfigFile parse(File workingDirectory, String configurationFilePath, @Nullable String profile) throws IOException {
         final File configFile = new File(workingDirectory, configurationFilePath);
-        return parse(configFile.getAbsolutePath(), new FileInputStream(configFile), profile, StandardCharsets.UTF_8);
+        final ConfigFile config = parse(configFile.getAbsolutePath(), new FileInputStream(configFile), profile, StandardCharsets.UTF_8);
+        config.setWorkingDirectory(workingDirectory,profile);
+        return config;
     }
 
     private static ConfigFile parse(String configurationFilePath, InputStream configurationStream, @Nullable String profile, @Nonnull Charset charset) throws IOException {
@@ -51,6 +53,7 @@ public final class DRAGONConfigFile {
         private final ConfigAccumulator accumulator;
         private final String profile;
         private final String configurationFilePath;
+        private File workingDirectory;
 
         public ConfigFile(ConfigAccumulator accumulator, String profile, String configurationFilePath) {
             this.accumulator = accumulator;
@@ -68,8 +71,29 @@ public final class DRAGONConfigFile {
          */
         public String get(String key) {
             if (profile != null && (accumulator.configurationsByProfile.get(profile).containsKey(key))) {
+                if("key_file".equals(key)) {
+                    String keyFilename = accumulator.configurationsByProfile.get(profile).get(key);
+
+                    keyFilename = keyFilename.replace('\\', '/');
+                    if (keyFilename.startsWith("~/")) {
+                        keyFilename = System.getProperty("user.home").replace('\\', '/') + keyFilename.substring(1);
+                    } else if(!keyFilename.startsWith("/") && !(keyFilename.charAt(1) == ':' && keyFilename.charAt(2) == '/')) {
+                        if(workingDirectory != null) {
+                            try {
+                                keyFilename = new File(workingDirectory, keyFilename).getCanonicalPath();
+                            } catch (IOException ignored) {
+                            }
+                        }
+                    }
+
+                    accumulator.configurationsByProfile.get(profile).put("key_file",keyFilename);
+
+                    return keyFilename;
+                }
+
                 return accumulator.configurationsByProfile.get(profile).get(key);
             }
+
             return accumulator.foundDefaultProfile
                     ? accumulator.configurationsByProfile.get(DEFAULT_PROFILE_NAME).get(key)
                     : null;
@@ -90,6 +114,30 @@ public final class DRAGONConfigFile {
 
         public String getProfile() {
             return profile;
+        }
+
+        public void setWorkingDirectory(File workingDirectory, String profile) {
+            this.workingDirectory = workingDirectory;
+
+            final String key = "key_file";
+
+            if( profile != null && accumulator.configurationsByProfile.get(profile).containsKey(key) ) {
+                String keyFilename = accumulator.configurationsByProfile.get(profile).get(key);
+
+                keyFilename = keyFilename.replace('\\', '/');
+                if (keyFilename.startsWith("~/")) {
+                    keyFilename = System.getProperty("user.home").replace('\\', '/') + keyFilename.substring(1);
+                } else if(!keyFilename.startsWith("/") && !(keyFilename.charAt(1) == ':' && keyFilename.charAt(2) == '/')) {
+                    if(workingDirectory != null) {
+                        try {
+                            keyFilename = new File(workingDirectory, keyFilename).getCanonicalPath();
+                        } catch (IOException ignored) {
+                        }
+                    }
+                }
+
+                accumulator.configurationsByProfile.get(profile).put("key_file",keyFilename);
+            }
         }
     }
 

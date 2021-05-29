@@ -789,13 +789,6 @@ public class DSSession {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_KEY_FILE);
             } else {
-                keyFilename = keyFilename.replace('\\', '/');
-                if (keyFilename.startsWith("~/")) {
-                    keyFilename = System.getProperty("user.home").replace('\\', '/') + keyFilename.substring(1);
-                } else if(!keyFilename.startsWith("/") && !(keyFilename.charAt(1) == ':' && keyFilename.charAt(2) == '/')) {
-                    keyFilename = new File(workingDirectory,keyFilename).getAbsolutePath();
-                }
-
                 final File keyFile = new File(keyFilename);
                 if (!keyFile.exists()) {
                     section.printlnKO();
@@ -933,7 +926,7 @@ public class DSSession {
         try {
             section = Section.OCIConnection;
             section.print("authentication pending");
-            provider = new ConfigFileAuthenticationDetailsProvider(configFile.getConfigurationFilePath(), configFile.getProfile());
+            provider = new DRAGONConfigFileAuthenticationDetailsProvider(configFile.getConfigurationFilePath(), configFile.getProfile(), configFile);
 
             section.print("database pending");
 
@@ -963,6 +956,7 @@ public class DSSession {
         } catch (IllegalArgumentException iae) {
             if (iae.getMessage().startsWith("Could not find private key")) {
                 section.printlnKO("private key not found");
+                iae.printStackTrace();
                 throw new OCIAPIAuthenticationPrivateKeyNotFoundException(configFile.get(CONFIG_KEY_FILE));
             }
 
