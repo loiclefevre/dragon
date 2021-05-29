@@ -43,9 +43,8 @@ chmod +x dragon-osx-*
 sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.1.0
 ```
 
-### GraalVM Native Image Compression
-You can get more information in my [post on the GraalVM blog](https://medium.com/graalvm/compressed-graalvm-native-images-4d233766a214):
-![](https://miro.medium.com/max/2400/1*c7_AtDmmZ9tG5OG23EeLDw.png)
+### Getting Started
+To get started, you can go through the [DRAGON LiveLabs](https://apexapps.oracle.com/pls/apex/f?p=133:100:18510335025442::::SEARCH:DRAGON).
 
 ### Changelog
 See the changelog [here](./CHANGELOG.md).
@@ -314,4 +313,9 @@ I would like to thank the people that contributed to this project:
 - [Jon Russel](https://github.com/jon-russell): for creating the DRAGON logo :)
 - [Kay Malcolm](https://github.com/kaymalcolm), [T. McGinn](https://github.com/tmcginn), and [Kamryn V.](https://github.com/kamryn-v): for the energy, the motivation and the Live Labs!!! :)
 
+### GraalVM Native Image Compression
+You can get more information in my [post on the GraalVM blog](https://medium.com/graalvm/compressed-graalvm-native-images-4d233766a214):
+![](https://miro.medium.com/max/2400/1*c7_AtDmmZ9tG5OG23EeLDw.png)
+
 ![](./www/dragon-logo.png)
+
