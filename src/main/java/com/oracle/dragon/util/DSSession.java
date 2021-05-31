@@ -1117,7 +1117,13 @@ public class DSSession {
                                 break;
 
                             case Linux:
-                                if (link.contains("linux")) {
+                                if (link.contains("linux-x86_64")) {
+                                    downloaded = downloadRelease(link);
+                                }
+                                break;
+
+                            case LinuxARM:
+                                if (link.contains("linux-aarch_64")) {
                                     downloaded = downloadRelease(link);
                                 }
                                 break;
@@ -1135,7 +1141,7 @@ public class DSSession {
                     if (downloaded) {
                         final String fileName = link.substring(link.lastIndexOf('/') + 1);
 
-                        if (platform == Platform.Linux || platform == Platform.MacOS) {
+                        if (platform == Platform.Linux || platform == Platform.LinuxARM || platform == Platform.MacOS) {
                             final File release = new File(".", fileName);
 
                             // make it executable!
