@@ -80,6 +80,21 @@ public class JDKRequirement extends AbstractRequirement {
 								"export PATH=${JAVA_HOME}/bin:$PATH"
 						};
 
+			case LinuxARM:
+				return majorVersion >= 11 ? new String[]{
+						"wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java11-linux-aarch64-"+GRAALVM_VERSION+".tar.gz",
+						"tar -xvf graalvm-ce-java11-linux-aarch64-"+GRAALVM_VERSION+".tar.gz",
+						"export JAVA_HOME=\"`pwd`/graalvm-ce-java11-"+GRAALVM_VERSION+"\"",
+						"export PATH=${JAVA_HOME}/bin:$PATH"
+				}
+						:
+						new String[]{
+								"wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java8-linux-aarch64-"+GRAALVM_VERSION+".tar.gz",
+								"tar -xvf graalvm-ce-java8-linux-aarch64-"+GRAALVM_VERSION+".tar.gz",
+								"export JAVA_HOME=\"`pwd`/graalvm-ce-java8-"+GRAALVM_VERSION+"\"",
+								"export PATH=${JAVA_HOME}/bin:$PATH"
+						};
+
 			case Windows:
 				return majorVersion >= 11 ? new String[]{
 						"powershell wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java11-windows-amd64-"+GRAALVM_VERSION+".zip -OutFile graalvm-ce-java11-windows-amd64-"+GRAALVM_VERSION+".zip",
@@ -96,19 +111,12 @@ public class JDKRequirement extends AbstractRequirement {
 						};
 
 			case MacOS:
-				return majorVersion >= 11 ? new String[]{
+				return new String[]{
 						"curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java11-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
 						"tar -xvf graalvm-ce-java11-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
 						"export JAVA_HOME=\"`pwd`/graalvm-ce-java11-"+GRAALVM_VERSION+"\"",
 						"export PATH=${JAVA_HOME}/bin:$PATH"
-				}
-						:
-						new String[]{
-								"curl -L -O https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-"+GRAALVM_VERSION+"/graalvm-ce-java8-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
-								"tar -xvf graalvm-ce-java8-darwin-amd64-"+GRAALVM_VERSION+".tar.gz",
-								"export JAVA_HOME=\"`pwd`/graalvm-ce-java8-"+GRAALVM_VERSION+"\"",
-								"export PATH=${JAVA_HOME}/bin:$PATH"
-						};
+				};
 		}
 
 		return new String[]{"No command"};

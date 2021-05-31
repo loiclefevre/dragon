@@ -107,6 +107,7 @@ public class DSSession {
         Windows,
         Linux,
         MacOS,
+        LinuxARM,
         Unsupported
     }
 
@@ -272,13 +273,23 @@ public class DSSession {
                 //ignored.printStackTrace();
             }
         } else if (osName.startsWith("linux")) {
-            platform = Platform.Linux;
             System.setProperty("java.awt.headless", "true");
 
-            if (System.getenv("CLOUD_SHELL_TOOL_SET") != null && System.getenv("OCI_REGION") != null && System.getenv("OCI_TENANCY") != null) {
-                OCICloudShell = true;
-            } else {
+            final String osArchitecture = System.getProperty("os.arch").toLowerCase();
+
+            if(osArchitecture.equals("aarch64")) {
+                platform = Platform.LinuxARM;
+
                 OCICloudShell = false;
+            }
+            else {
+                platform = Platform.Linux;
+
+                if (System.getenv("CLOUD_SHELL_TOOL_SET") != null && System.getenv("OCI_REGION") != null && System.getenv("OCI_TENANCY") != null) {
+                    OCICloudShell = true;
+                } else {
+                    OCICloudShell = false;
+                }
             }
         } else if (osName.startsWith("mac os")) {
             platform = Platform.MacOS;

@@ -37,6 +37,7 @@ public class SQLCLRequirement extends AbstractRequirement {
     public String[] getCommands(DSSession.Platform platform, boolean ociCloudShell) {
         switch (platform) {
             case Linux:
+            case LinuxARM:
                 return new String[]{
                         "wget https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-latest.zip",
                         "unzip sqlcl-latest.zip",

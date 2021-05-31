@@ -48,6 +48,14 @@ public class NodeRequirement extends AbstractRequirement {
 								"export PATH=\"`pwd`\"/node-v"+NODEJS_VERSION+"-linux-x64/bin:$PATH"
 						};
 
+			case LinuxARM:
+				return new String[]{
+						"wget https://nodejs.org/dist/v"+NODEJS_VERSION+"/node-v"+NODEJS_VERSION+"-linux-arm64.tar.xz",
+						"tar -xvf node-v"+NODEJS_VERSION+"-linux-arm64.tar.xz",
+						"export PATH=\"`pwd`\"/node-v"+NODEJS_VERSION+"-linux-arm64/bin:$PATH"
+				};
+
+
 			case Windows:
 				return new String[]{
 						"powershell wget https://nodejs.org/dist/v"+NODEJS_VERSION+"/node-v"+NODEJS_VERSION+"-win-x64.zip -OutFile node-v"+NODEJS_VERSION+"-win-x64.zip",
