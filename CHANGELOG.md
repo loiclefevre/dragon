@@ -1,3 +1,13 @@
+# v2.1.1 - 2021.05.31
+## New features
+- added support for microservice Stacks
+- added LiveLabs #2 (-cra#lab2)
+- added DRAGON based LiveLabs link in the README.md file
+
+## Fixes
+- fixed private key configuration when local path is being used (specifically for data loading from stacks)
+
+
 # v2.1.0 - 2021.05.26
 ## New features
 - added support for Oracle JavaScript Extension Toolkit with the -create-jet-app command line option - huge thanks to Paolo Bellardone!
