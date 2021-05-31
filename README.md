@@ -254,7 +254,7 @@ For [React](https://reactjs.org/) frontend:
 Over time, additional templates are being released to improve the existing base stacks. These _overrides_ can be discovered in the [stacks](./stacks/) folder.
 
 The [lab2](./stacks/create-react-app/lab2) for example extends the default [React](https://reactjs.org/) frontend stack with a [React-Table](https://react-table.tanstack.com/):
-![](./www/react-table-for-json-documents)
+![](./www/react-table-for-json-documents.png)
 
 
 ### Oracle JavaScript Extension Toolkit frontend
