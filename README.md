@@ -250,6 +250,13 @@ For [React](https://reactjs.org/) frontend:
 ./ngrok http 3000
 ``` 
 
+#### Overriding this stack
+Over time, additional templates are being released to improve the existing base stacks. These _overrides_ can be discovered in the [stacks](./stacks/) folder.
+
+The [lab2](./stacks/create-react-app/lab2) for example extends the default [React](https://reactjs.org/) frontend stack with a [React-Table](https://react-table.tanstack.com/):
+![](./www/react-table-for-json-documents)
+
+
 ### Oracle JavaScript Extension Toolkit frontend
 
 As of v2.1.0, DRAGON can now generate [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) stacks. 
