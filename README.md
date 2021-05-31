@@ -37,6 +37,7 @@ rm -f ./dragon-linux-aarch_64-2.1.1
 wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-linux-aarch_64-2.1.1
 chmod +x dragon-linux-*
 ```
+Learn about [Always Free cloud services](https://www.oracle.com/cloud/free/) now including free ARM Ampere A1 Compute shapes (up to 4 cores and up to 24 GB or RAM).
 
 ### Windows
 ```
