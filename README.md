@@ -319,9 +319,12 @@ __[Converged](https://www.youtube.com/watch?v=yBWgb_oh39U)__, it means, you get 
  
 Autonomous Database can be:
  - __[Always Free](https://signup.oraclecloud.com/?language=en)__ Autonomous Transaction Processing (ATP, aka Converged Database)
+ - __[Always Free](https://signup.oraclecloud.com/?language=en)__ Autonomous JSON Database (AJP, same as ATP 25% the price in case you upgrade to the paid version and limited to 20 GB of relational data)
+ - __[Always Free](https://signup.oraclecloud.com/?language=en)__ Autonomous Application Express (APEX, the Low-Code application development environment)
  - __[Always Free](https://signup.oraclecloud.com/?language=en)__ Autonomous Data Warehouse (ADW)
- - Autonomous JSON Database (AJD)
  - Autonomous Transaction Processing (ATP)
+ - Autonomous JSON Database (AJD)
+ - Autonomous Application Express (APEX)
  - Autonomous Data Warehouse
 
 
