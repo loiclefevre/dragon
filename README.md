@@ -17,7 +17,7 @@ __... in 5 minutes.__
 - [Run](#run)
 - [Managed Stacks](#stacks)
 
-![](./www/dragon-cra.png)
+![](./www/dragon-cra-small.gif)
 
 [Youtube! overview](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
