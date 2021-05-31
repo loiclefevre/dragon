@@ -365,4 +365,3 @@ You can get more information in my [post on the GraalVM blog](https://medium.com
 ![](https://miro.medium.com/max/2400/1*c7_AtDmmZ9tG5OG23EeLDw.png)
 
 ![](./www/dragon-logo.png)
-
