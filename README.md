@@ -44,7 +44,7 @@ sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.1.0
 ```
 
 ### Getting Started
-To get started, you can go through the [DRAGON LiveLabs]("https://apexapps.oracle.com/pls/apex/f?p=133:100:18510335025442::::SEARCH:DRAGON").
+To get started, you can go through the [DRAGON LiveLabs](https://apexapps.oracle.com/pls/apex/f?p=133%3A100%3A18510335025442%3A%3A%3A%3ASEARCH%3ADRAGON).
 
 ### Changelog
 See the changelog [here](./CHANGELOG.md).
