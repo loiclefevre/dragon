@@ -163,6 +163,11 @@ Linux and OCI Cloud Shell:
 $ ./dragon-linux-x86_64-2.1.1
 ```
 
+Linux on ARM infrastructure:
+```
+$ ./dragon-linux-aarch_64-2.1.1
+```
+
 Windows:
 ```
 > dragon-windows-x86_64-2.1.1.exe
