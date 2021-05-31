@@ -215,6 +215,14 @@ $ ./dragon-linux-x86_64-2.1.1 -destroy
 
 ## Stacks
 
+DRAGON Stack manager as its name implies is able to deploy complete Stacks. These stacks contain the database as well as **application source code**.
+
+The following **application examples** are supported:
+- [React frontend](#react-frontend) connected to the database using API endpoints
+- [Oracle JET frontend](#oracle-javascript-extension-toolkit-frontend) connected to the database using API endpoints
+- [Spring-Boot petclinic webapp](#spring-boot-petclinic-webapp) connected to the database using JDBC API
+- [Micro-Service backend](#micro-service-backend) to override specifically with prebuilt templates
+
 ### React frontend
 
 As of v2.0.1, DRAGON can now generate stacks. The very first stack proposed is a [React](https://reactjs.org/) frontend.
@@ -290,6 +298,10 @@ For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
 ```
 ./ngrok http 8080
 ``` 
+
+### Micro-Service backend
+
+
 
 ## Why Autonomous Database for Developers?
 
