@@ -253,9 +253,12 @@ For [React](https://reactjs.org/) frontend:
 #### Overriding this stack
 Over time, additional templates are being released to improve the existing base stacks. These _overrides_ can be discovered in the [stacks](./stacks/) folder.
 
+```
+$ ./dragon-linux-x86_64-2.1.1 -create-react-app#lab2 myfrontend
+```
+
 The [lab2](./stacks/create-react-app/lab2) for example extends the default [React](https://reactjs.org/) frontend stack with a [React-Table](https://react-table.tanstack.com/):
 ![](./www/react-table-for-json-documents.png)
-
 
 ### Oracle JavaScript Extension Toolkit frontend
 
@@ -308,7 +311,14 @@ For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
 
 ### Micro-Service backend
 
+**Micro**-service backend can now be deployed using the DRAGON Stack manager. Because of the relative complexity of such eco-system, DRAGON will not come with default microservice templates but instead provide, through its **override** mechanism,
+a set of [templates](./stacks/create-micro-service/).
 
+```
+$ ./dragon-linux-x86_64-2.1.1 -create-micro-service#json-po-generator
+```
+
+Running this command will provide you a simple micro-service that can be used for demoing JSON data ingestion in Oracle Autonomous databases using the Simple Oracle Document Access API.   
 
 ## Why Autonomous Database for Developers?
 
