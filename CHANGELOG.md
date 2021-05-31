@@ -1,7 +1,9 @@
 # v2.1.1 - 2021.05.31
 ## New features
 - added support for microservice Stacks
-- added LiveLabs #2 (-cra#lab2)
+- added support for **Overrides** (allow to override a base Stack template)
+  - added LiveLabs #2 (-cra#lab2) override: get a React-Table to display JSON documents
+  - added micro-service override that loads random JSON documents into Oracle Autonomous databases (-cms#json-po-generator)
 - added DRAGON based LiveLabs link in the README.md file
 
 ## Fixes
