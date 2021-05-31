@@ -13,7 +13,6 @@ __... in 5 minutes.__
 # 30 seconds installation steps
 
 - Download [Linux x86 and OCI Cloud Shell](#linux-and-oci-cloud-shell) | [Linux ARM](#linux-arm) | [Windows](#windows) | [MAC OS](#mac-os)
-  - Upgrade using the __-upgrade__ command (since v2.0.2)
 - [Configure](#configure)
 - [Run](#run)
 - [Managed Stacks](#stacks)
