@@ -21,26 +21,26 @@ __... in 5 minutes.__
 [![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
-The latest stable release is v2.1.0.
+The latest stable release is v2.1.1.
 
 ### Linux and OCI Cloud Shell
 ```
-rm -f ./dragon-linux-x86_64-2.1.0
-wget https://github.com/loiclefevre/dragon/releases/download/v2.1.0/dragon-linux-x86_64-2.1.0
+rm -f ./dragon-linux-x86_64-2.1.1
+wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-linux-x86_64-2.1.1
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
 
 ### Windows
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.1.0/dragon-windows-x86_64-2.1.0.exe -OutFile dragon-windows-x86_64-2.1.0.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-windows-x86_64-2.1.1.exe -OutFile dragon-windows-x86_64-2.1.1.exe
 ```
 ### MAC OS
 *You'd need to [notarize](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution) the application once downloaded*
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.1.0/dragon-osx-x86_64-2.1.0
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-osx-x86_64-2.1.1
 chmod +x dragon-osx-*
-sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.1.0
+sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.1.1
 ```
 
 ### Getting Started
@@ -151,17 +151,17 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.1.0
+$ ./dragon-linux-x86_64-2.1.1
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.1.0.exe
+> dragon-windows-x86_64-2.1.1.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.1.0
+$ ./dragon-osx-x86_64-2.1.1
 ```
 
 ### Oracle Cloud Infrastructure Policy
@@ -184,12 +184,12 @@ If you need to create JSON collections during the provisioning process, you may 
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.0 -loadjson
+$ ./dragon-linux-x86_64-2.1.1 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.0 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.1.1 -loadjson -create-react-app myfrontend
 ```
 
 ### Loading CSV data
@@ -198,19 +198,19 @@ If you need to load CSV data into tables during the provisioning process (or eve
 
 To load CSV data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.0 -loadcsv
+$ ./dragon-linux-x86_64-2.1.1 -loadcsv
 ```
 
 To load CSV data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.0 -loadcsv -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.1.1 -loadcsv -create-react-app myfrontend
 ```
 
 ### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.0 -destroy
+$ ./dragon-linux-x86_64-2.1.1 -destroy
 ```
 
 ## Stacks
@@ -244,7 +244,7 @@ For [React](https://reactjs.org/) frontend:
 
 ### Oracle JavaScript Extension Toolkit frontend
 
-As of v2.1.0, DRAGON can now generate [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) stacks. 
+As of v2.1.1, DRAGON can now generate [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) stacks. 
 Thanks a lot to [Paolo Bellardone](https://github.com/paolobellardone) for doing this integration inside DRAGON!    
 
 Giving this result in your browser:
