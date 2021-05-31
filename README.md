@@ -12,7 +12,7 @@ __... in 5 minutes.__
 
 # 30 seconds installation steps
 
-- Download [Linux](#linux-and-oci-cloud-shell) | [Windows](#windows) | [MAC OS](#mac-os)
+- Download [Linux x86 and OCI Cloud Shell](#linux-and-oci-cloud-shell) | [Linux ARM](#linux-arm) | [Windows](#windows) | [MAC OS](#mac-os)
   - Upgrade using the __-upgrade__ command (since v2.0.2)
 - [Configure](#configure)
 - [Run](#run)
@@ -30,6 +30,13 @@ wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-linux
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
+
+### Linux ARM
+```
+rm -f ./dragon-linux-aarch_64-2.1.1
+wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-linux-aarch_64-2.1.1
+chmod +x dragon-linux-*
+```
 
 ### Windows
 ```
