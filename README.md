@@ -18,7 +18,9 @@ __... in 5 minutes.__
 - [Run](#run)
 - [Managed Stacks](#stacks)
 
-[![DRAGON Stack - React Frontend / Autonomous Backend](https://img.youtube.com/vi/DzI9yyAiRjY/0.jpg)](https://www.youtube.com/watch?v=DzI9yyAiRjY)
+![](./www/dragon-cra.gif)
+
+[Youtube! overview](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
 The latest stable release is v2.1.1.
