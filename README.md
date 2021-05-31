@@ -267,6 +267,7 @@ $ ./dragon-linux-x86_64-2.1.1 -create-react-app#lab2 myfrontend
 ```
 
 The [lab2](./stacks/create-react-app/lab2) for example extends the default [React](https://reactjs.org/) frontend stack with a [React-Table](https://react-table.tanstack.com/):
+
 ![](./www/react-table-for-json-documents.png)
 
 ### Oracle JavaScript Extension Toolkit frontend
