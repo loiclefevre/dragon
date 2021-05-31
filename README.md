@@ -244,7 +244,7 @@ For [React](https://reactjs.org/) frontend:
 
 ### Oracle JavaScript Extension Toolkit frontend
 
-As of v2.1.1, DRAGON can now generate [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) stacks. 
+As of v2.1.0, DRAGON can now generate [Oracle JET](https://www.oracle.com/webfolder/technetwork/jet/index.html) stacks. 
 Thanks a lot to [Paolo Bellardone](https://github.com/paolobellardone) for doing this integration inside DRAGON!    
 
 Giving this result in your browser:
