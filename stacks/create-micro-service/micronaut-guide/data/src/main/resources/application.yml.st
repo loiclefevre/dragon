@@ -7,7 +7,7 @@ micronaut:
       nThreads: 20
 datasources:
   default:
-    # ocid: <2>
+    ocid: <config.ocid>
     walletPassword: <config.dbUserPassword>
     username: <config.dbUserName>
     password: <config.dbUserPassword>
