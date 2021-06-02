@@ -4,6 +4,9 @@
   "skipDirectoryLevel": 1,
   "codePatchers": ["POMAnalyzer"],
   "files": [
-
+    "src/",
+    "src/main/",
+    "src/main/resources/",
+    "src/main/resources/application.yml"
   ]
 }
