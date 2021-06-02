@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
-import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
 import com.oracle.bmc.database.DatabaseClient;
 import com.oracle.bmc.database.DatabaseWaiters;
 import com.oracle.bmc.database.model.*;
@@ -68,7 +67,7 @@ public class DSSession {
     /**
      * Current version.
      */
-    public static final String VERSION = "2.1.1";
+    public static final String VERSION = "2.2.0";
 
     public static final String CONFIGURATION_FILENAME = "dragon.config";
     public static final String LOCAL_CONFIGURATION_FILENAME = "local_dragon.config.json";
@@ -277,12 +276,11 @@ public class DSSession {
 
             final String osArchitecture = System.getProperty("os.arch").toLowerCase();
 
-            if(osArchitecture.equals("aarch64")) {
+            if (osArchitecture.equals("aarch64")) {
                 platform = Platform.LinuxARM;
 
                 OCICloudShell = false;
-            }
-            else {
+            } else {
                 platform = Platform.Linux;
 
                 if (System.getenv("CLOUD_SHELL_TOOL_SET") != null && System.getenv("OCI_REGION") != null && System.getenv("OCI_TENANCY") != null) {
@@ -442,7 +440,7 @@ public class DSSession {
                 case "-ct":
                 case "--ct":
                     section.printlnOK();
-                    final boolean hasToCreateKeys = checkForArgument(args, new String[]{"-create-keys", "--create-keys","-ck","--ck"});
+                    final boolean hasToCreateKeys = checkForArgument(args, new String[]{"-create-keys", "--create-keys", "-ck", "--ck"});
                     printlnConfigurationTemplate(hasToCreateKeys, Section.CreateKeys);
                     System.exit(0);
                     break;
@@ -567,7 +565,7 @@ public class DSSession {
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "react" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]            \tcreates a " + ANSI_VSC_BLUE + "React" + ANSI_RESET + " frontend (default name: frontend, overrides supported)");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "jet" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "app" + ANSI_RESET + " [name]                \tcreates an " + ANSI_BRIGHT_RED + "Oracle JET" + ANSI_RESET + " frontend (default name: frontend)");
         println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "spring" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "boot" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "petclinic" + ANSI_RESET + " [name]\tcreates the " + ANSI_BRIGHT_GREEN + "Spring Boot" + ANSI_RESET + " Petclinic (default name: petclinic)");
-        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "micro" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "service" + ANSI_VSC_DASH  + ANSI_RESET + " [name]        \tcreates a " + ANSI_BRIGHT_WHITE + "Micro Service" + ANSI_RESET + " (default name: backend, overrides supported)");
+        println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "create" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "micro" + ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "service" + ANSI_VSC_DASH + ANSI_RESET + " [name]        \tcreates a " + ANSI_BRIGHT_WHITE + "Microservice" + ANSI_RESET + " (default name: backend, overrides supported)");
         println("                                    \t . If supported, overrides default stack using #<extension name>, examples:");
         println("                                    \t   . -create-react-app#lab2");
         println("                                    \t   . -create-micro-service#json-po-generator <name>");
@@ -578,7 +576,7 @@ public class DSSession {
         try {
             final String latestVersion = upgradeOrGetLastVersion(false);
             if (!VERSION.equals(latestVersion) && Version.isAboveVersion(latestVersion, VERSION)) {
-                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform: v" + latestVersion);
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the " + ANSI_BRIGHT + "latest version for your platform: v" + latestVersion + ANSI_RESET);
             } else {
                 println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... but you're already up to date :)");
             }
@@ -1036,7 +1034,7 @@ public class DSSession {
         }
 
         if ((operation == Operation.CreateDatabase || operation == Operation.LoadDataJSON) && createStack) {
-            final CodeGenerator c = new CodeGenerator(stackType, stackName, stackOverride, localConfiguration);
+            final CodeGenerator c = new CodeGenerator(stackType, stackName, stackOverride, localConfiguration, profileName, this.configFile.getConfigFilename());
             c.work();
         }
     }
@@ -1949,7 +1947,9 @@ public class DSSession {
     }
 
     private String getConfigurationAsJSON(AutonomousDatabase adb, ADBRESTService rSQLS, boolean local, File walletFile) {
-        return String.format("{\"databaseServiceURL\": \"%s\",\n" +
+        return String.format("{\n" +
+                        "\"ocid\": \"%s\",\n" +
+                        "\"databaseServiceURL\": \"%s\",\n" +
                         "\"sqlDevWebAdmin\": \"%s\",\n" +
                         "\"sqlDevWeb\": \"%s\",\n" +
                         "\"apexURL\": \"%s\",\n" +
@@ -1963,6 +1963,7 @@ public class DSSession {
                         (local ? ",\n\"dbName\": \"%s\",\n\"dbUserName\": \"%s\",\n\"dbUserPassword\": \"%s\"" + (walletFile != null ? ",\n\"walletFile\": \"%s\",\n\"extractedWallet\": \"%s\"" : "%s%s")
                                 : "") +
                         "}",
+                adb.getId(),
                 adb.getServiceConsoleUrl(),
                 adb.getConnectionUrls().getSqlDevWebUrl(),
                 adb.getConnectionUrls().getSqlDevWebUrl().replaceAll("admin", databaseUserName.toLowerCase()),

@@ -3,6 +3,7 @@ package com.oracle.dragon.model;
 public class LocalDragonConfiguration {
     private String redirect;
 
+    private String ocid;
     private String databaseServiceURL;
     private String sqlDevWebAdmin;
     private String sqlDevWeb;
@@ -157,5 +158,13 @@ public class LocalDragonConfiguration {
 
     public void setRedirect(String redirect) {
         this.redirect = redirect;
+    }
+
+    public String getOcid() {
+        return ocid;
+    }
+
+    public void setOcid(String ocid) {
+        this.ocid = ocid;
     }
 }

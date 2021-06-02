@@ -30,7 +30,7 @@ public class JDKRequirement extends AbstractRequirement {
 
 					String javaVersion = (String) properties.get("JAVA_VERSION");
 					if (!Strings.isNullOrEmpty(javaVersion)) {
-						javaVersion = javaVersion.replaceAll("\"", "");
+						javaVersion = javaVersion.replaceAll("\"", "").split("_")[0];
 					}
 
 					Version version = new Version(javaVersion);
@@ -52,7 +52,7 @@ public class JDKRequirement extends AbstractRequirement {
 				throw new RuntimeException(pb + " (" + p.exitValue() + "):\n" + getProcessOutput(p.getInputStream()).toString());
 			}
 
-			return new Version(sb.toString().split("\n")[0].split(" ")[2].replaceAll("\"", "")).getMajor() >= majorVersion;
+			return new Version(sb.toString().split("\n")[0].split(" ")[2].replaceAll("\"", "").split("_")[0]).getMajor() >= majorVersion;
 		} catch (IOException | InterruptedException ignored) {
 		}
 

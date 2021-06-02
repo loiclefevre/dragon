@@ -40,14 +40,18 @@ public class CodeGenerator {
     private final String name;
     private final String override;
     private final LocalDragonConfiguration localConfiguration;
+    private final String profileName;
+    private final String configFilename;
     private DSSession.Section section;
     private StackMetadata stackMetadata;
 
-    public CodeGenerator(StackType type, String name, String override, LocalDragonConfiguration localConfiguration) {
+    public CodeGenerator(StackType type, String name, String override, LocalDragonConfiguration localConfiguration, String profileName, String configFilename) {
         this.type = type;
         this.name = name;
         this.override = override;
         this.localConfiguration = localConfiguration;
+        this.profileName = profileName;
+        this.configFilename = configFilename;
     }
 
     public void work() throws DSException {
@@ -122,6 +126,8 @@ public class CodeGenerator {
                     st.add("override", override);
                     st.add("executable", EXECUTABLE_NAME);
                     st.add("envRequirement", envRequirement);
+                    st.add("profile",profileName);
+                    st.add("dragonConfigFilename",configFilename);
 
                     System.out.println(st.render());
 
@@ -199,6 +205,8 @@ public class CodeGenerator {
                     st.add("stackName", name);
                     st.add("config", localConfiguration);
                     st.add("dbNameLower", localConfiguration.getDbName().toLowerCase());
+                    st.add("profile",profileName);
+                    st.add("dragonConfigFilename",configFilename);
 
                     for (String key : patchParameters.keySet()) {
                         st.add(key, patchParameters.get(key));
@@ -268,6 +276,8 @@ public class CodeGenerator {
             st.add("path", dest.getAbsolutePath());
             st.add("executable", EXECUTABLE_NAME);
             st.add("envRequirement", envRequirement);
+            st.add("profile",profileName);
+            st.add("dragonConfigFilename",configFilename);
 
             for (String key : patchParameters.keySet()) {
                 st.add(key, patchParameters.get(key));
@@ -394,6 +404,8 @@ public class CodeGenerator {
                 st.add("stackName", name);
                 st.add("config", localConfiguration);
                 st.add("dbNameLower", localConfiguration.getDbName().toLowerCase());
+                st.add("profile",profileName);
+                st.add("dragonConfigFilename",configFilename);
 
                 try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(new File(parent, realFilename))))) {
                     out.print(st.render());

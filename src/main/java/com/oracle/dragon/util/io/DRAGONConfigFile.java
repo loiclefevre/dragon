@@ -23,6 +23,7 @@ public final class DRAGONConfigFile {
         final File configFile = new File(workingDirectory, configurationFilePath);
         final ConfigFile config = parse(configFile.getAbsolutePath(), new FileInputStream(configFile), profile, StandardCharsets.UTF_8);
         config.setWorkingDirectory(workingDirectory,profile);
+        config.setConfigFilename(configFile.getCanonicalPath());
         return config;
     }
 
@@ -54,6 +55,7 @@ public final class DRAGONConfigFile {
         private final String profile;
         private final String configurationFilePath;
         private File workingDirectory;
+        private String configFilename;
 
         public ConfigFile(ConfigAccumulator accumulator, String profile, String configurationFilePath) {
             this.accumulator = accumulator;
@@ -138,6 +140,14 @@ public final class DRAGONConfigFile {
 
                 accumulator.configurationsByProfile.get(profile).put("key_file",keyFilename);
             }
+        }
+
+        public void setConfigFilename(String configFilename) {
+            this.configFilename = configFilename.replace('\\', '/');
+        }
+
+        public String getConfigFilename() {
+            return configFilename;
         }
     }
 
