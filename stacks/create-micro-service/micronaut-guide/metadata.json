@@ -7,6 +7,6 @@
     "src/",
     "src/main/",
     "src/main/resources/",
-    "src/main/resources/application.yml"
+    "src/main/resources/application.yml.st"
   ]
 }
