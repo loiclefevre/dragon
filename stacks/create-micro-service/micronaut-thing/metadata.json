@@ -1,0 +1,9 @@
+{
+  "requires": ["jdk11","mvn"],
+  "url": "https://guides.micronaut.io/latest/micronaut-oracle-autonomous-db-maven-java.zip",
+  "skipDirectoryLevel": 1,
+  "codePatchers": ["POMAnalyzer"],
+  "files": [
+
+  ]
+}

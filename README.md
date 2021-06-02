@@ -235,7 +235,7 @@ The following **application examples** are supported:
 - [React frontend](#react-frontend) connected to the database using API endpoints
 - [Oracle JET frontend](#oracle-javascript-extension-toolkit-frontend) connected to the database using API endpoints
 - [Spring-Boot petclinic webapp](#spring-boot-petclinic-webapp) connected to the database using JDBC API
-- [Micro-Service backend](#micro-service-backend) to override specifically with prebuilt templates
+- [Microservice backend](#microservice-backend) to override specifically with prebuilt templates
 
 ### React frontend
 
@@ -324,9 +324,9 @@ For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
 ./ngrok http 8080
 ``` 
 
-### Micro-Service backend
+### Microservice backend
 
-**Micro**-service backend can now be deployed using the DRAGON Stack manager. Because of the relative complexity of such eco-system, DRAGON will not come with default microservice templates but instead provide, through its **override** mechanism,
+**Microservice** backend can now be deployed using the DRAGON Stack manager. Because of the relative complexity of such eco-system, DRAGON will not come with default microservice templates but instead provide, through its **override** mechanism,
 a set of [templates](./stacks/create-micro-service/).
 
 ```
