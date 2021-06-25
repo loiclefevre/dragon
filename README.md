@@ -124,6 +124,11 @@ auth_token=<authentication token>
  # - adw     : Autonomous Data Warehouse
 # database_type=atpfree
 
+ # Autonomous Database Version:
+ # - 19c (default)
+ # - 21c
+database_version=19c
+
  # Uncomment to specify another database user name than dragon (default)
 # database_user_name=<your database user name>
 
