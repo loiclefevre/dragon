@@ -67,7 +67,7 @@ The microservice is configurable to test the performance impact of different fea
 
 General usage:
 ```
-java -Xmx4G -Xms4G -jar rtgenerator-1.0.3.jar <database service> <user> <password> <wallet path> <collection name> \
+java -Xmx4G -Xms4G -jar rtgenerator-1.0.4.jar <database service> <user> <password> <wallet path> <collection name> \
 <asynchronous transaction> <batch size> <number of threads> <append hint> <truncate collection at start time> <number of random JSON documents>
 ```
 
