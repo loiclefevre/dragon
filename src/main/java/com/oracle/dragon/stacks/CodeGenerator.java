@@ -304,7 +304,7 @@ public class CodeGenerator {
         for(EnvironmentRequirement er:stackMetadata.getRequires()) {
             section.print("requires "+er.name()+" for "+platform.name());
             if(er.isPresent(platform)) {
-                section.printlnOK();
+                section.printlnOK(er.name());
             } else {
 
                 help.append(er.getDescription());

@@ -27,7 +27,7 @@ public class SQLCLRequirement extends AbstractRequirement {
             final String[] temp = sb.substring(15).trim().split("\\.");
 
             return new Version(temp[0]+"."+temp[1]+"."+temp[2]).getMajor() >= majorVersion;
-        } catch (IOException | InterruptedException ignored) {
+        } catch (IOException | InterruptedException | RuntimeException ignored) {
         }
 
         return false;

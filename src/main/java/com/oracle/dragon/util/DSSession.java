@@ -594,12 +594,18 @@ public class DSSession {
             println("These keys (public and private) will be used for future connection to Oracle Cloud Infrastructure API endpoints.");
             String passPhrase = null;
             while (passPhrase == null || passPhrase.trim().length() == 0) {
-                print("Please enter a passphrase: ");
+                print("Please enter a passphrase ('#' char not allowed): ");
                 try {
                     System.in.reset();
                 } catch (IOException ignored) {
                 }
                 passPhrase = new Scanner(System.in).next();
+
+                // DRGN-83
+                if(passPhrase.contains("#")) {
+                    println("Warning: passphrase contains '#' char");
+                    passPhrase = null;
+                }
             }
 
             section.print("pending");
@@ -812,19 +818,47 @@ public class DSSession {
             if (Strings.isNullOrEmpty(this.configFile.get(CONFIG_TENANCY_ID))) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_TENANCY_ID);
+            } else { // DRGN-87
+                final String tenancyOCID = this.configFile.get(CONFIG_TENANCY_ID);
+                final String startingPattern = "ocid1.tenancy.oc1..";
+                if(!tenancyOCID.startsWith(startingPattern)) {
+                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_TENANCY_ID,startingPattern);
+                } else if(containsSeveralTimes(tenancyOCID,startingPattern)) {
+                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_TENANCY_ID,startingPattern);
+                }
             }
+
             if (Strings.isNullOrEmpty(this.configFile.get(CONFIG_COMPARTMENT_ID))) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_COMPARTMENT_ID);
+            } else { // DRGN-87
+                final String compartmentOCID = this.configFile.get(CONFIG_COMPARTMENT_ID);
+                final String startingPattern = "ocid1.compartment.oc1..";
+                if(!compartmentOCID.startsWith(startingPattern)) {
+                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_COMPARTMENT_ID,startingPattern);
+                } else if(containsSeveralTimes(compartmentOCID,startingPattern)) {
+                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_COMPARTMENT_ID,startingPattern);
+                }
             }
+
             if (Strings.isNullOrEmpty(this.configFile.get(CONFIG_DATABASE_PASSWORD))) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_DATABASE_PASSWORD);
             }
+
             if (Strings.isNullOrEmpty(this.configFile.get(CONFIG_USER))) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_USER);
+            } else { // DRGN-87
+                final String userOCID = this.configFile.get(CONFIG_USER);
+                final String startingPattern = "ocid1.user.oc1..";
+                if(!userOCID.startsWith(startingPattern)) {
+                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_USER,startingPattern);
+                } else if(containsSeveralTimes(userOCID,startingPattern)) {
+                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_USER,startingPattern);
+                }
             }
+
             if (Strings.isNullOrEmpty(this.configFile.get(CONFIG_AUTH_TOKEN))) {
                 section.printlnKO();
                 throw new ConfigurationMissesParameterException(CONFIG_AUTH_TOKEN);
@@ -844,6 +878,13 @@ public class DSSession {
             // Optional config file parameters
             if (!Strings.isNullOrEmpty(this.configFile.get(CONFIG_DATABASE_USER_NAME))) {
                 databaseUserName = this.configFile.get(CONFIG_DATABASE_USER_NAME);
+            }
+
+            // DRGN-86
+            final String databasePassword = this.configFile.get(CONFIG_DATABASE_PASSWORD);
+            if(databasePassword.contains(databaseUserName) || databasePassword.contains("admin")) {
+                section.printlnKO();
+                throw new ConfigurationDatabasePasswordContainsDatabaseUsernameException(databaseUserName);
             }
 
             if (!Strings.isNullOrEmpty(this.configFile.get(CONFIG_DATABASE_VERSION))) {
@@ -929,6 +970,18 @@ public class DSSession {
         }
 
         section.printlnOK();
+    }
+
+    private static boolean containsSeveralTimes(String string, String repeatPattern) {
+        int startPos = string.indexOf(repeatPattern);
+
+        if(startPos < 0) {
+            return false;
+        } else {
+            int nextPos = string.indexOf(repeatPattern,startPos+repeatPattern.length());
+
+            return nextPos > startPos;
+        }
     }
 
     private void initializeClients() throws DSException {
@@ -1893,9 +1946,11 @@ public class DSSession {
         try {
             rSQLS.execute(String.format("create user %s identified by \"%s\" DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
                     "alter user %s quota unlimited on data;\n" +
-                    "grant dwrole, create session, soda_app, alter session to %s;\n" +
+                    "grant dwrole, create session, soda_app, graph_developer, oml_developer, alter session, select_catalog_role to %s;\n" +
+                    "alter user %s grant connect through GRAPH$PROXY_USER;\n" +
+                    "alter user %s grant connect through OML$PROXY;\n" +
                     "grant execute on CTX_DDL to %s;\n" +
-                    "grant select on sys.v_$mystat to %s;\n" +
+                    "grant select any dictionary to %s;\n" +
                     "grant select on dba_rsrc_consumer_group_privs to %s;\n" +
                     "grant execute on dbms_session to %s;\n" +
                     "grant select on sys.v_$services to %s;\n" +
@@ -1904,7 +1959,12 @@ public class DSSession {
                     "BEGIN\n" +
                     "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => '%s', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => '%s', p_auto_rest_auth => TRUE);\n" +
                     "END;\n" +
-                    "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD), databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName.toUpperCase(), databaseUserName.toLowerCase()));
+                    "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD),
+                    databaseUserName,
+                    databaseUserName,
+                    databaseUserName,
+                    databaseUserName,
+                    databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName, databaseUserName.toUpperCase(), databaseUserName.toLowerCase()));
         } catch (RuntimeException re) {
             section.printlnKO();
             throw new DatabaseUserCreationFailedException(re);

@@ -52,7 +52,10 @@ public enum ErrorCode {
     NotAuthenticated(-50),
     ConfigurationWrongDatabaseVersion(-51),
     NotAuthorizedOrNotFound(-52),
-    SearchIndexConfigurationFailed(-53);
+    SearchIndexConfigurationFailed(-53),
+    ConfigurationDatabasePasswordContainsDatabaseUsername(-54),
+    ConfigurationOCIDNotStartingByExpectedPattern(-55),
+    ConfigurationOCIDContainsSeveralTimesTheExpectedPattern(-56);
 
     public final int internalErrorCode;
 

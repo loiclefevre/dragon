@@ -1,3 +1,13 @@
+# v2.2.0 - 2021.07.07
+## New features
+- added support for GraphStudio and Oracle Machine Learning for database user 
+- added configuration checks against tenancy, compartment and user ocid ensuring the values start with the expected patterns
+
+## Fixes
+- now database password is checked as it must not contain the database username or admin
+- SSH key passphrase is checked to ensure it doesn't contain any hashtag
+
+
 # v2.1.1 - 2021.05.31
 ## New features
 - added support for microservice Stacks
