@@ -1,7 +1,7 @@
 # v2.2.0 - 2021.07.07
 ## New features
-- added support for GraphStudio and Oracle Machine Learning for database user 
-- added configuration checks against tenancy, compartment and user ocid ensuring the values start with the expected patterns
+- added support for GraphStudio and Oracle Machine Learning for the database user 
+- added configuration checks against tenancy, compartment, and user ocid ensuring the values start with the expected patterns
 - added Maven 3.X requirement and installation steps
   
 ## Fixes

@@ -22,34 +22,34 @@ __... in 5 minutes.__
 [Youtube! overview](https://www.youtube.com/watch?v=DzI9yyAiRjY)
 
 ## Download
-The latest stable release is v2.1.1.
+The latest stable release is v2.2.0.
 
 ### Linux and OCI Cloud Shell
 ```
-rm -f ./dragon-linux-x86_64-2.1.1
-wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-linux-x86_64-2.1.1
+rm -f ./dragon-linux-x86_64-2.2.0
+wget https://github.com/loiclefevre/dragon/releases/download/v2.2.0/dragon-linux-x86_64-2.2.0
 chmod +x dragon-linux-*
 ```
 Learn about [OCI Cloud shell](https://docs.cloud.oracle.com/en-us/iaas/Content/API/Concepts/cloudshellintro.htm).
 
 ### Linux ARM
 ```
-rm -f ./dragon-linux-aarch_64-2.1.1
-wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-linux-aarch_64-2.1.1
+rm -f ./dragon-linux-aarch_64-2.2.0
+wget https://github.com/loiclefevre/dragon/releases/download/v2.2.0/dragon-linux-aarch_64-2.2.0
 chmod +x dragon-linux-*
 ```
 Learn about [Always Free cloud services](https://www.oracle.com/cloud/free/) now including free ARM Ampere A1 Compute shapes (up to 4 cores and up to 24 GB or RAM).
 
 ### Windows
 ```
-powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-windows-x86_64-2.1.1.exe -OutFile dragon-windows-x86_64-2.1.1.exe
+powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.2.0/dragon-windows-x86_64-2.2.0.exe -OutFile dragon-windows-x86_64-2.2.0.exe
 ```
 ### MAC OS
 *You'd need to [notarize](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution) the application once downloaded*
 ```
-curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.1.1/dragon-osx-x86_64-2.1.1
+curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.2.0/dragon-osx-x86_64-2.2.0
 chmod +x dragon-osx-*
-sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.1.1
+sudo xattr -r -d com.apple.quarantine dragon-osx-x86_64-2.2.0
 ```
 
 ### Getting Started
@@ -165,22 +165,22 @@ Example from OCI Cloud Shell (Linux):
 
 Linux and OCI Cloud Shell:
 ```
-$ ./dragon-linux-x86_64-2.1.1
+$ ./dragon-linux-x86_64-2.2.0
 ```
 
 Linux on ARM infrastructure:
 ```
-$ ./dragon-linux-aarch_64-2.1.1
+$ ./dragon-linux-aarch_64-2.2.0
 ```
 
 Windows:
 ```
-> dragon-windows-x86_64-2.1.1.exe
+> dragon-windows-x86_64-2.2.0.exe
 ```
 
 MAC OS:
 ```
-$ ./dragon-osx-x86_64-2.1.1
+$ ./dragon-osx-x86_64-2.2.0
 ```
 
 ### Oracle Cloud Infrastructure Policy
@@ -203,12 +203,12 @@ If you need to create JSON collections during the provisioning process, you may 
 
 To load JSON data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.1 -loadjson
+$ ./dragon-linux-x86_64-2.2.0 -loadjson
 ```
 
 To load JSON data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.1 -loadjson -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.2.0 -loadjson -create-react-app myfrontend
 ```
 
 ### Loading CSV data
@@ -217,19 +217,19 @@ If you need to load CSV data into tables during the provisioning process (or eve
 
 To load CSV data as well as provisioning (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.1 -loadcsv
+$ ./dragon-linux-x86_64-2.2.0 -loadcsv
 ```
 
 To load CSV data as well as provisioning and finally create a React application (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.1 -loadcsv -create-react-app myfrontend
+$ ./dragon-linux-x86_64-2.2.0 -loadcsv -create-react-app myfrontend
 ```
 
 ### Destroying your database
 
 To destroy your database (Linux and OCI Cloud Shell):
 ```
-$ ./dragon-linux-x86_64-2.1.1 -destroy
+$ ./dragon-linux-x86_64-2.2.0 -destroy
 ```
 
 ## Stacks
@@ -273,7 +273,7 @@ For [React](https://reactjs.org/) frontend:
 Over time, additional templates are being released to improve the existing base stacks. These _overrides_ can be discovered in the [stacks](./stacks/) folder.
 
 ```
-$ ./dragon-linux-x86_64-2.1.1 -create-react-app#lab2 myfrontend
+$ ./dragon-linux-x86_64-2.2.0 -create-react-app#lab2 myfrontend
 ```
 
 The [lab2](./stacks/create-react-app/lab2) for example extends the default [React](https://reactjs.org/) frontend stack with a [React-Table](https://react-table.tanstack.com/):
@@ -335,10 +335,10 @@ For [Spring-Boot](https://spring.io/projects/spring-boot) web application:
 a set of [templates](./stacks/create-micro-service/).
 
 ```
-$ ./dragon-linux-x86_64-2.1.1 -create-micro-service#json-po-generator
+$ ./dragon-linux-x86_64-2.2.0 -create-micro-service#json-po-generator
 ```
 
-Running this command will provide you a simple micro-service that can be used for demoing JSON data ingestion in Oracle Autonomous databases using the Simple Oracle Document Access API.   
+Running this command will provide you a simple micro-service that can be used for demoing JSON data ingestion in Oracle Autonomous databases using the Simple Oracle Document Access API (SODA).   
 
 ## Why Autonomous Database for Developers?
 
