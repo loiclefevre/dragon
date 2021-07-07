@@ -576,12 +576,12 @@ public class DSSession {
         try {
             final String latestVersion = upgradeOrGetLastVersion(false);
             if (!VERSION.equals(latestVersion) && Version.isAboveVersion(latestVersion, VERSION)) {
-                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the " + ANSI_BRIGHT + "latest version for your platform: v" + latestVersion + ANSI_RESET);
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the " + ANSI_BRIGHT + "latest version for your platform ("+platform+"): v" + latestVersion + ANSI_RESET);
             } else {
-                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... but you're already up to date :)");
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform ("+platform+")... but you're already up to date :)");
             }
         } catch (DSException dse) {
-            println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform... (if available)");
+            println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform ("+platform+")... (if available)");
         }
 
         displayHowToReportIssue();
@@ -1163,24 +1163,28 @@ public class DSSession {
                         switch (platform) {
                             case Windows:
                                 if (link.contains("windows")) {
+                                    section.print("downloading v" + latestVersion + " for Windows ...");
                                     downloaded = downloadRelease(link);
                                 }
                                 break;
 
                             case Linux:
                                 if (link.contains("linux-x86_64")) {
+                                    section.print("downloading v" + latestVersion + " for Linux x86_64 ...");
                                     downloaded = downloadRelease(link);
                                 }
                                 break;
 
                             case LinuxARM:
                                 if (link.contains("linux-aarch_64")) {
+                                    section.print("downloading v" + latestVersion + " for Linux ARM_64 ...");
                                     downloaded = downloadRelease(link);
                                 }
                                 break;
 
                             case MacOS:
                                 if (link.contains("osx")) {
+                                    section.print("downloading v" + latestVersion + " for MAC OS ...");
                                     downloaded = downloadRelease(link);
                                 }
                                 break;
