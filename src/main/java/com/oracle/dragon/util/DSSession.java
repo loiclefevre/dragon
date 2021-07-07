@@ -1688,7 +1688,7 @@ public class DSSession {
             final GetNamespaceResponse namespaceResponse = objectStorageClient.getNamespace(GetNamespaceRequest.builder().build());
             final String namespaceName = namespaceResponse.getValue();
 
-            final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName).compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
+            final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName); // DRGN-82: bucket name are unique across the tenant https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/managingbuckets.htm#bucketnames .compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
 
             String nextToken = null;
             boolean backupBucketExist = false;

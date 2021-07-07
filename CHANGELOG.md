@@ -2,10 +2,12 @@
 ## New features
 - added support for GraphStudio and Oracle Machine Learning for database user 
 - added configuration checks against tenancy, compartment and user ocid ensuring the values start with the expected patterns
-
+- added Maven 3.X requirement and installation steps
+  
 ## Fixes
 - now database password is checked as it must not contain the database username or admin
 - SSH key passphrase is checked to ensure it doesn't contain any hashtag
+- object storage bucket existence is checked across the whole tenant to ensure there is no duplication error
 
 
 # v2.1.1 - 2021.05.31

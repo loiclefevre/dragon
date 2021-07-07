@@ -63,7 +63,7 @@ public class MavenRequirement extends AbstractRequirement {
             case Windows:
                 return new String[]{
                         "powershell wget https://mirrors.ircam.fr/pub/apache/maven/maven-3/"+version+"/binaries/apache-maven-"+version+"-bin.zip -OutFile apache-maven-"+version+"-bin.zip",
-                        "powershell Expand-Archive -Path  apache-maven-"+version+"-bin.zip -DestinationPath .\\",
+                        "powershell Expand-Archive -Path apache-maven-"+version+"-bin.zip -DestinationPath .\\",
                         "set M2_HOME=%CD%\\apache-maven-"+version,
                         "set PATH=%M2_HOME%\\bin:%PATH%"
                 };
