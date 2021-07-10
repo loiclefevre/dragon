@@ -1692,7 +1692,8 @@ public class DSSession {
             final GetNamespaceResponse namespaceResponse = objectStorageClient.getNamespace(GetNamespaceRequest.builder().build());
             final String namespaceName = namespaceResponse.getValue();
 
-            final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName); // DRGN-82: bucket name are unique across the tenant https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/managingbuckets.htm#bucketnames .compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
+            // DRGN-82: bucket name are unique across the tenant https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/managingbuckets.htm#bucketnames
+            final ListBucketsRequest.Builder listBucketsBuilder = ListBucketsRequest.builder().namespaceName(namespaceName).compartmentId(configFile.get(CONFIG_COMPARTMENT_ID));
 
             String nextToken = null;
             boolean backupBucketExist = false;
@@ -1979,9 +1980,9 @@ public class DSSession {
         return region.replaceAll("_", "-").toLowerCase();
     }
 
-    private void createManualBucket(String namespaceName, String bucketName, boolean events) throws ObjectStorageBucketCreationFailedException {
+    private void createManualBucket(String namespaceName, String bucketName, boolean enableCloudEvents) throws ObjectStorageBucketCreationFailedException {
         CreateBucketRequest request = CreateBucketRequest.builder().namespaceName(namespaceName).createBucketDetails(
-                CreateBucketDetails.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).name(bucketName).objectEventsEnabled(events).build()
+                CreateBucketDetails.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).name(bucketName).objectEventsEnabled(enableCloudEvents).build()
         ).build();
 
         CreateBucketResponse response = objectStorageClient.createBucket(request);
