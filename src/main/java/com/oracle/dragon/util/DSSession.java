@@ -1772,13 +1772,13 @@ public class DSSession {
 
             if (loadJSON) {
                 section = Section.LoadDataIntoCollections;
-                loadDataIntoCollections(namespaceName, rSQLS);
+                loadDataIntoCollections(namespaceName, rSQLS, dragonBucketName);
                 section.printlnOK();
             }
 
             if (loadCSV) {
                 section = Section.LoadDataIntoTables;
-                loadDataIntoTables(namespaceName, rSQLS);
+                loadDataIntoTables(namespaceName, rSQLS, dragonBucketName);
                 section.printlnOK();
             }
 
@@ -1815,7 +1815,7 @@ public class DSSession {
 
         final ADBRESTService rSQLS = new ADBRESTService(localConfiguration.getSqlDevWeb(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
 
-        loadDataIntoCollections(namespaceName, rSQLS);
+        loadDataIntoCollections(namespaceName, rSQLS, localConfiguration.getUploadBucketName());
 
         section.printlnOK();
     }
@@ -1832,12 +1832,12 @@ public class DSSession {
 
         final ADBRESTService rSQLS = new ADBRESTService(localConfiguration.getSqlDevWeb(), databaseUserName.toUpperCase(), configFile.get(CONFIG_DATABASE_PASSWORD));
 
-        loadDataIntoTables(namespaceName, rSQLS);
+        loadDataIntoTables(namespaceName, rSQLS, localConfiguration.getUploadBucketName());
 
         section.printlnOK();
     }
 
-    private void loadDataIntoTables(final String namespaceName, final ADBRESTService rSQLS) throws DSException {
+    private void loadDataIntoTables(final String namespaceName, final ADBRESTService rSQLS, final String uploadBucketName) throws DSException {
         UploadConfiguration uploadConfiguration =
                 UploadConfiguration.builder()
                         .allowMultipartUploads(true)
@@ -1867,7 +1867,7 @@ public class DSSession {
 
                 PutObjectRequest request =
                         PutObjectRequest.builder()
-                                .bucketName("dragon")
+                                .bucketName(uploadBucketName)
                                 .namespaceName(namespaceName)
                                 .objectName(dbName + "/" + tableName + "/" + file.getName())
                                 .contentType("application/csv")
@@ -1920,10 +1920,10 @@ public class DSSession {
                                 "        i := i + 1;\n" +
                                 "    end loop;\n" +
                                 "        \n" +
-                                "    DBMS_CLOUD.COPY_DATA (table_name => '%s', credential_name => 'DRAGON_CREDENTIAL_NAME', file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*', schema_name => null, field_list => l_externalColumns, format => json_object('delimiter' value '%s', 'rejectlimit' value 'unlimited', 'skipheaders' value '1', 'dateformat' value 'yyyy-mm-dd', 'timestampformat' value 'yyyy-mm-dd hh:mi:ss', 'blankasnull' value 'true', 'ignoreblanklines' value 'true', 'removequotes' value 'true', 'recorddelimiter' value '''%s''' ) );\n" +
+                                "    DBMS_CLOUD.COPY_DATA (table_name => '%s', credential_name => 'DRAGON_CREDENTIAL_NAME', file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/%s/%s/*', schema_name => null, field_list => l_externalColumns, format => json_object('delimiter' value '%s', 'rejectlimit' value 'unlimited', 'skipheaders' value '1', 'dateformat' value 'yyyy-mm-dd', 'timestampformat' value 'yyyy-mm-dd hh:mi:ss', 'blankasnull' value 'true', 'ignoreblanklines' value 'true', 'removequotes' value 'true', 'recorddelimiter' value '''%s''' ) );\n" +
                                 "    COMMIT;\n" +
                                 "END;\n" +
-                                "/", tableName.toUpperCase(), tableDDL, tableName.toUpperCase(), tableName.toUpperCase(), getRegionForURL(), namespaceName, dbName, tableName, csvAnalyzerInputStream.getFieldSeparator(), csvAnalyzerInputStream.getRecordDelimiter());
+                                "/", tableName.toUpperCase(), tableDDL, tableName.toUpperCase(), tableName.toUpperCase(), getRegionForURL(), namespaceName, uploadBucketName, dbName, tableName, csvAnalyzerInputStream.getFieldSeparator(), csvAnalyzerInputStream.getRecordDelimiter());
 
                 //System.out.println(sql);
 
@@ -2093,7 +2093,7 @@ public class DSSession {
         );
     }
 
-    private void loadDataIntoCollections(String namespaceName, ADBRESTService rSQLS) throws DSException {
+    private void loadDataIntoCollections(String namespaceName, ADBRESTService rSQLS, String uploadBucketName) throws DSException {
         UploadConfiguration uploadConfiguration =
                 UploadConfiguration.builder()
                         .allowMultipartUploads(true)
@@ -2123,7 +2123,7 @@ public class DSSession {
 
                     PutObjectRequest request =
                             PutObjectRequest.builder()
-                                    .bucketName("dragon")
+                                    .bucketName(uploadBucketName)
                                     .namespaceName(namespaceName)
                                     .objectName(dbName + "/" + collectionName + "/" + file.getName())
                                     .contentType("application/json")
@@ -2171,10 +2171,10 @@ public class DSSession {
                                     "    DBMS_CLOUD.COPY_COLLECTION(\n" +
                                     "        collection_name => '%s',\n" +
                                     "        credential_name => 'DRAGON_CREDENTIAL_NAME',\n" +
-                                    "        file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/dragon/o/%s/%s/*',\n" +
+                                    "        file_uri_list => 'https://objectstorage.%s.oraclecloud.com/n/%s/b/%s/o/%s/%s/*',\n" +
                                     "        format => JSON_OBJECT('recorddelimiter' value '''\\n''', 'ignoreblanklines' value 'true') );\n" +
                                     "END;\n" +
-                                    "/", collectionName, getRegionForURL(), namespaceName, dbName, collectionName));
+                                    "/", collectionName, getRegionForURL(), namespaceName, uploadBucketName, dbName, collectionName));
                 } catch (RuntimeException re) {
                     section.printlnKO();
                     throw new CollectionNotLoadedException(collectionName, re);
