@@ -15,6 +15,8 @@ public class LocalDragonConfiguration {
     private String version;
     private String apexVersion;
     private String ordsVersion;
+    private String uploadBucketName;
+    private String manualBackupBucketName;
     private String dbName;
     private String dbUserName;
     private String dbUserPassword;
@@ -166,5 +168,21 @@ public class LocalDragonConfiguration {
 
     public void setOcid(String ocid) {
         this.ocid = ocid;
+    }
+
+    public String getUploadBucketName() {
+        return uploadBucketName;
+    }
+
+    public void setUploadBucketName(String uploadBucketName) {
+        this.uploadBucketName = uploadBucketName;
+    }
+
+    public String getManualBackupBucketName() {
+        return manualBackupBucketName;
+    }
+
+    public void setManualBackupBucketName(String manualBackupBucketName) {
+        this.manualBackupBucketName = manualBackupBucketName;
     }
 }

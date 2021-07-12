@@ -186,6 +186,9 @@ public class DSSession {
     private IdentityClient identityClient;
     private LimitsClient limitsClient;
 
+    private String backupBucketName;
+    private String dragonBucketName = "dragon";
+
     private String databaseUserName = "dragon";
 
     /**
@@ -576,12 +579,12 @@ public class DSSession {
         try {
             final String latestVersion = upgradeOrGetLastVersion(false);
             if (!VERSION.equals(latestVersion) && Version.isAboveVersion(latestVersion, VERSION)) {
-                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the " + ANSI_BRIGHT + "latest version for your platform ("+platform+"): v" + latestVersion + ANSI_RESET);
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the " + ANSI_BRIGHT + "latest version for your platform (" + platform + "): v" + latestVersion + ANSI_RESET);
             } else {
-                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform ("+platform+")... but you're already up to date :)");
+                println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform (" + platform + ")... but you're already up to date :)");
             }
         } catch (DSException dse) {
-            println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform ("+platform+")... (if available)");
+            println(ANSI_VSC_DASH + "-" + ANSI_VSC_BLUE + "upgrade" + ANSI_RESET + "                            \tto download the latest version for your platform (" + platform + ")... (if available)");
         }
 
         displayHowToReportIssue();
@@ -602,7 +605,7 @@ public class DSSession {
                 passPhrase = new Scanner(System.in).next();
 
                 // DRGN-83
-                if(passPhrase.contains("#")) {
+                if (passPhrase.contains("#")) {
                     println("Warning: passphrase contains '#' char");
                     passPhrase = null;
                 }
@@ -821,10 +824,10 @@ public class DSSession {
             } else { // DRGN-87
                 final String tenancyOCID = this.configFile.get(CONFIG_TENANCY_ID);
                 final String startingPattern = "ocid1.tenancy.oc1..";
-                if(!tenancyOCID.startsWith(startingPattern)) {
-                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_TENANCY_ID,startingPattern);
-                } else if(containsSeveralTimes(tenancyOCID,startingPattern)) {
-                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_TENANCY_ID,startingPattern);
+                if (!tenancyOCID.startsWith(startingPattern)) {
+                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_TENANCY_ID, startingPattern);
+                } else if (containsSeveralTimes(tenancyOCID, startingPattern)) {
+                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_TENANCY_ID, startingPattern);
                 }
             }
 
@@ -834,10 +837,10 @@ public class DSSession {
             } else { // DRGN-87
                 final String compartmentOCID = this.configFile.get(CONFIG_COMPARTMENT_ID);
                 final String startingPattern = "ocid1.compartment.oc1..";
-                if(!compartmentOCID.startsWith(startingPattern)) {
-                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_COMPARTMENT_ID,startingPattern);
-                } else if(containsSeveralTimes(compartmentOCID,startingPattern)) {
-                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_COMPARTMENT_ID,startingPattern);
+                if (!compartmentOCID.startsWith(startingPattern)) {
+                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_COMPARTMENT_ID, startingPattern);
+                } else if (containsSeveralTimes(compartmentOCID, startingPattern)) {
+                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_COMPARTMENT_ID, startingPattern);
                 }
             }
 
@@ -852,10 +855,10 @@ public class DSSession {
             } else { // DRGN-87
                 final String userOCID = this.configFile.get(CONFIG_USER);
                 final String startingPattern = "ocid1.user.oc1..";
-                if(!userOCID.startsWith(startingPattern)) {
-                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_USER,startingPattern);
-                } else if(containsSeveralTimes(userOCID,startingPattern)) {
-                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_USER,startingPattern);
+                if (!userOCID.startsWith(startingPattern)) {
+                    throw new ConfigurationOCIDNotStartingByExpectedPatternException(CONFIG_USER, startingPattern);
+                } else if (containsSeveralTimes(userOCID, startingPattern)) {
+                    throw new ConfigurationOCIDContainsSeveralTimesTheExpectedPatternException(CONFIG_USER, startingPattern);
                 }
             }
 
@@ -882,7 +885,7 @@ public class DSSession {
 
             // DRGN-86
             final String databasePassword = this.configFile.get(CONFIG_DATABASE_PASSWORD);
-            if(databasePassword.contains(databaseUserName) || databasePassword.contains("admin")) {
+            if (databasePassword.contains(databaseUserName) || databasePassword.contains("admin")) {
                 section.printlnKO();
                 throw new ConfigurationDatabasePasswordContainsDatabaseUsernameException(databaseUserName);
             }
@@ -975,10 +978,10 @@ public class DSSession {
     private static boolean containsSeveralTimes(String string, String repeatPattern) {
         int startPos = string.indexOf(repeatPattern);
 
-        if(startPos < 0) {
+        if (startPos < 0) {
             return false;
         } else {
-            int nextPos = string.indexOf(repeatPattern,startPos+repeatPattern.length());
+            int nextPos = string.indexOf(repeatPattern, startPos + repeatPattern.length());
 
             return nextPos > startPos;
         }
@@ -1499,6 +1502,12 @@ public class DSSession {
             }
 
             section.print("pending");
+            identityClient = new IdentityClient(provider);
+            GetUserResponse userResponse = identityClient.getUser(GetUserRequest.builder().userId(configFile.get(CONFIG_USER)).build());
+
+            final List<CustomerContact> customerContacts = new ArrayList<>();
+            customerContacts.add(CustomerContact.builder().email(userResponse.getUser().getEmail()).build());
+
             CreateAutonomousDatabaseDetails createFreeRequest = CreateAutonomousDatabaseDetails.builder()
                     .dbVersion(dbVersion)
                     .cpuCoreCount(1)
@@ -1515,6 +1524,7 @@ public class DSSession {
                             (licenseType == LicenseType.LicenseIncluded ? CreateAutonomousDatabaseBase.LicenseModel.LicenseIncluded : CreateAutonomousDatabaseBase.LicenseModel.BringYourOwnLicense))
                     .isPreviewVersionWithServiceTermsAccepted(Boolean.FALSE)
                     .isFreeTier(databaseType.isFree() ? Boolean.TRUE : Boolean.FALSE)
+                    .customerContacts(customerContacts)
                     .build();
 
             String workRequestId = null;
@@ -1549,6 +1559,8 @@ public class DSSession {
                 section.printlnKO();
                 throw new OCIDatabaseCreationCantProceedFurtherException(creationException);
             }
+
+            backupBucketName = "backup_" + dbName.toLowerCase();
 
             GetWorkRequestRequest getWorkRequestRequest = GetWorkRequestRequest.builder().workRequestId(workRequestId).build();
             boolean exit = false;
@@ -1643,11 +1655,7 @@ public class DSSession {
 
             // Save the local config file as early as possible in case of problems afterward so that one can destroy it
             section = Section.LocalConfiguration;
-            try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
-                out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true, walletFile));
-            } catch (IOException e) {
-                throw new LocalConfigurationNotSavedException(e);
-            }
+            saveLocalConfigurationFile(autonomousDatabase,rSQLS,walletFile);
             section.printlnOK();
 
             section = Section.DatabaseConfiguration;
@@ -1698,8 +1706,7 @@ public class DSSession {
             String nextToken = null;
             boolean backupBucketExist = false;
             boolean dragonBucketExist = false;
-            final String backupBucketName = "backup_" + dbName.toLowerCase();
-            final String dragonBucketName = "dragon";
+
             do {
                 listBucketsBuilder.page(nextToken);
                 ListBucketsResponse listBucketsResponse = objectStorageClient.listBuckets(listBucketsBuilder.build());
@@ -1716,11 +1723,8 @@ public class DSSession {
 
             if (!dragonBucketExist) {
                 section.print("creating dragon bucket");
-                createManualBucket(namespaceName, dragonBucketName, true);
+                dragonBucketName = createManualBucket(namespaceName, dragonBucketName, true);
             }
-
-            identityClient = new IdentityClient(provider);
-            GetUserResponse userResponse = identityClient.getUser(GetUserRequest.builder().userId(configFile.get(CONFIG_USER)).build());
 
             section.print("database setup");
 
@@ -1739,7 +1743,7 @@ public class DSSession {
             if (!databaseType.isFree()) {
                 if (!backupBucketExist) {
                     section.print("creating manual backup bucket");
-                    createManualBucket(namespaceName, backupBucketName, false);
+                    backupBucketName = createManualBucket(namespaceName, backupBucketName, false);
                 }
 
                 section.print("database backup setup");
@@ -1748,7 +1752,7 @@ public class DSSession {
 
                 try {
                     adminRSQLS.execute(String.format(
-                            "ALTER DATABASE PROPERTY SET default_bucket='https://swiftobjectstorage." + getRegionForURL() + ".oraclecloud.com/v1/" + namespaceName + "';\n" +
+                            "ALTER DATABASE PROPERTY SET default_backup_bucket='https://swiftobjectstorage." + getRegionForURL() + ".oraclecloud.com/v1/" + namespaceName + "/"+backupBucketName+"';\n" +
                                     "BEGIN\n" +
                                     "    DBMS_CLOUD.CREATE_CREDENTIAL(credential_name => 'BACKUP_CREDENTIAL_NAME', username => '%s', password => '%s');\n" +
                                     "    COMMIT;\n" +
@@ -1762,6 +1766,9 @@ public class DSSession {
             }
 
             section.printlnOK();
+
+            // re-save to reflect the potential changes because of bucket names changed from default!
+            saveLocalConfigurationFile(autonomousDatabase,rSQLS,walletFile);
 
             if (loadJSON) {
                 section = Section.LoadDataIntoCollections;
@@ -1785,6 +1792,14 @@ public class DSSession {
         } catch (BmcException be) {
             section.printlnKO();
             throw be;
+        }
+    }
+
+    private void saveLocalConfigurationFile(AutonomousDatabase autonomousDatabase, ADBRESTService rSQLS, File walletFile) throws LocalConfigurationNotSavedException {
+        try (PrintWriter out = new PrintWriter(new BufferedOutputStream(new FileOutputStream(LOCAL_CONFIGURATION_FILENAME)))) {
+            out.println(getConfigurationAsJSON(autonomousDatabase, rSQLS, true, walletFile));
+        } catch (IOException e) {
+            throw new LocalConfigurationNotSavedException(e);
         }
     }
 
@@ -1950,21 +1965,21 @@ public class DSSession {
 
         try {
             rSQLS.execute(String.format("create user %s identified by \"%s\" DEFAULT TABLESPACE DATA TEMPORARY TABLESPACE TEMP;\n" +
-                    "alter user %s quota unlimited on data;\n" +
-                    "grant dwrole, create session, soda_app, graph_developer, oml_developer, alter session, select_catalog_role to %s;\n" +
-                    "alter user %s grant connect through GRAPH$PROXY_USER;\n" +
-                    "alter user %s grant connect through OML$PROXY;\n" +
-                    "grant execute on CTX_DDL to %s;\n" +
-                    "grant select any dictionary to %s;\n" +
-                    "grant select on dba_rsrc_consumer_group_privs to %s;\n" +
-                    "grant execute on dbms_session to %s;\n" +
-                    "grant select on sys.v_$services to %s;\n" +
-                    "grant alter session to %s;" +
-                    "grant execute on DBMS_AUTO_INDEX to %s;\n" +
-                    "BEGIN\n" +
-                    "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => '%s', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => '%s', p_auto_rest_auth => TRUE);\n" +
-                    "END;\n" +
-                    "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD),
+                            "alter user %s quota unlimited on data;\n" +
+                            "grant dwrole, create session, soda_app, graph_developer, oml_developer, alter session, select_catalog_role to %s;\n" +
+                            "alter user %s grant connect through GRAPH$PROXY_USER;\n" +
+                            "alter user %s grant connect through OML$PROXY;\n" +
+                            "grant execute on CTX_DDL to %s;\n" +
+                            "grant select any dictionary to %s;\n" +
+                            "grant select on dba_rsrc_consumer_group_privs to %s;\n" +
+                            "grant execute on dbms_session to %s;\n" +
+                            "grant select on sys.v_$services to %s;\n" +
+                            "grant alter session to %s;" +
+                            "grant execute on DBMS_AUTO_INDEX to %s;\n" +
+                            "BEGIN\n" +
+                            "    ords_admin.enable_schema(p_enabled => TRUE, p_schema => '%s', p_url_mapping_type => 'BASE_PATH', p_url_mapping_pattern => '%s', p_auto_rest_auth => TRUE);\n" +
+                            "END;\n" +
+                            "/", databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD),
                     databaseUserName,
                     databaseUserName,
                     databaseUserName,
@@ -1980,17 +1995,43 @@ public class DSSession {
         return region.replaceAll("_", "-").toLowerCase();
     }
 
-    private void createManualBucket(String namespaceName, String bucketName, boolean enableCloudEvents) throws ObjectStorageBucketCreationFailedException {
-        CreateBucketRequest request = CreateBucketRequest.builder().namespaceName(namespaceName).createBucketDetails(
-                CreateBucketDetails.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).name(bucketName).objectEventsEnabled(enableCloudEvents).build()
-        ).build();
+    /**
+     * Will create an OCI Object Storage bucket.
+     *
+     * @param namespaceName
+     * @param bucketName
+     * @param enableCloudEvents
+     * @throws ObjectStorageBucketCreationFailedException
+     */
+    private String createManualBucket(String namespaceName, String bucketName, boolean enableCloudEvents) throws ObjectStorageBucketCreationFailedException {
 
-        CreateBucketResponse response = objectStorageClient.createBucket(request);
+        String realBucketName = bucketName;
 
-        if (response.getBucket() == null || !response.getBucket().getName().equals(bucketName)) {
-            section.printlnKO();
-            throw new ObjectStorageBucketCreationFailedException(bucketName);
-        }
+        int bucketSuffix = 0;
+
+        do {
+            CreateBucketRequest request = CreateBucketRequest.builder().namespaceName(namespaceName).createBucketDetails(
+                    CreateBucketDetails.builder().compartmentId(configFile.get(CONFIG_COMPARTMENT_ID)).name(realBucketName).objectEventsEnabled(enableCloudEvents).build()
+            ).build();
+
+            try {
+                CreateBucketResponse response = objectStorageClient.createBucket(request);
+
+                if (response.getBucket() == null || !response.getBucket().getName().equals(realBucketName)) {
+                    section.printlnKO();
+                    throw new ObjectStorageBucketCreationFailedException(realBucketName);
+                }
+
+                return realBucketName;
+
+            } catch (BmcException be) {
+                if(be.getStatusCode() == 409 && "BucketAlreadyExists".equals(be.getServiceCode())) {
+                    realBucketName = String.format("%s-%d",bucketName, ++bucketSuffix);
+                } else {
+                    throw be;
+                }
+            }
+        } while (true);
     }
 
     private void createCollections(ADBRESTService rSQLS, AutonomousDatabase adb, File walletFile) {
@@ -2024,10 +2065,12 @@ public class DSSession {
                         "\"sodaAPI\": \"%s\",\n" +
                         "\"version\": \"%s\",\n" +
                         "\"apexVersion\": \"%s\",\n" +
-                        "\"ordsVersion\": \"%s\"" +
+                        "\"ordsVersion\": \"%s\",\n" +
+                        "\"uploadBucketName\": \"%s\",\n" +
+                        "\"manualBackupBucketName\": \"%s\"" +
                         (local ? ",\n\"dbName\": \"%s\",\n\"dbUserName\": \"%s\",\n\"dbUserPassword\": \"%s\"" + (walletFile != null ? ",\n\"walletFile\": \"%s\",\n\"extractedWallet\": \"%s\"" : "%s%s")
                                 : "") +
-                        "}",
+                        "\n}",
                 adb.getId(),
                 adb.getServiceConsoleUrl(),
                 adb.getConnectionUrls().getSqlDevWebUrl(),
@@ -2040,6 +2083,8 @@ public class DSSession {
                 adb.getDbVersion(),
                 adb.getApexDetails().getApexVersion(),
                 adb.getApexDetails().getOrdsVersion(),
+                dragonBucketName,
+                backupBucketName,
                 dbName, databaseUserName, configFile.get(CONFIG_DATABASE_PASSWORD),
                 walletFile == null ? "" :
                         walletFile.getAbsolutePath().replace('\\', '/'),
