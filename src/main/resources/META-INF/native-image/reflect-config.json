@@ -197,6 +197,12 @@
   "allDeclaredConstructors":true
 },
 {
+  "name":"com.oracle.bmc.database.model.CustomerContact",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true,
+  "allDeclaredConstructors":true
+},
+{
   "name":"com.oracle.bmc.database.model.CustomerContact$Builder",
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
@@ -241,6 +247,11 @@
   "allDeclaredFields":true,
   "allDeclaredMethods":true,
   "allDeclaredConstructors":true
+},
+{
+  "name":"com.oracle.bmc.objectstorage.model.Bucket$AutoTiering",
+  "allDeclaredFields":true,
+  "allDeclaredMethods":true
 },
 {
   "name":"com.oracle.bmc.objectstorage.model.Bucket$Builder",
@@ -1229,6 +1240,10 @@
 },
 {
   "name":"sun.security.rsa.RSAPSSSignature",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.rsa.RSASignature$SHA1withRSA",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
