@@ -1,5 +1,5 @@
 {
-  "requires": ["jdk11","sqlcl"],
+  "requires": ["jdk11","mvn","sqlcl"],
   "url": "https://github.com/loiclefevre/rtgenerator/archive/refs/heads/main.zip",
   "skipDirectoryLevel": 1,
   "codePatchers": ["POMAnalyzer"],
