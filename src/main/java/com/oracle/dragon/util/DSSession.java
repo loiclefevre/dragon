@@ -997,24 +997,6 @@ public class DSSession {
 
             dbClient = new DatabaseClient(provider);
             dbClient.setRegion(region);
-
-            limitsClient = new LimitsClient(provider);
-            limitsClient.setRegion(region);
-
-			/*
-		ListLimitDefinitionsRequest listLimitDefinitionsRequest =
-				ListLimitDefinitionsRequest.builder()
-						.compartmentId(configFile.get(CONFIG_TENANCY_ID))
-						.build();
-
-		ListLimitDefinitionsResponse listLimitDefinitionsResponse =
-				client.listLimitDefinitions(listLimitDefinitionsRequest);
-		for (LimitDefinitionSummary summary : listLimitDefinitionsResponse.getItems()) {
-			System.out.println("Service Name: " + summary.getServiceName());
-			System.out.println("Limit Name: " + summary.getName());
-			System.out.println("Limit Description: " + summary.getDescription());
-		}*/
-
         } catch (IOException ioe) {
             section.printlnKO();
             throw new ConfigurationLoadException(ioe);
@@ -1469,6 +1451,23 @@ public class DSSession {
         try {
             // Verify we didn't reach the limit for Always Free Databases
             if (databaseType.isFree()) {
+                limitsClient = new LimitsClient(provider);
+                limitsClient.setRegion(region);
+
+                    /*
+                ListLimitDefinitionsRequest listLimitDefinitionsRequest =
+                        ListLimitDefinitionsRequest.builder()
+                                .compartmentId(configFile.get(CONFIG_TENANCY_ID))
+                                .build();
+
+                ListLimitDefinitionsResponse listLimitDefinitionsResponse =
+                        client.listLimitDefinitions(listLimitDefinitionsRequest);
+                for (LimitDefinitionSummary summary : listLimitDefinitionsResponse.getItems()) {
+                    System.out.println("Service Name: " + summary.getServiceName());
+                    System.out.println("Limit Name: " + summary.getName());
+                    System.out.println("Limit Description: " + summary.getDescription());
+                }*/
+
                 GetResourceAvailabilityRequest getResourceAvailabilityRequest =
                         GetResourceAvailabilityRequest.builder()
                                 .compartmentId(provider.getTenantId())

@@ -191,8 +191,10 @@ In order for the DRAGON Stack manager to be able to do its job, an OCI Policy mu
 Allow group DRAGON_Stack_Developers to manage buckets in compartment demos:json
 Allow group DRAGON_Stack_Developers to manage objects in compartment demos:json
 Allow group DRAGON_Stack_Developers to manage autonomous-database-family in compartment demos:json
+Allow group DRAGON_Stack_Developers to inspect work-requests in compartment demos:json
 Allow group DRAGON_Stack_Developers to read resource-availability in compartment demos:json
 Allow group DRAGON_Stack_Developers to use cloud-shell in tenancy
+Allow group DRAGON_Stack_Developers to inspect limits in tenancy
 ```
 
 Eventually, you may ask for some quota to be set on your compartment as well.
