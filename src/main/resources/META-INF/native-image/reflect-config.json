@@ -477,6 +477,9 @@
   "name":"java.security.cert.CertStoreParameters"
 },
 {
+  "name":"java.security.cert.PKIXRevocationChecker"
+},
+{
   "name":"java.security.interfaces.DSAPrivateKey"
 },
 {
@@ -543,6 +546,10 @@
   "name":"javax.xml.transform.stream.StreamSource"
 },
 {
+  "name":"org.bouncycastle.jcajce.provider.asymmetric.COMPOSITE$Mappings",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"org.bouncycastle.jcajce.provider.asymmetric.DH$Mappings",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
@@ -560,6 +567,10 @@
 },
 {
   "name":"org.bouncycastle.jcajce.provider.asymmetric.ECGOST$Mappings",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.bouncycastle.jcajce.provider.asymmetric.EdEC$Mappings",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
@@ -604,6 +615,10 @@
 },
 {
   "name":"org.bouncycastle.jcajce.provider.digest.GOST3411$Mappings",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.bouncycastle.jcajce.provider.digest.Haraka$Mappings",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
@@ -843,6 +858,10 @@
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
+  "name":"org.bouncycastle.jcajce.provider.symmetric.SipHash128$Mappings",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"org.bouncycastle.jcajce.provider.symmetric.Skipjack$Mappings",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
@@ -876,6 +895,10 @@
 },
 {
   "name":"org.bouncycastle.jcajce.provider.symmetric.XTEA$Mappings",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.bouncycastle.jcajce.provider.symmetric.Zuc$Mappings",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {

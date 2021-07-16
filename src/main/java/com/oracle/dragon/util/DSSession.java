@@ -1503,9 +1503,11 @@ public class DSSession {
             section.print("pending");
             identityClient = new IdentityClient(provider);
             GetUserResponse userResponse = identityClient.getUser(GetUserRequest.builder().userId(configFile.get(CONFIG_USER)).build());
-
+            
             final List<CustomerContact> customerContacts = new ArrayList<>();
-            customerContacts.add(CustomerContact.builder().email(userResponse.getUser().getEmail()).build());
+            if(userResponse.getUser().getEmail() != null) {
+                customerContacts.add(CustomerContact.builder().email(userResponse.getUser().getEmail()).build());
+            }
 
             CreateAutonomousDatabaseDetails createFreeRequest = CreateAutonomousDatabaseDetails.builder()
                     .dbVersion(dbVersion)
