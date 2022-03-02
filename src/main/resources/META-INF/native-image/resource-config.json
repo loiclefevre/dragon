@@ -64,7 +64,7 @@
     {"pattern":"\\Qstacks/create-jet-app/src/css/images/*\\E"},
     {"pattern":"\\Qstacks/create-jet-app/src/images/*\\E"},
     {"pattern":"\\Qstacks/create-jet-app/src/js/*\\E"},
-    {"pattern":"\\Qstacks/create-jet-app/.gitignore\\E"},
+    {"pattern":"\\Qstacks/create-jet-app/.gitignore.st\\E"},
     {"pattern":"\\Qstacks/create-jet-app/package.json.st\\E"},
     {"pattern":"\\Qstacks/create-jet-app/README.md\\E"},
     {"pattern":"\\Qstacks/create-jet-app/oraclejafconfig.json\\E"},

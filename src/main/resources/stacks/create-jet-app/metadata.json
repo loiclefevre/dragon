@@ -10,7 +10,7 @@
     "src/css/images/",
     "src/images/",
     "src/js/",
-    ".gitignore",
+    ".gitignore.st",
     "package.json.st",
     "README.md",
     "oraclejafconfig.json",
