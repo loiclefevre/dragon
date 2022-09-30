@@ -45,7 +45,7 @@ Learn about [Always Free cloud services](https://www.oracle.com/cloud/free/) now
 powershell wget https://github.com/loiclefevre/dragon/releases/download/v2.2.0/dragon-windows-x86_64-2.2.0.exe -OutFile dragon-windows-x86_64-2.2.0.exe
 ```
 ### MAC OS
-*You'd need to [notarize](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution) the application once downloaded*
+*You'd need to clear the quarantine flag of the application once downloaded*
 ```
 curl -L -O https://github.com/loiclefevre/dragon/releases/download/v2.2.0/dragon-osx-x86_64-2.2.0
 chmod +x dragon-osx-*
